@@ -6,7 +6,7 @@ from time import sleep
 from ._non_blocking import Deferred
 from ._utils import document, setTimeout
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 _transition = None
 _can_transition = hasattr(document, "startViewTransition")

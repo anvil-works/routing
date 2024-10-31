@@ -5,7 +5,7 @@ from ._navigate import get_nav_location
 from ._route import Route, sorted_routes
 from ._utils import ensure_dict, loads, make_key, trim_path, url_decode
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 
 class Match:
