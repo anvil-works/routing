@@ -9,7 +9,7 @@ from ._logger import logger
 from ._segments import Segment
 from ._utils import dumps, encode_query_params, ensure_dict, loads, url_encode
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 
 def clean_path(path, params):
