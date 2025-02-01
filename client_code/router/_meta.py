@@ -5,7 +5,7 @@ import anvil
 
 from ._utils import document
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 
 def get_or_create_tag(type):

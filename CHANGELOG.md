@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.3.3 (01/01/1970)
+## v0.3.4 (01/01/1970)
+## What's Changed
+### 📖 Documentation
+
+- improve docs [#54](https://github.com/anvil-works/routing/pull/54)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@pre-commit-ci[bot], @s-cork and @tc-gitacc
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.3.3...v0.3.4
+
+---
+
+## v0.3.3 (07/12/2024)
 ## What's Changed
 ### 🐛 Bug Fixes
 
