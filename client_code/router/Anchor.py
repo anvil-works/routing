@@ -3,7 +3,7 @@
 from ._BaseLinks import setup_base_anchor
 from ._LinkCommon import LinkMixinCommon, filter_props, nav_props
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 BaseAnchor = setup_base_anchor()
 

@@ -3,7 +3,7 @@
 
 from ._utils import trim_path
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 
 class Segment:
