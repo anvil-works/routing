@@ -188,19 +188,19 @@ def navigate(
     form_properties=None,
 ):
     logger.debug(
-        f"navigate called with: {context_or_path_or_url!r} " f"path={path!r} "
+        f"navigate called with: {context_or_path_or_url!r} path={path!r} "
         if path is not None
-        else "" f"params={params!r} "
+        else f"params={params!r} "
         if params is not None
-        else "" f"query={query!r} "
+        else f"query={query!r} "
         if query is not None
-        else "" f"hash={hash!r} "
+        else f"hash={hash!r} "
         if hash
-        else "" f"replace={replace!r} "
+        else f"replace={replace!r} "
         if replace
-        else "" f"nav_context={nav_context!r} "
+        else f"nav_context={nav_context!r} "
         if nav_context is not None
-        else "" f"form_properties={form_properties!r} "
+        else f"form_properties={form_properties!r} "
         if form_properties is not None
         else ""
     )
