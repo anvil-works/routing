@@ -8,7 +8,7 @@ import anvil.server
 
 from . import router
 
-__version__ = "0.3.3"
+__version__ = "0.3.5"
 
 
 def create_text_file(lines, name: str):
