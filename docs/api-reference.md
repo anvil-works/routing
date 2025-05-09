@@ -138,6 +138,9 @@ See the navigation documentation for advanced composition and usage patterns.
 `RoutingContext`
 : Provides information about the current route and navigation context. Passed to all forms instantiated by the routing library.
 
+`sorted_routes`
+: A list of all registered routes, sorted in the order they will be matched. Useful for introspection, generating sitemaps, or custom navigation logic.
+
 ## Components
 
 `NavLink.NavLink`
