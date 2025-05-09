@@ -102,6 +102,46 @@ See the navigation documentation for practical usage examples.
 : When a route needs to cache a form or data (more information in the [caching section](/caching/)), it does so by storing it in a global dictionary under a caching key. This key is composed of the route's path and the return of its `cache_deps` method at the moment of caching.
 : If, when accessing the same route, its `cache_deps` method returns something different than when caching first occured, the caching key points to a different place within the cache, usually empty. The router thus understands this as a new route and navigates to it again.
 
+## Setting Meta Tags Per Route
+
+To control meta tags for SEO and social sharing, override the `meta` method on your `Route` class. Return a dictionary of tags you want to set for that route. You can set any meta tag, including Open Graph and custom tags.
+
+**Example:**
+
+```python
+from routing.router import Route
+
+class ArticleRoute(Route):
+    path = "/articles/:id"
+    form = "Pages.Article"
+
+    def meta(self, **loader_args):
+        query = loader_args["query"]  # Use query params for dynamic meta
+        title = f"Article: {query.get('title', 'Untitled')}"
+        return {
+            "title": title,
+            "description": f"Viewing article: {title}",
+
+            "og:image": "asset:article_cover.png",  # use asset: prefix or a full URL
+            "twitter:card": "summary_large_image",  # arbitrary tags supported
+        }
+```
+
+**Fallbacks:**
+
+-   `og:title` and `og:description` will automatically use `title` and `description` if not set.
+-   If a meta tag is not set for a route, it falls back to the value present at app load.
+
+**Server vs Client Meta Tags:**
+
+-   `title`, `description`, `og:title` and `og:description` are set on the server.
+-   All other tags are set after page load on the client.
+
+**og:image:**
+
+-   Use a full URL (e.g., `"https://my-app.anvil.app/_/theme/image.png"`)
+-   Or use an asset from your app: `"asset:image.png"`
+
 ## Not Found Form
 
 There are two ways a route can be not found. The first is when the user navigates to a path that does not match any routes. The second is when a user raises a `NotFound` exception in a route's `before_load` or `load_data` method.

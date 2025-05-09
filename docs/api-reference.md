@@ -7,6 +7,27 @@ weight: -9.7
 The routing library provides the following functions, classes, and attributes.
 All attributes can be accessed from the `routing.router` module.
 
+## Router Configuration
+
+The router exposes a `config` dictionary for enabling or disabling advanced features. You should set these options where you define your routes (typically in your `routes.py` or equivalent):
+
+```python
+from routing import router
+
+# Opt out of automatic /sitemap.txt and /robots.txt
+router.config.update(
+    SITEMAP=False,
+    ROBOTS=False,
+)
+```
+
+**Config Options:**
+- `SITEMAP`: If `False`, disables the automatic `/sitemap.txt` route. Defaults to `True`.
+- `ROBOTS`: If `False`, disables the automatic `/robots.txt` route. Defaults to `True`.
+
+By default, both features are enabled.
+
+
 ## Functions
 
 `navigate(*, path=None, params=None, query=None, hash=None, replace=False, nav_context=None, form_properties=None)`
