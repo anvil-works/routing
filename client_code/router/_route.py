@@ -118,7 +118,7 @@ class Route:
     server_silent = False
     gc_time = 30 * 60
     default_not_found = False
-    private = False
+    sitemap = True
 
     @classmethod
     def create(cls, *, path=None, form=None, server_fn=None, **props):

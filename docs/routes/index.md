@@ -72,6 +72,9 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 `server_silent=False`
 : If `True` then the server function will be called using `anvil.server.call_s`. By default this is `False`.
 
+`sitemap=True`
+: Whether to include this route in the sitemap. By default this is `True`.
+
 ## Route Methods
 
 `before_load`
@@ -101,6 +104,23 @@ See the navigation documentation for practical usage examples.
 : Returns an object, by default the `query` dictionary (more information in the [query section](/routes/query/) and the [RoutingContext section](/routing-context/)). This method is part of the process of creating caching keys.
 : When a route needs to cache a form or data (more information in the [caching section](/caching/)), it does so by storing it in a global dictionary under a caching key. This key is composed of the route's path and the return of its `cache_deps` method at the moment of caching.
 : If, when accessing the same route, its `cache_deps` method returns something different than when caching first occured, the caching key points to a different place within the cache, usually empty. The router thus understands this as a new route and navigates to it again.
+
+
+## Excluding Routes from the Sitemap
+
+By default, all routes are included in the sitemap. To exclude a route from the sitemap, set `sitemap = False` on your `Route` class:
+
+```python
+from routing.router import Route
+
+class PrivateRoute(Route):
+    path = "/admin"
+    form = "Pages.Admin"
+    sitemap = False  # This route will NOT appear in the sitemap
+```
+
+Only routes with `sitemap = True` (the default) will be included in the sitemap.
+
 
 ## Setting Meta Tags Per Route
 

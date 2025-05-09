@@ -16,14 +16,14 @@ from routing import router
 
 # Opt out of automatic /sitemap.txt and /robots.txt
 router.config.update(
-    SITEMAP=False,
-    ROBOTS=False,
+    sitemap=False,
+    robots=False,
 )
 ```
 
 **Config Options:**
-- `SITEMAP`: If `False`, disables the automatic `/sitemap.txt` route. Defaults to `True`.
-- `ROBOTS`: If `False`, disables the automatic `/robots.txt` route. Defaults to `True`.
+- `sitemap`: If `False`, disables the automatic `/sitemap.txt` route. Defaults to `True`.
+- `robots`: If `False`, disables the automatic `/robots.txt` route. Defaults to `True`.
 
 By default, both features are enabled.
 
