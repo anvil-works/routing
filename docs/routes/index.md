@@ -137,10 +137,10 @@ class ArticleRoute(Route):
 -   `title`, `description`, `og:title` and `og:description` are set on the server.
 -   All other tags are set after page load on the client.
 
-**og:image:**
+**og:image and other assets:**
 
 -   Use a full URL (e.g., `"https://my-app.anvil.app/_/theme/image.png"`)
--   Or use an asset from your app: `"asset:image.png"`
+-   Or use an asset from your app: `"asset:image.png"` and it will be resolved to the full URL
 
 ## Not Found Form
 
