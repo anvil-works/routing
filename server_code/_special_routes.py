@@ -25,7 +25,7 @@ def site_map_iter():
     yield from (
         f"{origin}{route.path}"
         for route in router.sorted_routes
-        if not route.private and route.path
+        if not route.sitemap and route.path
     )
 
 
