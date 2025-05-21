@@ -1,6 +1,26 @@
 # Changelog
 
-## v0.3.5 (01/01/1970)
+## v0.3.6 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- fix: used cached_context when opening a cached form [#70](https://github.com/anvil-works/routing/pull/70)
+- fix: pass keyword arguments and use super() in Route.__init_subclass__ [#69](https://github.com/anvil-works/routing/pull/69)
+
+### 📖 Documentation
+
+- docs: add use_data API reference for shared route data access [#72](https://github.com/anvil-works/routing/pull/72)
+- Fix docs use of `loader_args` in `load_data` [#66](https://github.com/anvil-works/routing/pull/66)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@racersmith and @s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.3.5...v0.3.6
+
+---
+
+## v0.3.5 (09/05/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 

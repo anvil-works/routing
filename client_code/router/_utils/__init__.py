@@ -9,7 +9,7 @@ import anvil
 
 from .._constants import TIMEOUT
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 if anvil.is_server_side():
     from .server import (
