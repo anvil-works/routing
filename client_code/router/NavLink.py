@@ -10,7 +10,7 @@ from ._router import navigation_emitter
 from ._segments import Segment
 from ._utils import ensure_dict
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 BaseNavLink = setup_base_navlink()
 

@@ -13,7 +13,7 @@ from ._matcher import get_match_from_nav_args
 from ._non_blocking import Result, call_async
 from ._utils import await_promise, report_exceptions
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 
 @anvil.server.portable_class

@@ -13,7 +13,7 @@ from ._navigate import nav_args_to_location, navigate_with_location
 from ._router import navigation_emitter
 from ._utils import ensure_dict
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 
 def _temp_hack_to_get_form(self):
