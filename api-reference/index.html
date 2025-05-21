@@ -175,6 +175,11 @@ All attributes can be accessed from the <code>routing.router</code> module.</p>
 <dd>Removes an event handler for the given event name.</dd>
 <dt><code>get_routing_context()</code></dt>
 <dd>Returns the current routing context.</dd>
+<dt><code>use_data(context_or_path_or_url=None, *, path=None, params=None, query=None, hash=None)</code></dt>
+<dd>Loads and returns the data for the specified url/context (or for the specified path/params/query/hash). Returns the data (or raises if there is an error). If called with no arguments, uses the current navigation context.</dd>
+</dl>
+<p>Can be useful for routes that share data. Or layouts that need access to the data for the current route.</p>
+<dl>
 <dt><code>get_url()</code></dt>
 <dt><code>get_url(*, path=None, params=None, query=None, hash=None, full=False)</code></dt>
 <dt><code>get_url(path, **kws)</code></dt>
