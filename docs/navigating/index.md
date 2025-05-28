@@ -144,3 +144,83 @@ class DashboardRoute(Route):
 ```
 
 In this example, `routing_context.nav_context["show_sidebar"]` will be `True` when the form is loaded.
+
+---
+
+## Advanced: Composing before_load Hooks
+
+The `@before_load_hook` decorator enables you to compose multiple hooks for a single route, supporting advanced patterns such as mixins, inheritance, and global hooks.
+
+### Multiple Hooks and Inheritance
+
+Hooks are collected from all base classes in method resolution order (MRO), so you can layer behaviors:
+
+```python
+from routing.router import Route, before_load_hook
+
+class AuthenticatedRoute(Route):
+    @before_load_hook
+    def check_auth(self, **loader_args):
+        if not user_is_authenticated():
+            raise Redirect(path="/login")
+        return {"user": get_current_user()}
+
+class FeatureFlagMixin:
+    @before_load_hook
+    def add_feature_flag(self, **loader_args):
+        return {"feature_enabled": True}
+
+class DashboardRoute(FeatureFlagMixin, AuthenticatedRoute):
+    path = "/dashboard"
+    form = "Pages.Dashboard"
+
+    @before_load_hook
+    def dashboard_flag(self, **loader_args):
+        return {"show_dashboard": True}
+```
+
+Hooks will run in base-to-leaf order: `check_auth` → `add_feature_flag` → `dashboard_flag`.
+
+### Global Hooks
+
+You can attach a hook to the `Route` base class to apply it to all routes:
+
+```python
+@before_load_hook
+def global_hook(self, **loader_args):
+    # e.g., add analytics or logging
+    return {"analytics_id": "xyz"}
+
+Route.global_hook = global_hook
+```
+
+### Best Practices
+- Each hook should return only the context it wants to add (or raise for control flow).
+- Hooks should expect a `nav_context` kwarg and can read or update it for composable navigation logic.
+- Hooks may also return a dict with additional context to be merged into `nav_context` after the hook runs. This allows both direct mutation and returned values to contribute to the final context.
+
+- Use mixins or base classes to share common hooks across multiple routes.
+- Global hooks are powerful for cross-cutting concerns, but use them judiciously to avoid surprises.
+
+**Example:**
+```python
+from routing.router import Route, before_load_hook, Redirect
+
+class AuthenticatedRoute(Route):
+    @before_load_hook
+    def set_user(self, nav_context, **loader_args):
+        nav_context["user"] = get_current_user()
+
+    @before_load_hook
+    def check_permissions(self, nav_context, **loader_args):
+        user = nav_context.get("user")
+        if not user or not user.has_permission():
+            raise Redirect(path="/login")
+
+class FeatureRoute(AuthenticatedRoute):
+    @before_load_hook
+    def add_feature_flag(self, nav_context, **loader_args):
+        nav_context["feature_enabled"] = True
+```
+
+Hooks are called in order, and each can build on the output of previous hooks via `nav_context`.

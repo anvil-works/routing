@@ -102,6 +102,17 @@ def _create_server_route(cls):
         return AppResponder(data={"cache": CACHED_DATA}, meta=meta).load_app()
 
 
+def before_load_hook(func):
+    """
+    Decorator to register a method as a before_load hook for a Route.
+    Hooks are called in the order they are defined on the class.
+    Each hook receives a 'nav_context' keyword argument (the context dict accumulated so far),
+    which can be read and updated for composable navigation logic.
+    """
+    func._is_before_load_hook = True
+    return func
+
+
 class Route:
     path = None
     segments = []
@@ -132,7 +143,15 @@ class Route:
         return type(name, (cls,), cls_dict)
 
     def before_load(self, **loader_args):
-        return {}
+        # Use nav_context from loader_args if present, else start with empty dict
+        ctx = loader_args.pop("nav_context", {})
+        hooks = getattr(self.__class__, "_before_load_hooks", [])
+        for hook in hooks:
+            # Pass nav_context to each hook for composability
+            result = hook(self, nav_context=ctx, **loader_args)
+            if result:
+                ctx.update(result)
+        return ctx
 
     def cache_deps(self, **loader_args):
         return loader_args["query"]
@@ -173,6 +192,15 @@ class Route:
 
     def __init_subclass__(cls, **kws) -> None:
         super().__init_subclass__(**kws)
+
+        # Collect all @before_load_hook methods in MRO order, preserve definition order
+        hooks = []
+        for base in cls.__mro__:
+            for attr in base.__dict__.values():
+                if getattr(attr, "_is_before_load_hook", False):
+                    hooks.append(attr)
+        # Reverse to get base-to-leaf order (so hooks run from base to subclass)
+        cls._before_load_hooks = list(reversed(hooks))
 
         if cls.__dict__.get("default_not_found"):
             cls.set_default_not_found(cls)
