@@ -144,3 +144,26 @@ class DashboardRoute(Route):
 ```
 
 In this example, `routing_context.nav_context["show_sidebar"]` will be `True` when the form is loaded.
+
+#### Composing `before_load` with Inheritance
+
+When subclassing routes or using mixins, it is important to ensure that all `before_load` logic runs and that navigation context dictionaries are merged correctly. The recommended approach is to always call `super().before_load(**loader_args) or {}` in your subclass, and then merge or update the returned dictionary with your own additions.
+
+**Example:**
+
+```python
+class AuthenticatedRoute(Route):
+    def before_load(self, **loader_args):
+        user = anvil.users.get_user()
+        if user is None:
+            raise Redirect(path="/login")
+        return {"user": user}
+
+class DashboardRoute(AuthenticatedRoute):
+    def before_load(self, **loader_args):
+        ctx = super().before_load(**loader_args) or {}
+        ctx["dashboard_loaded"] = True
+        return ctx
+```
+
+If you use mixins, always call `super().before_load(**loader_args) or {}` in each mixin as well. This ensures all hooks are run and their results are merged into the navigation context.
