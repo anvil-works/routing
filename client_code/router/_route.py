@@ -11,7 +11,7 @@ from ._import_utils import import_form
 from ._logger import logger
 from ._navigate import nav_args_to_location, navigate
 from ._segments import Segment
-from ._utils import encode_query_params, trim_path
+from ._utils import encode_query_params, ensure_dict, trim_path
 
 __version__ = "0.3.5"
 
@@ -52,7 +52,9 @@ def _create_server_route(cls):
         context = RoutingContext(match=match)
 
         try:
-            route.before_load(**context._loader_args)
+            nav_context = route.before_load(**context._loader_args)
+            nav_context = ensure_dict(nav_context, "before_load")
+            context.nav_context.update(nav_context)
         except Redirect as r:
             location = nav_args_to_location(
                 path=r.path,
@@ -130,7 +132,7 @@ class Route:
         return type(name, (cls,), cls_dict)
 
     def before_load(self, **loader_args):
-        pass
+        return {}
 
     def cache_deps(self, **loader_args):
         return loader_args["query"]

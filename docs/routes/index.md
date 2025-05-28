@@ -75,7 +75,9 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 ## Route Methods
 
 `before_load`
-: Called before the route is matched. This method can raise a `Redirect` exception to redirect to a different route. By default this returns `None`.
+: Called before the route is matched. If it raises a `Redirect`, navigation is redirected. If it returns a dictionary, its contents are merged into the navigation context (`nav_context`).
+
+See the navigation documentation for practical usage examples.
 
 `parse_query`
 : Should return a dictionary of query parameters. By default this returns the original query parameters.

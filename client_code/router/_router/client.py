@@ -146,7 +146,9 @@ def _do_navigate(context):
             route.load_form(form, context)
 
     try:
-        route.before_load(**context._loader_args)
+        nav_context = route.before_load(**context._loader_args)
+        nav_context = ensure_dict(nav_context, "before_load")
+        context.nav_context.update(nav_context)
     except Redirect as r:
         return navigate(**r.__dict__, replace=True)
     except NotFound as e:

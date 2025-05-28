@@ -129,3 +129,18 @@ class FooForm(FooFormTemplate):
             # No nav-context - the user navigated directly to the form by changing the URL
             router.navigate(path="/")
 ```
+
+#### Updating `nav_context` from `before_load`
+
+You can also update the navigation context from a route's `before_load` method by returning a dictionary. The returned dictionary will be merged into `nav_context` for the route:
+
+```python
+class DashboardRoute(Route):
+    path = "/dashboard"
+    form = "Pages.Dashboard"
+    def before_load(self, **loader_args):
+        # Add a value to nav_context for this navigation
+        return {"show_sidebar": True}
+```
+
+In this example, `routing_context.nav_context["show_sidebar"]` will be `True` when the form is loaded.

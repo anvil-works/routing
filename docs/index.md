@@ -15,7 +15,8 @@ The ultimate goal is to open the form associated with the given URL.
 The router will attempt to match routes in the order they are defined.
 
 When a route is found, the router will call the route's `before_load` method.
-If the `before_load` method raises a `Redirect`, the router will navigate to the redirected URL.
+- If the `before_load` method raises a `Redirect`, the router will navigate to the redirected URL.
+- If the `before_load` method returns a dictionary, its contents will be merged into the navigation context (`nav_context`) for the route.
 
 If the route has a `load_data` method, it will be called, and the return value will be available as the `data` property on the `RoutingContext`.
 
