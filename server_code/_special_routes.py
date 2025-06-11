@@ -55,9 +55,14 @@ def get_robots():
     return anvil.server.HttpResponse(200, file)
 
 
-if router.config.get("sitemap"):
+try:
+    routing_config = anvil.app.get_client_config("routing")
+except AttributeError:
+    routing_config = {}
+
+if routing_config.get("sitemap"):
     router.logger.debug("Sitemap enabled")
     anvil.server.route("/sitemap.txt")(get_sitemap)
-if router.config.get("robots"):
+if routing_config.get("robots"):
     router.logger.debug("Robots enabled")
     anvil.server.route("/robots.txt")(get_robots)

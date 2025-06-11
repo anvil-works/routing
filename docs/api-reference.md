@@ -9,17 +9,7 @@ All attributes can be accessed from the `routing.router` module.
 
 ## Router Configuration
 
-The router exposes a `config` dictionary for enabling or disabling advanced features. You should set these options where you define your routes (typically in your `routes.py` or equivalent):
-
-```python
-from routing import router
-
-# Opt out of automatic /sitemap.txt and /robots.txt
-router.config.update(
-    sitemap=False,
-    robots=False,
-)
-```
+When adding the routing library as a dependency, in the Anvil IDE, click the "edit" icon next to the routing library in the dependencies list. This will allow you to change the configuration options.
 
 **Config Options:**
 - `sitemap`: If `False`, disables the automatic `/sitemap.txt` route. Defaults to `True`.

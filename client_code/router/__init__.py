@@ -26,12 +26,6 @@ from ._view_transition import use_transitions
 
 __version__ = "0.3.5"
 
-# Router config for server-side features
-config = {
-    "sitemap": True,
-    "robots": True,
-}
-
 
 def add_event_handler(event_name, fn):
     return navigation_emitter.add_event_handler(event_name, fn)
