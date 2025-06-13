@@ -5,15 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Forms - Routing Docs</title>
+    <title>Route Meta Method - Routing Docs</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Forms";
-        var mkdocs_page_input_path = "routes/forms.md";
+        var mkdocs_page_name = "Route Meta Method";
+        var mkdocs_page_input_path = "routes/meta.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -68,13 +68,25 @@
               <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../">Route Class</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Forms</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../forms/">Forms</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Route Meta Method</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#open_form-alternative">open_form Alternative</a>
+    <li class="toctree-l2"><a class="reference internal" href="#defining-meta-tags">Defining Meta Tags</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#basic-example">Basic Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#using-get_app_origin-for-absolute-urls">Using get_app_origin() for Absolute URLs</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#example-adding-twitter-card-tags">Example: Adding Twitter Card Tags</a>
+    </li>
+        </ul>
     </li>
     </ul>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../meta/">Route Meta Method</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../params/">Params</a>
                   </li>
@@ -128,7 +140,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Routes</li>
-      <li class="breadcrumb-item active">Forms</li>
+      <li class="breadcrumb-item active">Route Meta Method</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -137,45 +149,77 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h2 id="forms">Forms<a class="headerlink" href="#forms" title="Permanent link">&para;</a></h2>
-<p>The <code>Route.load_form</code> method is called when the route is matched. The default implementation will call <code>anvil.open_form</code> on the matching route's form.</p>
-<pre><code class="language-python">class Route:
-    def load_form(self, form, routing_context):
-        return anvil.open_form(
-            form, routing_context=routing_context, **routing_context.form_properties
-        )
+                <h1 id="route-meta-method">Route Meta Method<a class="headerlink" href="#route-meta-method" title="Permanent link">&para;</a></h1>
+<p>The <code>meta</code> method on a <code>Route</code> class allows you to dynamically set the meta tags for each page, such as the title, description, Open Graph tags, and images. This is useful for SEO, social sharing, and customizing how your app appears in search engines and link previews.</p>
+<h2 id="defining-meta-tags">Defining Meta Tags<a class="headerlink" href="#defining-meta-tags" title="Permanent link">&para;</a></h2>
+<p>Override the <code>meta</code> method in your route class to return a dictionary of meta tags. Standard tags (like <code>title</code> or <code>description</code>) will be rendered as <code>&lt;meta name="..."&gt;</code> tags, while Open Graph tags (such as <code>og:title</code> or <code>og:image</code>) will be rendered as <code>&lt;meta property="..."&gt;</code> tags in the HTML.</p>
+<h3 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">&para;</a></h3>
+<pre><code class="language-python">from routing import Route
+
+class ProductRoute(Route):
+    path = &quot;/product&quot;
+    form = &quot;Pages.Product&quot;
+
+    def meta(self, **kwargs):
+        meta_data = {}
+        meta_data['title'] = &quot;Product Page&quot;
+        meta_data['description'] = &quot;Details and specifications for our featured product.&quot;
+        meta_data['og:title'] = &quot;Featured Product&quot;
+        meta_data['og:description'] = &quot;Learn more about our latest product release.&quot;
+        meta_data[&quot;og:image&quot;] = &quot;asset:product.jpeg&quot;  # Use a theme asset
+        return meta_data
 </code></pre>
-<p>This method will be called with the form attribute (e.g. <code>"Pages.Index"</code>) or, if you are using cached forms, the cached form instance.</p>
-<h3 id="open_form-alternative"><code>open_form</code> Alternative<a class="headerlink" href="#open_form-alternative" title="Permanent link">&para;</a></h3>
-<p>If you are using traditional routing in your Anvil app, you may have a template with a <code>content_panel</code>, and during navigation, you clear the content panel and then add the new form to the panel.</p>
-<p>If you want to use this style of routing, the routing library provides a <code>TemplateWithContainerRoute</code> class. This class overrides the <code>load_form</code> method.</p>
-<pre><code class="language-python">from routing.router import TemplateWithContainerRoute as BaseRoute
+<h3 id="using-get_app_origin-for-absolute-urls">Using <code>get_app_origin()</code> for Absolute URLs<a class="headerlink" href="#using-get_app_origin-for-absolute-urls" title="Permanent link">&para;</a></h3>
+<p>If you want to provide an absolute URL for Open Graph images (recommended for social sharing), you can use the <code>get_app_origin()</code> utility:</p>
+<pre><code class="language-python">from routing import Route, get_app_origin
 
-BaseRoute.template = &quot;MainTemplate&quot;
+class AboutRoute(Route):
+    path = &quot;/about&quot;
+    form = &quot;Pages.About&quot;
 
-class IndexRoute(BaseRoute):
-    path = &quot;/&quot;
-    form = &quot;Pages.Index&quot;
+    def meta(self, **kwargs):
+        origin = get_app_origin()
+        meta_data = {
+            'title': &quot;About Us&quot;,
+            'description': &quot;Information about our company and team.&quot;,
+            'og:title': &quot;About Our Company&quot;,
+            'og:description': &quot;Discover our mission, values, and team members.&quot;,
+            'og:image': f&quot;{origin}/_/theme/about.jpeg&quot;  # Absolute URL
+        }
+        return meta_data
 </code></pre>
-<p>In this case, the <code>load_form</code> method will call <code>anvil.open_form</code> on the template form (if it is not already the current open form). It will then instantiate the form, clear the <code>content_panel</code> of the template, and add the form to the panel.</p>
-<p>If you are using something other than <code>content_panel</code>, you can set the <code>template_container</code> attribute to the container name.</p>
-<p>You can also set the <code>template_container_properties</code> attribute to a dictionary of container properties. This is useful if you want to set the <code>full_width_row</code> attribute.</p>
-<pre><code class="language-python">from routing.router import TemplateWithContainerRoute as BaseRoute
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>All meta tags will be injected into the page as <code>&lt;meta ...&gt;</code> tags, except for <code>title</code>, which will be used for both the <code>&lt;title&gt;</code> tag and a <code>&lt;meta name="title"&gt;</code> tag.</li>
+<li>You can set any meta tag supported by your app or required by social platforms. Arbitrary meta tags are supported (e.g., Twitter cards <code>twitter:card</code>, <code>twitter:image</code>).</li>
+<li>If a meta value starts with <code>asset:</code>, such as <code>asset:foo.jpeg</code>, it will use the corresponding URL for an asset in your app’s Assets or theme assets folder.</li>
+<li>For absolute URLs, use <code>get_app_origin()</code> to construct the full URL.</li>
+<li>If a route does not define a particular meta tag, the value from a default or previously set meta tag may be used. For consistency and to avoid unexpected results, it’s recommended to explicitly define all relevant meta tags for each route.</li>
+</ul>
+<h3 id="example-adding-twitter-card-tags">Example: Adding Twitter Card Tags<a class="headerlink" href="#example-adding-twitter-card-tags" title="Permanent link">&para;</a></h3>
+<pre><code class="language-python">class BlogPostRoute(Route):
+    path = &quot;/blog/post&quot;
+    form = &quot;Pages.BlogPost&quot;
 
-BaseRoute.template = &quot;MainTemplate&quot;
-BaseRoute.template_container = &quot;content_panel&quot;
-BaseRoute.template_container_properties = {&quot;full_width_row&quot;: True}
-
-class IndexRoute(BaseRoute):
-    path = &quot;/&quot;
-    form = &quot;Pages.Index&quot;
+    def meta(self, **kwargs):
+        meta_data = {
+            'title': &quot;Blog Post Title&quot;,
+            'description': &quot;A summary of the blog post.&quot;,
+            'twitter:card': &quot;summary_large_image&quot;,
+            'twitter:title': &quot;Blog Post Title&quot;,
+            'twitter:description': &quot;A summary of the blog post.&quot;,
+            'twitter:image': &quot;asset:blogpost.jpeg&quot;,  # Uses an app asset
+        }
+        return meta_data
 </code></pre>
+<hr />
+<p>For more details on available meta tags and advanced usage, see the <a href="../seo.md">SEO &amp; Meta Tags guide</a> or the <a href="../">Route class documentation</a>.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../" class="btn btn-neutral float-left" title="Route Class"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../meta/" class="btn btn-neutral float-right" title="Route Meta Method">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../forms/" class="btn btn-neutral float-left" title="Forms"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../params/" class="btn btn-neutral float-right" title="Params">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -198,10 +242,10 @@ class IndexRoute(BaseRoute):
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../forms/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../meta/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../params/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

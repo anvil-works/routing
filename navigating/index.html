@@ -68,6 +68,20 @@
     <li class="toctree-l3"><a class="reference internal" href="#use-of-form_properties">Use of form_properties</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#use-of-nav_context">Use of nav_context</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#updating-nav_context-from-before_load">Updating nav_context from before_load</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#advanced-composing-hooksbefore_loads">Advanced: Composing hooks.before_loads</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#multiple-hooks-and-inheritance">Multiple Hooks and Inheritance</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#global-hooks">Global Hooks</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a>
     </li>
         </ul>
     </li>
@@ -83,6 +97,8 @@
                   <li class="toctree-l1"><a class="reference internal" href="../routes/">Route Class</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
@@ -246,6 +262,85 @@ class FooForm(FooFormTemplate):
             # No nav-context - the user navigated directly to the form by changing the URL
             router.navigate(path=&quot;/&quot;)
 </code></pre>
+<h4 id="updating-nav_context-from-before_load">Updating <code>nav_context</code> from <code>before_load</code><a class="headerlink" href="#updating-nav_context-from-before_load" title="Permanent link">&para;</a></h4>
+<p>You can also update the navigation context from a route's <code>before_load</code> method by returning a dictionary. The returned dictionary will be merged into <code>nav_context</code> for the route:</p>
+<pre><code class="language-python">class DashboardRoute(Route):
+    path = &quot;/dashboard&quot;
+    form = &quot;Pages.Dashboard&quot;
+    def before_load(self, **loader_args):
+        # Add a value to nav_context for this navigation
+        return {&quot;show_sidebar&quot;: True}
+</code></pre>
+<p>In this example, <code>routing_context.nav_context["show_sidebar"]</code> will be <code>True</code> when the form is loaded.</p>
+<hr />
+<h2 id="advanced-composing-hooksbefore_loads">Advanced: Composing hooks.before_loads<a class="headerlink" href="#advanced-composing-hooksbefore_loads" title="Permanent link">&para;</a></h2>
+<p>The <code>@hooks.before_load</code> decorator enables you to compose multiple hooks for a single route, supporting advanced patterns such as mixins, inheritance, and global hooks.</p>
+<h3 id="multiple-hooks-and-inheritance">Multiple Hooks and Inheritance<a class="headerlink" href="#multiple-hooks-and-inheritance" title="Permanent link">&para;</a></h3>
+<p>Hooks are collected from all base classes in method resolution order (MRO), so you can layer behaviors:</p>
+<pre><code class="language-python">from routing.router import Route, hooks, Redirect
+
+class AuthenticatedRoute(Route):
+    @hooks.before_load
+    def check_auth(self, **loader_args):
+        if not user_is_authenticated():
+            raise Redirect(path=&quot;/login&quot;)
+        return {&quot;user&quot;: get_current_user()}
+
+class FeatureFlagMixin:
+    @hooks.before_load
+    def add_feature_flag(self, **loader_args):
+        return {&quot;feature_enabled&quot;: True}
+
+class DashboardRoute(FeatureFlagMixin, AuthenticatedRoute):
+    path = &quot;/dashboard&quot;
+    form = &quot;Pages.Dashboard&quot;
+
+    @hooks.before_load
+    def dashboard_flag(self, **loader_args):
+        return {&quot;show_dashboard&quot;: True}
+</code></pre>
+<p>Hooks will run in base-to-leaf order: <code>check_auth</code> → <code>add_feature_flag</code> → <code>dashboard_flag</code>.</p>
+<h3 id="global-hooks">Global Hooks<a class="headerlink" href="#global-hooks" title="Permanent link">&para;</a></h3>
+<p>You can attach a hook to the <code>Route</code> base class to apply it to all routes:</p>
+<pre><code class="language-python">@hooks.before_load
+def global_hook(self, **loader_args):
+    # e.g., add analytics or logging
+    return {&quot;analytics_id&quot;: &quot;xyz&quot;}
+
+Route.global_hook = global_hook
+</code></pre>
+<h3 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Each hook should return only the context it wants to add (or raise for control flow).</li>
+<li>Hooks should expect a <code>nav_context</code> kwarg and can read or update it for composable navigation logic.</li>
+<li>
+<p>Hooks may also return a dict with additional context to be merged into <code>nav_context</code> after the hook runs. This allows both direct mutation and returned values to contribute to the final context.</p>
+</li>
+<li>
+<p>Use mixins or base classes to share common hooks across multiple routes.</p>
+</li>
+<li>Global hooks are powerful for cross-cutting concerns, but use them judiciously to avoid surprises.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-python">from routing.router import Route, hooks, Redirect, Redirect
+
+class AuthenticatedRoute(Route):
+    @hooks.before_load
+    def set_user(self, nav_context, **loader_args):
+        nav_context[&quot;user&quot;] = get_current_user()
+
+    @hooks.before_load
+    def check_permissions(self, nav_context, **loader_args):
+        user = nav_context.get(&quot;user&quot;)
+        if not user or not user.has_permission():
+            raise Redirect(path=&quot;/login&quot;)
+
+class FeatureRoute(AuthenticatedRoute):
+    @hooks.before_load
+    def add_feature_flag(self, nav_context, **loader_args):
+        nav_context[&quot;feature_enabled&quot;] = True
+</code></pre>
+<p>Hooks are called in order, and each can build on the output of previous hooks via <code>nav_context</code>.</p>
               
             </div>
           </div><footer>

@@ -90,6 +90,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="forms/">Forms</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="meta/">Route Meta Method</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="params/">Params</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="query/">Query</a>
@@ -206,7 +208,11 @@ ContactRoute = Route.create(path=&quot;/contact&quot;, form=&quot;Pages.Contact&
 <h2 id="route-methods">Route Methods<a class="headerlink" href="#route-methods" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>before_load</code></dt>
-<dd>Called before the route is matched. This method can raise a <code>Redirect</code> exception to redirect to a different route. By default this returns <code>None</code>.</dd>
+<dd>Called before the route is matched. If it raises a <code>Redirect</code>, navigation is redirected. If it returns a dictionary, its contents are merged into the navigation context (<code>nav_context</code>).</dd>
+</dl>
+<p>Note - you may prefer not to override this method, and instead use the <code>@hooks.before_load</code> decorator.</p>
+<p>See the navigation documentation for practical usage examples.</p>
+<dl>
 <dt><code>parse_query</code></dt>
 <dd>Should return a dictionary of query parameters. By default this returns the original query parameters.</dd>
 <dt><code>parse_params</code></dt>

@@ -78,6 +78,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="routes/forms/">Forms</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="routes/meta/">Route Meta Method</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="routes/params/">Params</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="routes/query/">Query</a>
@@ -148,7 +150,8 @@ When the URL changes, the router will look for a matching route.
 The ultimate goal is to open the form associated with the given URL.</p>
 <p>The router will attempt to match routes in the order they are defined.</p>
 <p>When a route is found, the router will call the route's <code>before_load</code> method.
-If the <code>before_load</code> method raises a <code>Redirect</code>, the router will navigate to the redirected URL.</p>
+- If the <code>before_load</code> method raises a <code>Redirect</code>, the router will navigate to the redirected URL.
+- If the <code>before_load</code> method returns a dictionary, its contents will be merged into the navigation context (<code>nav_context</code>) for the route.</p>
 <p>If the route has a <code>load_data</code> method, it will be called, and the return value will be available as the <code>data</code> property on the <code>RoutingContext</code>.</p>
 <p>Once the <code>load_data</code> method has been called, the router will call the route's <code>load_form</code> method. A <code>routing_context</code> will be passed to this method. By default, the <code>load_form</code> method will call <code>anvil.open_form</code> on the matching route's form, with <code>routing_context</code> passed as a keyword argument.</p>
 <h2 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h2>
@@ -205,5 +208,5 @@ If the <code>before_load</code> method raises a <code>Redirect</code>, the route
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-05-21 03:21:43.873329+00:00
+Build Date UTC : 2025-06-13 07:26:12.269913+00:00
 -->

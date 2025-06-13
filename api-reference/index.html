@@ -82,6 +82,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/query/">Query</a>
@@ -197,7 +199,37 @@ All attributes can be accessed from the <code>routing.router</code> module.</p>
 <dd>Shows an alert. If <code>dismissible</code> is <code>True</code>, the alert will be dismissed when the user navigates to a new page. To override Anvil's default alert, you can set the <code>anvil.alert = router.alert</code>.</dd>
 <dt><code>confirm(content, *args, dismissible=True, **kwargs)</code></dt>
 <dd>Shows a confirmation dialog. If <code>dismissible</code> is <code>True</code>, the dialog will be dismissed when the user navigates to a new page. To override Anvil's default alert, you can set the <code>anvil.alert = router.alert</code>.</dd>
+<dt><code>hooks.before_load(func)</code></dt>
+<dd>Decorator to register a method as a before_load hook for a Route. Hooks are called in the order they are defined on the class. Each hook receives a <code>nav_context</code> keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.</dd>
 </dl>
+<pre><code class="language-python">from routing.router import Route, hooks, Redirect
+
+class AuthenticatedRoute(Route):
+    # Style 1: Mutate nav_context directly
+    @hooks.before_load
+    def set_user(self, nav_context, **loader_args):
+        nav_context[&quot;user&quot;] = get_current_user()
+
+    # Style 2: Return a partial dict to be merged into nav_context
+    @hooks.before_load
+    def set_user_partial(self, nav_context, **loader_args):
+        return {&quot;user&quot;: get_current_user()}
+
+    @hooks.before_load
+    def check_permissions(self, nav_context, **loader_args):
+        user = nav_context.get(&quot;user&quot;)
+        if not user or not user.has_permission():
+            raise Redirect(path=&quot;/login&quot;)
+
+# Both styles are supported; the returned dictionary (if any) will be merged into nav_context after the hook runs.
+</code></pre>
+<p>You may also attach hooks globally to all routes by assigning to the base class:</p>
+<pre><code class="language-python">@hooks.before_load
+def global_hook(self, nav_context, **loader_args):
+    nav_context[&quot;feature_enabled&quot;] = True
+Route.global_hook = global_hook
+</code></pre>
+<p>See the navigation documentation for advanced composition and usage patterns.</p>
 <h2 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>Route</code></dt>
