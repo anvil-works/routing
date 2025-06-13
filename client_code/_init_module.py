@@ -6,7 +6,7 @@ import anvil
 from anvil.designer import get_design_component
 from anvil.js import get_dom_node
 
-__version__ = "0.3.5"
+__version__ = "0.4.0"
 
 BaseAnvilLink = get_design_component(anvil.Link)
 

@@ -13,7 +13,7 @@ from ._navigate import nav_args_to_location, navigate
 from ._segments import Segment
 from ._utils import encode_query_params, ensure_dict, trim_path
 
-__version__ = "0.3.5"
+__version__ = "0.4.0"
 
 sorted_routes = []
 
