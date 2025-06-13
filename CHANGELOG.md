@@ -1,6 +1,33 @@
 # Changelog
 
-## v0.3.5 (01/01/1970)
+## v0.4.0 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- fix: used cached_context when opening a cached form [#70](https://github.com/anvil-works/routing/pull/70)
+- fix: pass keyword arguments and use super() in Route.__init_subclass__ [#69](https://github.com/anvil-works/routing/pull/69)
+
+### 🚀 Features
+
+- feat: `@hooks.before_load` decorator for composable before_load hooks [#74](https://github.com/anvil-works/routing/pull/74)
+- feat: allow before_load to return partial nav_context dictionary [#73](https://github.com/anvil-works/routing/pull/73)
+
+### 📖 Documentation
+
+- docs: add meta method documentation for dynamic route meta tags [#75](https://github.com/anvil-works/routing/pull/75)
+- feat: `@hooks.before_load` decorator for composable before_load hooks [#74](https://github.com/anvil-works/routing/pull/74)
+- docs: add use_data API reference for shared route data access [#72](https://github.com/anvil-works/routing/pull/72)
+- Fix docs use of `loader_args` in `load_data` [#66](https://github.com/anvil-works/routing/pull/66)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@racersmith and @s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.3.5...v0.4.0
+
+---
+
+## v0.3.5 (09/05/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 
