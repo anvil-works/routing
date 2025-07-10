@@ -12,10 +12,19 @@ All attributes can be accessed from the `routing.router` module.
 When adding the routing library as a dependency, in the Anvil IDE, click the "edit" icon next to the routing library in the dependencies list. This will allow you to change the configuration options.
 
 **Config Options:**
-- `sitemap`: If `False`, disables the automatic `/sitemap.txt` route. Defaults to `True`.
-- `robots`: If `False`, disables the automatic `/robots.txt` route. Defaults to `True`.
+- `sitemap`: If `False`, disables the automatic `/sitemap.txt` route. Defaults to `False`.
+- `robots`: If `False`, disables the automatic `/robots.txt` route. Defaults to `False`.
+- `routes_module`: The module where your routes are defined (e.g. `utils.routes`). If set, the router will automatically import this module for you, and you do **not** need to explicitly import your routes module in client or server code. This is the preferred approach for most projects. By default this is set to `routes`.
 
-By default, both features are enabled.
+
+  If you do not set this option correctly, you must explicitly import your routes module in your startup and server code:
+  ```python
+  # In startup.py
+  from . import routes
+
+  # In ServerRoutes.py
+  from . import routes
+  ```
 
 
 ## Functions

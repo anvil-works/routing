@@ -32,7 +32,6 @@ The client code structure should look like this:
 ```python
 # startup.py
 from routing.router import launch
-from .import routes
 
 if __name__ == "__main__":
     launch()
@@ -57,16 +56,6 @@ class ContactRoute(Route):
     form = "Pages.Contact"
 ```
 
-### Server Routes Module
-
-Inside your Server code, create a server module that imports the `routes` module.
-
-```python
-# ServerRoutes.py
-from . import routes
-```
-
-You should now be able to run the app and navigate to different pages by changing the URL in the browser.
 
 ### Navigation
 
@@ -82,3 +71,22 @@ Ensure the nav links have the following properties set:
 Add a title `slot` to the `Layouts.Main` form. Inside `Pages.Index`, add a label component to the title slot with the `text` property set to `"Home"`. Do the same for `Pages.About` and `Pages.Contact`.
 
 You should now be able to navigate using the sidebar nav links.
+
+
+### Troubleshooting
+
+If your routes aren't working, make sure your file structure is correct. The routes must be defined in the `routes` module.
+
+If you have named the routes module something else, you will need to change the configuration options for the routing library. See the API Reference for more information.
+
+**Preferred:** Set the `routes_module` config option so imports happen automatically.
+
+**Alternatively**, you can explicitly import the routes module in your startup form and server code:
+
+```python
+# In startup.py
+from . import routes
+
+# In ServerRoutes.py
+from . import routes
+```

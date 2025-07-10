@@ -7,6 +7,7 @@ import anvil
 import anvil.server
 
 from . import router
+from .router._import_utils import import_routes
 
 __version__ = "0.3.5"
 
@@ -59,6 +60,8 @@ try:
     routing_config = anvil.app.get_client_config("routing")
 except AttributeError:
     routing_config = {}
+
+import_routes()
 
 if routing_config.get("sitemap"):
     router.logger.debug("Sitemap enabled")

@@ -302,6 +302,10 @@ def launch():
     from anvil.history import history
     from anvil.server import startup_data
 
+    from .._import_utils import import_routes
+
+    import_routes()
+
     if startup_data is not None:
         startup_cache = startup_data.get("cache", {})
         CACHED_DATA.update(startup_cache)

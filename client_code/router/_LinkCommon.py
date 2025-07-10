@@ -7,6 +7,7 @@ from anvil.history import Location
 from anvil.js import get_dom_node
 
 from ._exceptions import InvalidPathParams
+from ._import_utils import import_routes
 from ._logger import logger
 from ._matcher import get_match
 from ._navigate import nav_args_to_location, navigate_with_location
@@ -20,12 +21,7 @@ def _temp_hack_to_get_form(self):
     if not in_designer:
         return None
 
-    from ._import_utils import import_module
-
-    try:
-        import_module("routes")
-    except Exception:
-        pass
+    import_routes()
 
     if self._rn.location is None:
         return None
