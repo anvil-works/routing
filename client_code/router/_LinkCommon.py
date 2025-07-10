@@ -1,7 +1,7 @@
 # Copyright (c) 2024-2025 Anvil
 # SPDX-License-Identifier: MIT
 
-from anvil import Component
+from anvil import Component, app
 from anvil.designer import in_designer, register_interaction, start_editing_form
 from anvil.history import Location
 from anvil.js import get_dom_node
@@ -23,7 +23,9 @@ def _temp_hack_to_get_form(self):
     from ._import_utils import import_module
 
     try:
-        import_module("routes")
+        mod = app.get_client_config("routing").get("routes_module")
+
+        import_module(mod)
     except Exception:
         pass
 

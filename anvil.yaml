@@ -9,6 +9,10 @@ config_schema:
       default_value: false
       description: Whether to generate a robots.txt file for this app
       type: boolean
+    routes_module:
+      default_value: "routes"
+      description: The module where routes are defined, this is used in the designer only. Double clicking on NavLinks in the designer will navigate to those forms in the designer.
+      type: string
 client_init_module: _init_module
 name: routing
 native_deps: null
