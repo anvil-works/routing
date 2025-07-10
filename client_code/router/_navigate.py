@@ -7,7 +7,14 @@ from ._constants import NOT_FOUND
 from ._exceptions import InvalidPathParams
 from ._logger import logger
 from ._segments import Segment
-from ._utils import dumps, encode_query_params, ensure_dict, loads, url_encode
+from ._utils import (
+    dumps,
+    encode_query_params,
+    ensure_dict,
+    loads,
+    url_decode,
+    url_encode,
+)
 
 __version__ = "0.3.5"
 
@@ -17,7 +24,7 @@ def clean_path(path, params):
         return history.location.path
 
     # remove leading dots
-    segments = Segment.from_path(path)
+    segments = Segment.from_path(url_decode(path))
 
     leading_dots = path.startswith(".")
 
