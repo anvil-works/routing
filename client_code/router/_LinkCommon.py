@@ -1,12 +1,13 @@
 # Copyright (c) 2024-2025 Anvil
 # SPDX-License-Identifier: MIT
 
-from anvil import Component, app
+from anvil import Component
 from anvil.designer import in_designer, register_interaction, start_editing_form
 from anvil.history import Location
 from anvil.js import get_dom_node
 
 from ._exceptions import InvalidPathParams
+from ._import_utils import import_routes
 from ._logger import logger
 from ._matcher import get_match
 from ._navigate import nav_args_to_location, navigate_with_location
@@ -20,15 +21,7 @@ def _temp_hack_to_get_form(self):
     if not in_designer:
         return None
 
-    from ._import_utils import import_module
-
-    try:
-        mod = app.get_client_config("routing").get("routes_module")
-
-        import_module(mod)
-    except Exception as e:
-        print("Failed to import routes module", repr(e))
-        pass
+    import_routes()
 
     if self._rn.location is None:
         return None
@@ -108,7 +101,6 @@ class LinkMixinCommon(Component):
             else:
                 logger.debug("NavLink clicked, but with invalid path, query or hash")
         elif self._rn.form is not None:
-            print("GOING TO EDIT FORM", self._rn.form)
             start_editing_form(self, self._rn.form)
 
     def _rn_on_click(self, **event_args):
@@ -125,11 +117,9 @@ class LinkMixinCommon(Component):
 
     def _rn_setup(self, **event_args):
         # we have to do this when we're on the page in case links are relative
-        print("SETTING UP NavLink", self._rn.form)
         self._rn_set_href()
 
         if in_designer and self._rn.form is not None:
-            print("REGISTERING INTERACTION", self._rn.form)
             register_interaction(
                 self, get_dom_node(self), "dblclick", self._rn_do_click
             )

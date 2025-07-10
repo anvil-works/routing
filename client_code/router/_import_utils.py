@@ -3,6 +3,8 @@
 
 import anvil
 
+from ._logger import logger
+
 __version__ = "0.3.5"
 
 
@@ -29,7 +31,6 @@ def get_package_name():
 
 def import_module(module_name):
     package_name = get_package_name()
-    print(package_name, module_name)
 
     mod = __import__(module_name, {"__package__": package_name}, level=1)
     attrs = module_name.split(".")[1:]
@@ -54,3 +55,11 @@ def import_form(form, *args, **kws):
     form_cls = getattr(mod, attrs[-1])
 
     return form_cls(*args, **kws)
+
+
+def import_routes():
+    try:
+        mod = anvil.app.get_client_config("routing").get("routes_module")
+        import_module(mod)
+    except Exception as e:
+        logger.debug(f"Failed to import routes module, {e!r}")
