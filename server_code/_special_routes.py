@@ -7,7 +7,7 @@ import anvil
 import anvil.server
 
 from . import router
-from .router._import_utils import import_module
+from .router._import_utils import import_routes
 
 __version__ = "0.3.5"
 
@@ -61,15 +61,7 @@ try:
 except AttributeError:
     routing_config = {}
 
-router.debug_logging(True)
-
-if routing_config.get("routes_module"):
-    try:
-        import_module(routing_config.get("routes_module"))
-        router.logger.debug("Routes module imported")
-    except Exception as e:
-        router.logger.error(f"Failed to import routes module, {e!r}")
-        pass
+import_routes()
 
 if routing_config.get("sitemap"):
     router.logger.debug("Sitemap enabled")
