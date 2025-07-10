@@ -205,10 +205,10 @@ class ContactRoute(Route):
 <p>If you have named the routes module something else, you will need to change the configuration options for the routing library. See the API Reference for more information.</p>
 <p><strong>Preferred:</strong> Set the <code>routes_module</code> config option so imports happen automatically.</p>
 <p><strong>Alternatively</strong>, you can explicitly import the routes module in your startup form and server code:</p>
-<pre><code class="language-python"># In startup.py
+<pre><code class="language-python"># In a startup module, e.g. startup.py
 from . import routes
 
-# In ServerRoutes.py
+# In a server module, e.g. ServerRoutes.py
 from . import routes
 </code></pre>
               

@@ -55,6 +55,14 @@
                 <li class="toctree-l1 current"><a class="reference internal current" href="#">API Reference</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#router-configuration">Router Configuration</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#config-options">Config Options:</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#routes_module">routes_module</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a>
     </li>
@@ -151,17 +159,24 @@
 All attributes can be accessed from the <code>routing.router</code> module.</p>
 <h2 id="router-configuration">Router Configuration<a class="headerlink" href="#router-configuration" title="Permanent link">&para;</a></h2>
 <p>When adding the routing library as a dependency, in the Anvil IDE, click the "edit" icon next to the routing library in the dependencies list. This will allow you to change the configuration options.</p>
-<p><strong>Config Options:</strong>
-- <code>sitemap</code>: If <code>False</code>, disables the automatic <code>/sitemap.txt</code> route. Defaults to <code>False</code>.
-- <code>robots</code>: If <code>False</code>, disables the automatic <code>/robots.txt</code> route. Defaults to <code>False</code>.
-- <code>routes_module</code>: The module where your routes are defined (e.g. <code>utils.routes</code>). If set, the router will automatically import this module for you, and you do <strong>not</strong> need to explicitly import your routes module in client or server code. This is the preferred approach for most projects. By default this is set to <code>routes</code>.</p>
-<p>If you do not set this option correctly, you must explicitly import your routes module in your startup and server code:
-  ```python
-  # In startup.py
-  from . import routes</p>
-<p># In ServerRoutes.py
+<h3 id="config-options">Config Options:<a class="headerlink" href="#config-options" title="Permanent link">&para;</a></h3>
+<dl>
+<dt><code>sitemap</code></dt>
+<dd>If <code>False</code>, disables the automatic <code>/sitemap.txt</code> route. Defaults to <code>False</code>.</dd>
+<dt><code>robots</code></dt>
+<dd>If <code>False</code>, disables the automatic <code>/robots.txt</code> route. Defaults to <code>False</code>.</dd>
+<dt><code>routes_module</code></dt>
+<dd>The module where your routes are defined (e.g. <code>utils.routes</code>). Defaults to <code>routes</code>.</dd>
+</dl>
+<h4 id="routes_module"><code>routes_module</code><a class="headerlink" href="#routes_module" title="Permanent link">&para;</a></h4>
+<p>If set, the router will automatically import this module for you, and you do <strong>not</strong> need to explicitly import your routes module in client or server code. This is the preferred approach for most projects. By default this is set to <code>routes</code>.</p>
+<p>If you do not set this option correctly, you must explicitly import your routes module in your startup and server code:</p>
+<pre><code class="language-python">  # In a startup module, e.g. startup.py
   from . import routes
-  ```</p>
+
+  # In a server module, e.g. ServerRoutes.py
+  from . import routes
+</code></pre>
 <h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>navigate(*, path=None, params=None, query=None, hash=None, replace=False, nav_context=None, form_properties=None)</code></dt>
