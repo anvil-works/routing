@@ -1,4 +1,5 @@
 allow_embedding: false
+code_prelude: {client: "from routing import router"}
 config_schema:
   client:
     sitemap:
