@@ -60,7 +60,7 @@ def import_form(form, *args, **kws):
 def import_routes():
     try:
         mod = anvil.app.get_client_config("routing").get("routes_module")
-        logger.debug(f"Automatically importing routes module: {mod}")
+        logger.debug(f"Automatically importing routes module: {mod!r}")
         import_module(mod)
     except Exception as e:
         logger.debug(f"Failed to import routes module, {e!r}")
