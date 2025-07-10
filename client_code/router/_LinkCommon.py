@@ -26,7 +26,8 @@ def _temp_hack_to_get_form(self):
         mod = app.get_client_config("routing").get("routes_module")
 
         import_module(mod)
-    except Exception:
+    except Exception as e:
+        print("Failed to import routes module", repr(e))
         pass
 
     if self._rn.location is None:
@@ -107,6 +108,7 @@ class LinkMixinCommon(Component):
             else:
                 logger.debug("NavLink clicked, but with invalid path, query or hash")
         elif self._rn.form is not None:
+            print("GOING TO EDIT FORM", self._rn.form)
             start_editing_form(self, self._rn.form)
 
     def _rn_on_click(self, **event_args):
@@ -123,9 +125,11 @@ class LinkMixinCommon(Component):
 
     def _rn_setup(self, **event_args):
         # we have to do this when we're on the page in case links are relative
+        print("SETTING UP NavLink", self._rn.form)
         self._rn_set_href()
 
         if in_designer and self._rn.form is not None:
+            print("REGISTERING INTERACTION", self._rn.form)
             register_interaction(
                 self, get_dom_node(self), "dblclick", self._rn_do_click
             )

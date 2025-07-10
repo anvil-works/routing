@@ -29,6 +29,7 @@ def get_package_name():
 
 def import_module(module_name):
     package_name = get_package_name()
+    print(package_name, module_name)
 
     mod = __import__(module_name, {"__package__": package_name}, level=-1)
     attrs = module_name.split(".")[1:]
