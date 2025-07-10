@@ -84,9 +84,9 @@ If you have named the routes module something else, you will need to change the 
 **Alternatively**, you can explicitly import the routes module in your startup form and server code:
 
 ```python
-# In startup.py
+# In a startup module, e.g. startup.py
 from . import routes
 
-# In ServerRoutes.py
+# In a server module, e.g. ServerRoutes.py
 from . import routes
 ```
