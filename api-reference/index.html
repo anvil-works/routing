@@ -54,6 +54,8 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="#">API Reference</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#router-configuration">Router Configuration</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a>
@@ -147,6 +149,19 @@
                 <h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
 <p>The routing library provides the following functions, classes, and attributes.
 All attributes can be accessed from the <code>routing.router</code> module.</p>
+<h2 id="router-configuration">Router Configuration<a class="headerlink" href="#router-configuration" title="Permanent link">&para;</a></h2>
+<p>When adding the routing library as a dependency, in the Anvil IDE, click the "edit" icon next to the routing library in the dependencies list. This will allow you to change the configuration options.</p>
+<p><strong>Config Options:</strong>
+- <code>sitemap</code>: If <code>False</code>, disables the automatic <code>/sitemap.txt</code> route. Defaults to <code>False</code>.
+- <code>robots</code>: If <code>False</code>, disables the automatic <code>/robots.txt</code> route. Defaults to <code>False</code>.
+- <code>routes_module</code>: The module where your routes are defined (e.g. <code>utils.routes</code>). If set, the router will automatically import this module for you, and you do <strong>not</strong> need to explicitly import your routes module in client or server code. This is the preferred approach for most projects. By default this is set to <code>routes</code>.</p>
+<p>If you do not set this option correctly, you must explicitly import your routes module in your startup and server code:
+  ```python
+  # In startup.py
+  from . import routes</p>
+<p># In ServerRoutes.py
+  from . import routes
+  ```</p>
 <h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>navigate(*, path=None, params=None, query=None, hash=None, replace=False, nav_context=None, form_properties=None)</code></dt>
@@ -236,6 +251,8 @@ Route.global_hook = global_hook
 <dd>The base class for all routes.</dd>
 <dt><code>RoutingContext</code></dt>
 <dd>Provides information about the current route and navigation context. Passed to all forms instantiated by the routing library.</dd>
+<dt><code>sorted_routes</code></dt>
+<dd>A list of all registered routes, sorted in the order they will be matched. Useful for introspection, generating sitemaps, or custom navigation logic.</dd>
 </dl>
 <h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
 <dl>

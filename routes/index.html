@@ -72,6 +72,10 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#route-methods">Route Methods</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#excluding-routes-from-the-sitemap">Excluding Routes from the Sitemap</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#setting-meta-tags-per-route">Setting Meta Tags Per Route</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#not-found-form">Not Found Form</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#not-found-route">Not Found Route</a>
@@ -204,6 +208,8 @@ ContactRoute = Route.create(path=&quot;/contact&quot;, form=&quot;Pages.Contact&
 <dd>The server function to call when the route is matched. e.g. <code>"get_article"</code>. This server function will be called with the same keyword arguments as the route's <code>load_data</code> method. Note this is optional and equivalent to defining a <code>load_data</code> method that calls the same server function.</dd>
 <dt><code>server_silent=False</code></dt>
 <dd>If <code>True</code> then the server function will be called using <code>anvil.server.call_s</code>. By default this is <code>False</code>.</dd>
+<dt><code>sitemap=True</code></dt>
+<dd>Whether to include this route in the sitemap. By default this is <code>True</code>.</dd>
 </dl>
 <h2 id="route-methods">Route Methods<a class="headerlink" href="#route-methods" title="Permanent link">&para;</a></h2>
 <dl>
@@ -228,6 +234,51 @@ ContactRoute = Route.create(path=&quot;/contact&quot;, form=&quot;Pages.Contact&
 <dd>When a route needs to cache a form or data (more information in the <a href="/caching/">caching section</a>), it does so by storing it in a global dictionary under a caching key. This key is composed of the route's path and the return of its <code>cache_deps</code> method at the moment of caching.</dd>
 <dd>If, when accessing the same route, its <code>cache_deps</code> method returns something different than when caching first occured, the caching key points to a different place within the cache, usually empty. The router thus understands this as a new route and navigates to it again.</dd>
 </dl>
+<h2 id="excluding-routes-from-the-sitemap">Excluding Routes from the Sitemap<a class="headerlink" href="#excluding-routes-from-the-sitemap" title="Permanent link">&para;</a></h2>
+<p>By default, all routes are included in the sitemap. To exclude a route from the sitemap, set <code>sitemap = False</code> on your <code>Route</code> class:</p>
+<pre><code class="language-python">from routing.router import Route
+
+class PrivateRoute(Route):
+    path = &quot;/admin&quot;
+    form = &quot;Pages.Admin&quot;
+    sitemap = False  # This route will NOT appear in the sitemap
+</code></pre>
+<p>Only routes with <code>sitemap = True</code> (the default) will be included in the sitemap.</p>
+<h2 id="setting-meta-tags-per-route">Setting Meta Tags Per Route<a class="headerlink" href="#setting-meta-tags-per-route" title="Permanent link">&para;</a></h2>
+<p>To control meta tags for SEO and social sharing, override the <code>meta</code> method on your <code>Route</code> class. Return a dictionary of tags you want to set for that route. You can set any meta tag, including Open Graph and custom tags.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-python">from routing.router import Route
+
+class ArticleRoute(Route):
+    path = &quot;/articles/:id&quot;
+    form = &quot;Pages.Article&quot;
+
+    def meta(self, **loader_args):
+        query = loader_args[&quot;query&quot;]  # Use query params for dynamic meta
+        title = f&quot;Article: {query.get('title', 'Untitled')}&quot;
+        return {
+            &quot;title&quot;: title,
+            &quot;description&quot;: f&quot;Viewing article: {title}&quot;,
+
+            &quot;og:image&quot;: &quot;asset:article_cover.png&quot;,  # use asset: prefix or a full URL
+            &quot;twitter:card&quot;: &quot;summary_large_image&quot;,  # arbitrary tags supported
+        }
+</code></pre>
+<p><strong>Fallbacks:</strong></p>
+<ul>
+<li><code>og:title</code> and <code>og:description</code> will automatically use <code>title</code> and <code>description</code> if not set.</li>
+<li>If a meta tag is not set for a route, it falls back to the value present at app load.</li>
+</ul>
+<p><strong>Server vs Client Meta Tags:</strong></p>
+<ul>
+<li><code>title</code>, <code>description</code>, <code>og:title</code> and <code>og:description</code> are set on the server.</li>
+<li>All other tags are set after page load on the client.</li>
+</ul>
+<p><strong>og:image and other assets:</strong></p>
+<ul>
+<li>Use a full URL (e.g., <code>"https://my-app.anvil.app/_/theme/image.png"</code>)</li>
+<li>Or use an asset from your app: <code>"asset:image.png"</code> and it will be resolved to the full URL</li>
+</ul>
 <h2 id="not-found-form">Not Found Form<a class="headerlink" href="#not-found-form" title="Permanent link">&para;</a></h2>
 <p>There are two ways a route can be not found. The first is when the user navigates to a path that does not match any routes. The second is when a user raises a <code>NotFound</code> exception in a route's <code>before_load</code> or <code>load_data</code> method.</p>
 <h3 id="not-found-route">Not Found Route<a class="headerlink" href="#not-found-route" title="Permanent link">&para;</a></h3>

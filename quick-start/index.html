@@ -60,9 +60,9 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#routes-module">Routes Module</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#server-routes-module">Server Routes Module</a>
-    </li>
     <li class="toctree-l3"><a class="reference internal" href="#navigation">Navigation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
     </li>
         </ul>
     </li>
@@ -169,7 +169,6 @@
 <h3 id="startup-module">Startup Module<a class="headerlink" href="#startup-module" title="Permanent link">&para;</a></h3>
 <pre><code class="language-python"># startup.py
 from routing.router import launch
-from .import routes
 
 if __name__ == &quot;__main__&quot;:
     launch()
@@ -190,12 +189,6 @@ class ContactRoute(Route):
     path = &quot;/contact&quot;
     form = &quot;Pages.Contact&quot;
 </code></pre>
-<h3 id="server-routes-module">Server Routes Module<a class="headerlink" href="#server-routes-module" title="Permanent link">&para;</a></h3>
-<p>Inside your Server code, create a server module that imports the <code>routes</code> module.</p>
-<pre><code class="language-python"># ServerRoutes.py
-from . import routes
-</code></pre>
-<p>You should now be able to run the app and navigate to different pages by changing the URL in the browser.</p>
 <h3 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h3>
 <p>In <code>Layouts.Main</code>, include a <code>SideBar</code> and add 3 <code>NavLink</code> components.
 (The <code>NavLink</code> component should come from the routing library)</p>
@@ -207,6 +200,17 @@ from . import routes
 </ul>
 <p>Add a title <code>slot</code> to the <code>Layouts.Main</code> form. Inside <code>Pages.Index</code>, add a label component to the title slot with the <code>text</code> property set to <code>"Home"</code>. Do the same for <code>Pages.About</code> and <code>Pages.Contact</code>.</p>
 <p>You should now be able to navigate using the sidebar nav links.</p>
+<h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
+<p>If your routes aren't working, make sure your file structure is correct. The routes must be defined in the <code>routes</code> module.</p>
+<p>If you have named the routes module something else, you will need to change the configuration options for the routing library. See the API Reference for more information.</p>
+<p><strong>Preferred:</strong> Set the <code>routes_module</code> config option so imports happen automatically.</p>
+<p><strong>Alternatively</strong>, you can explicitly import the routes module in your startup form and server code:</p>
+<pre><code class="language-python"># In startup.py
+from . import routes
+
+# In ServerRoutes.py
+from . import routes
+</code></pre>
               
             </div>
           </div><footer>
