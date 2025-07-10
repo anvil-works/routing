@@ -1,4 +1,14 @@
 allow_embedding: false
+config_schema:
+  client:
+    sitemap:
+      default_value: false
+      description: Whether to generate a sitemap for this app
+      type: boolean
+    robots:
+      default_value: false
+      description: Whether to generate a robots.txt file for this app
+      type: boolean
 client_init_module: _init_module
 name: routing
 native_deps: null

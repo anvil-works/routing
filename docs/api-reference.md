@@ -7,6 +7,17 @@ weight: -9.7
 The routing library provides the following functions, classes, and attributes.
 All attributes can be accessed from the `routing.router` module.
 
+## Router Configuration
+
+When adding the routing library as a dependency, in the Anvil IDE, click the "edit" icon next to the routing library in the dependencies list. This will allow you to change the configuration options.
+
+**Config Options:**
+- `sitemap`: If `False`, disables the automatic `/sitemap.txt` route. Defaults to `True`.
+- `robots`: If `False`, disables the automatic `/robots.txt` route. Defaults to `True`.
+
+By default, both features are enabled.
+
+
 ## Functions
 
 `navigate(*, path=None, params=None, query=None, hash=None, replace=False, nav_context=None, form_properties=None)`
@@ -116,6 +127,9 @@ See the navigation documentation for advanced composition and usage patterns.
 
 `RoutingContext`
 : Provides information about the current route and navigation context. Passed to all forms instantiated by the routing library.
+
+`sorted_routes`
+: A list of all registered routes, sorted in the order they will be matched. Useful for introspection, generating sitemaps, or custom navigation logic.
 
 ## Components
 

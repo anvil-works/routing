@@ -12,18 +12,17 @@ _CACHE = {}
 
 
 class Node:
-    selector = "{}"
+    selector = ""
 
-    # <name>content</name>
     def __init__(self, name: str):
         self.node = self.get_or_create_node(name)
         self.default_content = self.get_content()
 
     def get_content(self):
-        return self.node.textContent
+        raise NotImplementedError
 
     def set_content(self, content):
-        self.node.textContent = content
+        raise NotImplementedError
 
     def reset(self):
         self.set_content(self.default_content)
@@ -38,19 +37,40 @@ class Node:
 
     @staticmethod
     def create_node(name):
+        raise NotImplementedError
+
+
+class TagNode(Node):
+    # <name>content</name>
+    selector = "{}"
+
+    def get_content(self):
+        return self.node.textContent
+
+    def set_content(self, content):
+        self.node.textContent = content
+
+    @staticmethod
+    def create_node(name):
         node = document.createElement(name)
         node.textContent = ""
         return node
 
 
-class MetaNode(Node):
+class MetaNode(TagNode):
+    # <meta name="name" content="content">
     selector = 'meta[name="{}"]'
 
-    # <meta name="name" content="content">
     def get_content(self):
         return self.node.getAttribute("content")
 
     def set_content(self, content):
+        if isinstance(content, str) and content.startswith("asset:"):
+            from anvil.js.window import URL
+
+            content = "/_/theme/" + content[6:]
+            content = URL(anvil.server.get_app_origin() + content).href
+
         self.node.setAttribute("content", content)
 
     @staticmethod
@@ -61,30 +81,7 @@ class MetaNode(Node):
         return node
 
 
-class MetaImageNode(MetaNode):
-    # <meta property="og:image" content="content">
-    def set_content(self, content):
-        super().set_content(self.asset_or_image_to_url(content))
-
-    @staticmethod
-    def asset_or_image_to_url(asset_or_image):
-        from anvil.js.window import URL
-
-        if not isinstance(asset_or_image, str):
-            return asset_or_image
-
-        if asset_or_image.startswith("asset:"):
-            asset_or_image = asset_or_image[6:] + "_/theme/"
-
-        if asset_or_image.startswith("/_/theme/"):
-            asset_or_image = asset_or_image[1:]
-        if asset_or_image.startswith("_/theme/"):
-            return URL(anvil.server.get_app_origin() + "/" + asset_or_image).href
-
-        return asset_or_image
-
-
-class BaseNodeStore:
+class MetaTagStore:
     def __new__(cls, name):
         if name in _CACHE:
             return _CACHE[name]
@@ -98,26 +95,14 @@ class BaseNodeStore:
 
     @staticmethod
     def get_nodes(name: str):
-        raise NotImplementedError
-
-
-class MetaTagStore(BaseNodeStore):
-    @staticmethod
-    def get_nodes(name: str):
         return [MetaNode(name)]
 
 
-class MetaImageTagStore(BaseNodeStore):
-    @staticmethod
-    def get_nodes(name: str):
-        return [MetaImageNode(name)]
-
-
-class TitleTagStore(BaseNodeStore):
+class TitleTagStore(MetaTagStore):
     @staticmethod
     def get_nodes(name: str):
         # Returns both a Node and MetaNode for special cases (e.g., title, description)
-        return [Node(name), MetaNode(name)]
+        return [TagNode(name), MetaNode(name)]
 
 
 NAME_TO_STORE = {
@@ -125,7 +110,7 @@ NAME_TO_STORE = {
     "description": MetaTagStore,
     "og:title": MetaTagStore,
     "og:description": MetaTagStore,
-    "og:image": MetaImageTagStore,
+    "og:image": MetaTagStore,
 }
 
 FALLBACK_STORE = {
