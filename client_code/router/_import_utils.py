@@ -5,7 +5,7 @@ import anvil
 
 from ._logger import logger
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 
 def get_package_name():

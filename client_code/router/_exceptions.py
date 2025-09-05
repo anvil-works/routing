@@ -5,7 +5,7 @@ from anvil.server import AnvilWrappedError, _register_exception_type
 
 from ._utils import ensure_dict
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 
 class Redirect(AnvilWrappedError):

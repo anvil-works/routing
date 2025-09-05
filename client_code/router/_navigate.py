@@ -16,7 +16,7 @@ from ._utils import (
     url_encode,
 )
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 
 def clean_path(path, params):
