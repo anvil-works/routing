@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.4.0 (01/01/1970)
+## v0.4.1 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: wrap view transitions in try except [#81](https://github.com/anvil-works/routing/pull/81)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.4.0...v0.4.1
+
+---
+
+## v0.4.0 (10/07/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 

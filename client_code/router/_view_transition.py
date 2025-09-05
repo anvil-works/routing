@@ -7,7 +7,7 @@ from ._logger import logger
 from ._non_blocking import Deferred
 from ._utils import document, setTimeout
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 _transition = None
 _can_transition = hasattr(document, "startViewTransition")
