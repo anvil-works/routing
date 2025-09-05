@@ -60,7 +60,14 @@ def import_form(form, *args, **kws):
 def import_routes():
     try:
         mod = anvil.app.get_client_config("routing").get("routes_module")
-        logger.debug(f"Automatically importing routes module: {mod!r}")
+        logger.debug(f"Attempting to import routes module: {mod!r}")
         import_module(mod)
-    except Exception as e:
-        logger.debug(f"Failed to import routes module, {e!r}")
+    except ModuleNotFoundError as e:
+        logger.debug(
+            f"routes module {mod!r} does not exist {e!r}"
+            ", make sure you import it manually,"
+            " or set the correct routes_module in the dependency config options"
+        )
+    # otherwise raise the exception - the module exists but failed
+    else:
+        logger.debug(f"Successfully imported routes module: {mod!r}")
