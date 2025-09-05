@@ -21,7 +21,11 @@ def _temp_hack_to_get_form(self):
     if not in_designer:
         return None
 
-    import_routes()
+    try:
+        import_routes()
+    except Exception:
+        # don't surface exceptions in the designer
+        return None
 
     if self._rn.location is None:
         return None
