@@ -6,7 +6,7 @@ from ._constants import STALE_WHILE_REVALIDATE
 from ._logger import logger
 from ._utils import decode_key, ensure_dict, make_key, valid_absolute_path
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 
 def get_invalid_keys(start_path, start_deps):

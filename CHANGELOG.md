@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.4.1 (01/01/1970)
+## v0.4.2 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: surface exceptions when routes_module fails for Exceptions other than ModuleNotFoundError [#83](https://github.com/anvil-works/routing/pull/83)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.4.1...v0.4.2
+
+---
+
+## v0.4.1 (05/09/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 
