@@ -6,7 +6,7 @@ import anvil
 
 from .._utils import setTimeout
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 if anvil.is_server_side():
     from .server import PromiseLike

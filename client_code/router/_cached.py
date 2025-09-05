@@ -1,7 +1,7 @@
 # Copyright (c) 2024-2025 Anvil
 # SPDX-License-Identifier: MIT
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 CACHED_FORMS = {}
 CACHED_DATA = {}
