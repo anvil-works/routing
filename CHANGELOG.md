@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.4.2 (01/01/1970)
+## v0.4.3 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: circular import race condition in template container routes [#86](https://github.com/anvil-works/routing/pull/86)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.4.2...v0.4.3
+
+---
+
+## v0.4.2 (05/09/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 
