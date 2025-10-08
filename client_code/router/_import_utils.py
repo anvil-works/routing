@@ -4,6 +4,8 @@
 import anvil
 
 from ._logger import logger
+from ._non_blocking import call_async
+from ._utils import await_promise
 
 __version__ = "0.4.2"
 
@@ -29,10 +31,35 @@ def get_package_name():
     raise Exception("Could not determine package name")
 
 
+_INFLIGHT_MODULE_PROMISES = {}
+
+
+def get_cached_mod(module_name):
+    module_promise = _INFLIGHT_MODULE_PROMISES.get(module_name)
+    if module_promise is None:
+        return None
+    mod, error = await_promise(module_promise)
+
+    _INFLIGHT_MODULE_PROMISES.pop(module_name, None)
+
+    if error is not None:
+        raise error
+    return mod
+
+
 def import_module(module_name):
+    mod = get_cached_mod(module_name)
+    if mod is not None:
+        return mod
+
     package_name = get_package_name()
 
-    mod = __import__(module_name, {"__package__": package_name}, level=1)
+    _INFLIGHT_MODULE_PROMISES[module_name] = call_async(
+        __import__, module_name, {"__package__": package_name}, level=1
+    )
+
+    mod = get_cached_mod(module_name)
+
     attrs = module_name.split(".")[1:]
     for attr in attrs:
         mod = getattr(mod, attr)
