@@ -63,60 +63,101 @@ Anchor is a link that you can use inline or as a container for other components.
 
 ## register_links()
 
-For existing HTML/DOM links, you can use `register_links()` to enable client-side routing without creating NavLink or Anchor components.
+For existing HTML/DOM links, you can use `register_links()` to enable client-side routing with active state tracking without creating NavLink or Anchor components.
 
 ### Usage
 
 ```python
 from routing import router
 
-# In your form's __init__ or show event:
-router.register_links(self.dom_nodes["header"])
+class MainLayout(MainLayoutTemplate):
+    def __init__(self, **properties):
+        self.init_components(**properties)
+        self._cleanup_links = None
+
+    def form_show(self, **event_args):
+        # Register links and store cleanup function
+        self._cleanup_links = router.register_links(
+            self.dom_nodes["header"],
+            active_class="active"
+        )
+
+    def form_hide(self, **event_args):
+        # Clean up when form is hidden
+        if self._cleanup_links:
+            self._cleanup_links()
+            self._cleanup_links = None
 ```
 
 ### Features
 
 - **Auto-detection**: Automatically detects if elements are `<a>` tags or containers
-- **Flexible**: Works with individual links, containers, or a mix of both
+- **Active state tracking**: Links automatically receive active styling when they match the current route
+- **Flexible styling**: Use CSS classes or custom callbacks for active state
+- **Cleanup function**: Returns a function to unregister and clean up event listeners
+- **Exact matching**: Support for `exact_path`, `exact_query`, and `exact_hash` options
 - **Customizable**: Use custom CSS selectors to target specific links
 - **Idempotent**: Safe to call multiple times on the same elements
 
 ### Examples
 
-**Register a container** (finds all internal links):
+**Basic usage with active class**:
 ```python
-router.register_links(self.dom_nodes["header"])
+cleanup = router.register_links(
+    self.dom_nodes["nav"],
+    active_class="active"  # CSS class added to matching links
+)
+```
+
+**Custom active state callback**:
+```python
+def style_active_link(element, is_active):
+    if is_active:
+        element.style.fontWeight = "bold"
+        element.style.color = "#007bff"
+    else:
+        element.style.fontWeight = "normal"
+        element.style.color = ""
+
+cleanup = router.register_links(
+    self.dom_nodes["nav"],
+    active_callback=style_active_link
+)
+```
+
+**Exact path matching** (for breadcrumbs):
+```python
+cleanup = router.register_links(
+    self.dom_nodes["breadcrumbs"],
+    active_class="current",
+    exact_path=True  # Only active if path matches exactly
+)
 ```
 
 **Register multiple containers**:
 ```python
-router.register_links(
+cleanup = router.register_links(
     self.dom_nodes["header"],
-    self.dom_nodes["footer"]
-)
-```
-
-**Register specific links directly** (auto-detected as `<a>` tags):
-```python
-router.register_links(
-    self.dom_nodes["pricing-link"],
-    self.dom_nodes["faq-link"]
-)
-```
-
-**Mix containers and direct links**:
-```python
-router.register_links(
-    self.dom_nodes["header"],        # container
-    self.dom_nodes["special-link"]   # direct link
+    self.dom_nodes["footer"],
+    active_class="active"
 )
 ```
 
 **Custom selector for containers**:
 ```python
-router.register_links(
+cleanup = router.register_links(
     self.dom_nodes["nav"],
-    selector="a.internal-link, button[data-route]"
+    selector="a.internal-link, button[data-route]",
+    active_class="active"
+)
+```
+
+**Fire and forget** (for persistent sidebars that never hide):
+```python
+# No need to store cleanup if form never hides
+router.register_links(
+    self.dom_nodes["sidebar"],
+    active_class="active"
 )
 ```
 
@@ -128,6 +169,23 @@ router.register_links(
 `selector`
 : CSS selector for finding links in containers. Default: `"a[href^='/']"` (all internal links)
 
+`active_class`
+: CSS class to add/remove when link matches current route. Default: `"active"`
+
+`active_callback`
+: Custom callback `function(element, is_active)` for styling. Overrides `active_class` if provided
+
+`exact_path`
+: If `True`, path must match exactly. Default: `False` (parent paths also match)
+
+`exact_query`
+: If `True`, query parameters must match exactly. Default: `False`
+
+`exact_hash`
+: If `True`, hash must match exactly. Default: `False`
+
+**Returns**: Cleanup function to unregister links and remove event listeners
+
 ### Behavior
 
 - For `<a>` tags: Registers them directly as navigation links
@@ -136,14 +194,32 @@ router.register_links(
     - Prevents default browser navigation
     - Respects modifier keys (Ctrl/Cmd/Shift) - lets browser handle
     - Uses router's navigation for client-side routing
+- Active state:
+    - Updates automatically on every navigation
+    - Uses same matching logic as `NavLink` component
+    - Applies CSS class or calls custom callback
+
+### Cleanup
+
+The returned cleanup function should be called when:
+- The form is hidden (in the `hide` event handler)
+- The form is removed from the page
+- You want to unregister the links
+
+The cleanup function:
+- Removes navigation event listeners
+- Clears active state from all registered links
+- Prevents memory leaks
 
 ### Comparison with NavLink
 
 | Feature | `register_links()` | `NavLink` Component |
 |---------|-------------------|---------------------|
 | Use case | Existing HTML/DOM | Anvil components |
-| Active state | ❌ No | ✅ Yes |
+| Active state | ✅ Yes (CSS class or callback) | ✅ Yes (component property) |
 | Setup | One function call | Per-link component |
 | Flexibility | High (any DOM) | Component-based |
 | Path params | From href only | Full support |
 | Query params | From href only | Full support |
+| Cleanup | Manual (via returned function) | Automatic |
+| Exact matching | ✅ Yes | ✅ Yes |
