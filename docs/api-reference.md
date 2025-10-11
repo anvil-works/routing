@@ -102,8 +102,8 @@ Can be useful for routes that share data. Or layouts that need access to the dat
 `confirm(content, *args, dismissible=True, **kwargs)`
 : Shows a confirmation dialog. If `dismissible` is `True`, the dialog will be dismissed when the user navigates to a new page. To override Anvil's default alert, you can set the `anvil.alert = router.alert`.
 
-`register_links(*dom_nodes, selector="a[href^='/']", active_class="active", active_callback=None, exact_path=False, exact_query=False, exact_hash=False)`
-: Registers existing DOM links for client-side routing with active state tracking. Automatically detects if elements are `<a>` tags (registers directly) or containers (searches within using the selector). Returns a cleanup function to unregister links and remove event listeners. Useful for converting static HTML links to use the router without needing NavLink components.
+`register_links(*dom_nodes, selector="a[href^='/']", active_class="active", active_callback=None, exact_path=False, exact_query=False, exact_hash=False, component=None)`
+: Registers existing DOM links for client-side routing with active state tracking. Automatically detects if elements are `<a>` tags (registers directly) or containers (searches within using the selector). Use `component` to tie to a component's lifecycle (auto setup on page added, cleanup on page removed), or manually call the returned cleanup function. Useful for converting static HTML links to use the router without needing NavLink components.
 
 `hooks.before_load(func)`
 : Decorator to register a method as a before_load hook for a Route. Hooks are called in the order they are defined on the class. Each hook receives a `nav_context` keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.

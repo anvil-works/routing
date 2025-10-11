@@ -71,24 +71,37 @@ Use `register_links()` when you have navigation links defined in an HTML templat
 
 ### Usage
 
-**Register links in a specific container**:
+**Automatic lifecycle management** (recommended):
 ```python
 from routing import router
 
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
         self.init_components(**properties)
+        # Register links tied to component lifecycle
+        router.register_links(
+            self.dom_nodes["header"],
+            active_class="active",
+            component=self  # Auto setup on page added, cleanup on page removed
+        )
+```
+
+**Manual cleanup**:
+```python
+class MainLayout(MainLayoutTemplate):
+    def __init__(self, **properties):
+        self.init_components(**properties)
         self._cleanup_links = None
 
     def form_show(self, **event_args):
-        # Register links within a specific dom_node
+        # Register links and store cleanup function
         self._cleanup_links = router.register_links(
             self.dom_nodes["header"],
             active_class="active"
         )
 
     def form_hide(self, **event_args):
-        # Clean up when form is hidden
+        # Manually call cleanup when form is hidden
         if self._cleanup_links:
             self._cleanup_links()
             self._cleanup_links = None
@@ -220,7 +233,10 @@ router.register_links(
 `exact_hash`
 : If `True`, hash must match exactly. Default: `False`
 
-**Returns**: Cleanup function to unregister links and remove event listeners
+`component`
+: Anvil component to tie lifecycle to (auto setup on page added, cleanup on page removed). Default: `None`
+
+**Returns**: Cleanup function to unregister links and remove event listeners (or `None` if `component` is used)
 
 ### Behavior
 

@@ -23,6 +23,7 @@ def register_links(
     exact_path=False,
     exact_query=False,
     exact_hash=False,
+    component=None,
 ):
     """
     Register navigation links for client-side routing with active state tracking
@@ -39,12 +40,17 @@ def register_links(
         exact_path: If True, path must match exactly (default: False)
         exact_query: If True, query must match exactly (default: False)
         exact_hash: If True, hash must match exactly (default: False)
+        component: Anvil component - auto setup on show, cleanup on hide (default: None)
 
     Returns:
         Cleanup function to unregister links and remove event listeners
+        (or None if component is used)
 
     Examples:
-        # Basic usage with cleanup
+        # Auto setup/cleanup tied to component lifecycle
+        router.register_links(self.dom_nodes["header"], component=self)
+
+        # Manual cleanup
         cleanup = router.register_links(self.dom_nodes["header"])
         # Later: cleanup()
 
@@ -119,6 +125,20 @@ def register_links(
         elif active_class:
             for link in registered_links:
                 link.classList.remove(active_class)
+
+    # If component is provided, tie to component's page lifecycle events
+    if component is not None:
+
+        def on_page_added(**event_args):
+            # Re-register on each page added (in case links changed)
+            on_navigate()
+
+        def on_page_removed(**event_args):
+            cleanup()
+
+        component.add_event_handler("x-anvil-page-added", on_page_added)
+        component.add_event_handler("x-anvil-page-removed", on_page_removed)
+        return None  # Don't return cleanup function when lifecycle is managed
 
     return cleanup
 
