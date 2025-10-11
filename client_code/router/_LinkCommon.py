@@ -1,10 +1,10 @@
 # Copyright (c) 2024-2025 Anvil
 # SPDX-License-Identifier: MIT
 
+import anvil.js
 from anvil import Component
 from anvil.designer import in_designer, register_interaction, start_editing_form
 from anvil.history import Location
-from anvil.js import get_dom_node
 
 from ._exceptions import InvalidPathParams
 from ._import_utils import import_routes
@@ -184,7 +184,7 @@ class LinkMixinCommon(Component):
 
         if in_designer and self._rn.form is not None:
             register_interaction(
-                self, get_dom_node(self), "dblclick", self._rn_do_click
+                self, anvil.js.get_dom_node(self), "dblclick", self._rn_do_click
             )
 
         if not in_designer:

@@ -1,8 +1,8 @@
 # Copyright (c) 2024-2025 Anvil
 # SPDX-License-Identifier: MIT
 
+import anvil.js
 from anvil.history import Location
-from anvil.js import get_dom_node
 
 from ._context import RoutingContext
 from ._LinkCommon import check_if_location_is_active
@@ -79,7 +79,7 @@ def register_links(
     registered_links = []
 
     for node in dom_nodes:
-        dom_node = get_dom_node(node)
+        dom_node = anvil.js.get_dom_node(node)
 
         if dom_node.tagName.lower() == "a":
             registered_links.append(dom_node)
