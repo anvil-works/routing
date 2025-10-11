@@ -65,8 +65,13 @@ Anchor is a link that you can use inline or as a container for other components.
 
 For existing HTML/DOM links, you can use `register_links()` to enable client-side routing with active state tracking without creating NavLink or Anchor components.
 
+### Why Use This?
+
+Use `register_links()` when you have navigation links defined in an HTML template component. Instead of manually creating a NavLink component for each link, you can register all links in your HTML with a single function call.
+
 ### Usage
 
+**Register links in a specific container**:
 ```python
 from routing import router
 
@@ -76,7 +81,7 @@ class MainLayout(MainLayoutTemplate):
         self._cleanup_links = None
 
     def form_show(self, **event_args):
-        # Register links and store cleanup function
+        # Register links within a specific dom_node
         self._cleanup_links = router.register_links(
             self.dom_nodes["header"],
             active_class="active"
@@ -88,6 +93,18 @@ class MainLayout(MainLayoutTemplate):
             self._cleanup_links()
             self._cleanup_links = None
 ```
+
+**Register all links in the entire component**:
+```python
+def form_show(self, **event_args):
+    # Register ALL internal links in this component's HTML
+    self._cleanup_links = router.register_links(
+        self,  # The component itself
+        active_class="active"
+    )
+```
+
+This will find all `<a href="/...">` links in your HTML template and enable routing for them.
 
 ### Features
 
@@ -134,6 +151,17 @@ cleanup = router.register_links(
 )
 ```
 
+**Register specific link elements directly**:
+```python
+# Register individual <a> tag dom_nodes
+cleanup = router.register_links(
+    self.dom_nodes["home_link"],
+    self.dom_nodes["about_link"],
+    self.dom_nodes["contact_link"],
+    active_class="active"
+)
+```
+
 **Register multiple containers**:
 ```python
 cleanup = router.register_links(
@@ -143,11 +171,19 @@ cleanup = router.register_links(
 )
 ```
 
-**Custom selector for containers**:
+**Custom selector to target specific links**:
 ```python
+# Only register links with a specific class
 cleanup = router.register_links(
     self.dom_nodes["nav"],
-    selector="a.internal-link, button[data-route]",
+    selector="a.nav-link",  # Only <a> tags with class="nav-link"
+    active_class="active"
+)
+
+# Or target links by attribute
+cleanup = router.register_links(
+    self,
+    selector="a[data-route]",  # Only <a> tags with data-route attribute
     active_class="active"
 )
 ```
