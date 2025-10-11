@@ -12,9 +12,68 @@ from ._logger import logger
 from ._matcher import get_match
 from ._navigate import nav_args_to_location, navigate_with_location
 from ._router import navigation_emitter
+from ._segments import Segment
 from ._utils import ensure_dict
 
 __version__ = "0.4.2"
+
+
+def _query_inclusively_equal(a, b):
+    """Check if all the keys in a are in b and have the same value"""
+    for key in a:
+        if key not in b:
+            return False
+        if a[key] != b[key]:
+            return False
+    return True
+
+
+def check_if_location_is_active(
+    location,
+    query,
+    routing_context,
+    exact_path=False,
+    exact_query=False,
+    exact_hash=False,
+):
+    """
+    Determine if a location matches the current routing context
+
+    Args:
+        location: Location object to check
+        query: Parsed query dict (from the location)
+        routing_context: Current RoutingContext
+        exact_path: If True, path must match exactly
+        exact_query: If True, query must match exactly
+        exact_hash: If True, hash must match exactly
+
+    Returns:
+        bool: True if location is active
+    """
+    active = True
+
+    if location is None:
+        active = False
+    elif exact_path and routing_context.path != location.path:
+        active = False
+    elif exact_query and not _query_inclusively_equal(query, routing_context.query):
+        active = False
+    elif exact_hash and routing_context.hash != location.hash:
+        active = False
+    elif routing_context.path != location.path:
+        # Check if the current location is a parent of the new location
+        curr_segments = Segment.from_path(routing_context.path)
+        location_segments = Segment.from_path(location.path)
+        if len(location_segments) > len(curr_segments):
+            active = False
+        else:
+            for gbl, loc in zip(curr_segments, location_segments):
+                if gbl.value == loc.value or loc.is_param():
+                    continue
+                active = False
+                break
+
+    return active
 
 
 def _temp_hack_to_get_form(self):
