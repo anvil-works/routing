@@ -5,24 +5,19 @@ from anvil.designer import in_designer
 
 from ._BaseLinks import setup_base_navlink
 from ._context import RoutingContext
-from ._LinkCommon import LinkMixinCommon, active_props, filter_props, nav_props
+from ._LinkCommon import (
+    LinkMixinCommon,
+    active_props,
+    check_if_location_is_active,
+    filter_props,
+    nav_props,
+)
 from ._router import navigation_emitter
-from ._segments import Segment
 from ._utils import ensure_dict
 
 __version__ = "0.4.2"
 
 BaseNavLink = setup_base_navlink()
-
-
-def _query_inclusively_equal(a, b):
-    """check if all the keys in a are in b and have the same value"""
-    for key in a:
-        if key not in b:
-            return False
-        if a[key] != b[key]:
-            return False
-    return True
 
 
 class NavLink(BaseNavLink, LinkMixinCommon):
@@ -80,7 +75,6 @@ class NavLink(BaseNavLink, LinkMixinCommon):
             return
 
         location = self._rn.location
-        active = True
 
         query = self.query
         if callable(query):
@@ -88,28 +82,14 @@ class NavLink(BaseNavLink, LinkMixinCommon):
 
         query = ensure_dict(query, "query")
 
-        if location is None:
-            active = False
-        elif self.exact_path and routing_context.path != location.path:
-            active = False
-        elif self.exact_query and not _query_inclusively_equal(
-            query, routing_context.query
-        ):
-            active = False
-        elif self.exact_hash and routing_context.hash != location.hash:
-            active = False
-        elif routing_context.path != location.path:
-            # check if the current location is a parent of the new location
-            curr_segments = Segment.from_path(routing_context.path)
-            location_segments = Segment.from_path(location.path)
-            if len(location_segments) > len(curr_segments):
-                active = False
-            else:
-                for gbl, loc in zip(curr_segments, location_segments):
-                    if gbl.value == loc.value or loc.is_param():
-                        continue
-                    active = False
-                    break
+        active = check_if_location_is_active(
+            location,
+            query,
+            routing_context,
+            exact_path=self.exact_path,
+            exact_query=self.exact_query,
+            exact_hash=self.exact_hash,
+        )
 
         self.active = active
 
