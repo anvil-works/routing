@@ -60,3 +60,90 @@ You can set most properties in code or in the designer. In the designer, it is r
 ## Anchor
 
 Anchor is a link that you can use inline or as a container for other components. Unlike the NavLink, the Anchor component has no `active` property.
+
+## register_links()
+
+For existing HTML/DOM links, you can use `register_links()` to enable client-side routing without creating NavLink or Anchor components.
+
+### Usage
+
+```python
+from routing import router
+
+# In your form's __init__ or show event:
+router.register_links(self.dom_nodes["header"])
+```
+
+### Features
+
+- **Auto-detection**: Automatically detects if elements are `<a>` tags or containers
+- **Flexible**: Works with individual links, containers, or a mix of both
+- **Customizable**: Use custom CSS selectors to target specific links
+- **Idempotent**: Safe to call multiple times on the same elements
+
+### Examples
+
+**Register a container** (finds all internal links):
+```python
+router.register_links(self.dom_nodes["header"])
+```
+
+**Register multiple containers**:
+```python
+router.register_links(
+    self.dom_nodes["header"],
+    self.dom_nodes["footer"]
+)
+```
+
+**Register specific links directly** (auto-detected as `<a>` tags):
+```python
+router.register_links(
+    self.dom_nodes["pricing-link"],
+    self.dom_nodes["faq-link"]
+)
+```
+
+**Mix containers and direct links**:
+```python
+router.register_links(
+    self.dom_nodes["header"],        # container
+    self.dom_nodes["special-link"]   # direct link
+)
+```
+
+**Custom selector for containers**:
+```python
+router.register_links(
+    self.dom_nodes["nav"],
+    selector="a.internal-link, button[data-route]"
+)
+```
+
+### Parameters
+
+`*dom_nodes`
+: DOM elements (links or containers) to register for routing
+
+`selector`
+: CSS selector for finding links in containers. Default: `"a[href^='/']"` (all internal links)
+
+### Behavior
+
+- For `<a>` tags: Registers them directly as navigation links
+- For containers: Searches within using the selector
+- Click handling:
+    - Prevents default browser navigation
+    - Respects modifier keys (Ctrl/Cmd/Shift) - lets browser handle
+    - Uses router's navigation for client-side routing
+
+### Comparison with NavLink
+
+| Feature | `register_links()` | `NavLink` Component |
+|---------|-------------------|---------------------|
+| Use case | Existing HTML/DOM | Anvil components |
+| Active state | ❌ No | ✅ Yes |
+| Setup | One function call | Per-link component |
+| Flexibility | High (any DOM) | Component-based |
+| Path params | From href only | Full support |
+| Query params | From href only | Full support |
