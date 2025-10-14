@@ -106,7 +106,7 @@ Can be useful for routes that share data. Or layouts that need access to the dat
 : Registers existing DOM links for client-side routing with active state tracking. Automatically detects if elements are `<a>` tags (registers directly) or containers (searches within using the selector). Use `component` to tie to a component's lifecycle (auto setup on page added, cleanup on page removed), or manually call the returned cleanup function. Useful for converting static HTML links to use the router without needing NavLink components.
 
 `hooks.before_load(func)`
-: Decorator to register a method as a before_load hook for a Route. Hooks are called in the order they are defined on the class. Each hook receives a `nav_context` keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.
+: Decorator to register a method as a before_load hook for a Route. Hooks are collected from all base classes and **executed in reverse MRO order** (base classes first, derived classes last). Each hook receives a `nav_context` keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.
 
 ```python
 from routing.router import Route, hooks, Redirect
@@ -129,6 +129,7 @@ class AuthenticatedRoute(Route):
             raise Redirect(path="/login")
 
 # Both styles are supported; the returned dictionary (if any) will be merged into nav_context after the hook runs.
+# Hooks run in reverse MRO order, so base class hooks execute before derived class hooks.
 ```
 
 You may also attach hooks globally to all routes by assigning to the base class:
