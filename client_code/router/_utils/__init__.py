@@ -163,6 +163,6 @@ class EventEmitter:
         self._validate_event(event_name)
         kwargs["event_name"] = event_name
         kwargs["sender"] = self
-        fns = self._subscribers.get(event_name, [])
-        for fn in fns:
+        fns = self._subscribers.get(event_name, set())
+        for fn in list(fns):
             fn(**kwargs)
