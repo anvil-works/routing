@@ -75,22 +75,8 @@ def register_links(
             exact_path=True
         )
     """
-    # Collect all links to register
     registered_links = []
-
-    for node in dom_nodes:
-        dom_node = anvil.js.get_dom_node(node)
-
-        if dom_node.tagName.lower() == "a":
-            registered_links.append(dom_node)
-        else:
-            links = dom_node.querySelectorAll(selector)
-            for link in links:
-                registered_links.append(link)
-
-    # Register click handlers on all links
-    for link in registered_links:
-        _make_nav_link(link)
+    registered = {"done": False}  # nonlocal issue in skulpt
 
     # Create navigation handler that updates active state
     def on_navigate(routing_context=None, **nav_args):
@@ -109,14 +95,34 @@ def register_links(
                 exact_hash,
             )
 
-    # Subscribe to navigation events
-    navigation_emitter.add_event_handler("navigate", on_navigate)
+    def initial_walk_links():
+        if registered["done"]:
+            return
+        registered["done"] = True
 
-    # Trigger initial active state update
-    on_navigate()
+        for node in dom_nodes:
+            dom_node = anvil.js.get_dom_node(node)
+
+            if dom_node.tagName.lower() == "a":
+                registered_links.append(dom_node)
+            else:
+                links = dom_node.querySelectorAll(selector)
+                for link in links:
+                    registered_links.append(link)
+
+        # Register click handlers on all links
+        for link in registered_links:
+            _make_nav_link(link)
+
+    def setup(**event_args):
+        initial_walk_links()
+        # Subscribe to navigation events
+        navigation_emitter.add_event_handler("navigate", on_navigate)
+        # Update active state for initial route
+        on_navigate()
 
     # Return cleanup function
-    def cleanup():
+    def cleanup(**event_args):
         navigation_emitter.remove_event_handler("navigate", on_navigate)
         # Optionally clear active state on cleanup
         if active_callback:
@@ -126,21 +132,16 @@ def register_links(
             for link in registered_links:
                 link.classList.remove(active_class)
 
+    if component is None:
+        # consumer is responsible for cleanup
+        setup()
+        return cleanup
+
     # If component is provided, tie to component's page lifecycle events
-    if component is not None:
-
-        def on_page_added(**event_args):
-            # Re-register on each page added (in case links changed)
-            on_navigate()
-
-        def on_page_removed(**event_args):
-            cleanup()
-
-        component.add_event_handler("x-anvil-page-added", on_page_added)
-        component.add_event_handler("x-anvil-page-removed", on_page_removed)
-        return None  # Don't return cleanup function when lifecycle is managed
-
-    return cleanup
+    component.add_event_handler("x-anvil-page-added", setup)
+    component.add_event_handler("x-anvil-page-removed", cleanup)
+    # Don't return cleanup function when lifecycle is managed
+    return None
 
 
 def _handle_link_click(event):
