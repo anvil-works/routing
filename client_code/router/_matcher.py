@@ -115,11 +115,8 @@ def parse_query(route: Route, query: dict):
 
 @ensure_dict_wrapper
 def parse_params(route: Route, params: dict):
-    for key, value in dict(params).items():
-        try:
-            params[key] = loads(value)
-        except Exception:
-            pass
+    # Path params are always strings (from URL path segments)
+    # No JSON decoding needed - keep them as strings
 
     parser = route.parse_params
     if callable(parser):
