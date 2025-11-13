@@ -269,8 +269,8 @@ router.register_links(
 
 ### Behavior
 
--   For `<a>` tags: Registers them directly as navigation links
--   For containers: Searches within using the selector
+-   For `<a>` tags: Registers them only if they match the selector
+-   For containers: Searches within using the selector to find matching links
 -   Click handling:
     -   Prevents default browser navigation
     -   Respects modifier keys (Ctrl/Cmd/Shift) - lets browser handle

@@ -26,7 +26,7 @@ def register_links(
     Register navigation links for client-side routing with active state tracking
 
     Automatically detects if dom_nodes are links or containers:
-    - If element is an <a> tag → register it directly as a link
+    - If element is an <a> tag → register it only if it matches the selector
     - Otherwise → search within it using selector
 
     Args:
@@ -102,8 +102,12 @@ def register_links(
             dom_node = anvil.js.get_dom_node(node)
 
             if dom_node.tagName.lower() == "a":
-                registered_links.append(dom_node)
+                # Check if the link itself matches the selector
+                # Only register it if it matches (consistent with container behavior)
+                if dom_node.matches(selector):
+                    registered_links.append(dom_node)
             else:
+                # Search for links within the container that match the selector
                 links = dom_node.querySelectorAll(selector)
                 for link in links:
                     registered_links.append(link)
