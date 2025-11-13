@@ -10,7 +10,7 @@ class AuthorRoute(Route):
     form = "Pages.Author"
 ```
 
-When a user navigates to `/authors/123`, the routing context will include the path params `{"id": 123}`.
+When a user navigates to `/authors/123`, the routing context will include the path params `{"id": "123"}`.
 
 ```python
 from ._anvil_designer import AuthorTemplate
@@ -25,7 +25,7 @@ class Author(AuthorTemplate):
 
 ## Parsing Params
 
-By default, the params are considered JSON-able. e.g. if the path is `"/articles/123"` then the `123` is an integer after calling `json.loads`. If you want to parse the params into a different type, you can use the `parse_params` method.
+Path parameters are always strings (they come from URL path segments). If you want to parse the params into a different type, you can use the `parse_params` method.
 
 ```python
 class AuthorRoute(Route):
@@ -33,12 +33,12 @@ class AuthorRoute(Route):
     form = "Pages.Author"
 
     def parse_params(self, params):
-        return {"id": str(params["id"])}
+        return {"id": int(params["id"])}  # Convert string to int
 ```
 
 !!! note
 
-    If you have numbers in your params, but these should actually be strings, you can convert these to `str` in your `parse_params` method.
+    Path params are always strings. If you need them as numbers or other types, convert them in your `parse_params` method.
 
 ## Navigating with Params
 
@@ -76,7 +76,7 @@ class RowTemplate(RowTemplateTemplate):
 ```python
 from routing.router import navigate
 navigate(path="/authors/123")
-# the params will still become {"id": 123}
+# the params will still become {"id": "123"}
 ```
 
 ```python

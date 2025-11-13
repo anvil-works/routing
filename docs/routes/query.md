@@ -12,6 +12,8 @@ And a `query string` will be the URL-encoded version of the `query`.
 
 ## Navigating
 
+When navigating with `navigate` or `NavLink`, you should pass the query as a decoded Python dictionary (not a URL-encoded string). The routing library will handle encoding it into the URL automatically.
+
 Let's say you have a dashboard page with a tab component.
 The tab component has 2 tabs, income and expenses.
 
@@ -32,11 +34,24 @@ class Dashboard(DashboardTemplate):
 
     def tab_changed(self, **event_args):
         tab_value = self.tab_1.value
-        navigate(query={"tab": tab_value})
+        navigate(query={"tab": tab_value})  # Pass decoded dict with proper types
 ```
 
 Note that in the `tab_changed` event handler, we are navigating to the same path, and so, we don't need to include the `path` in the `navigate` call.
 If we want to be explicit, we can use `path="./"` or `path="/dashboard"`.
+
+### Query as a function
+
+The `query` argument to `navigate` or `NavLink` can also be a function that takes the current query parameters as an argument and returns the new query parameters. This is useful for updating query parameters based on the current state.
+
+```python
+def toggle_filter(self, **event_args):
+    def query(prev):
+        return {**prev, "open": not prev.get("open", False)}
+    navigate(query=query)
+```
+
+When using a query function, avoid modifying the query parameters directly. Instead, return a new dictionary.
 
 By default, if the query parameters change, a new instance of the form will be loaded (even if `cache_form` is set to `True`). See `cache_deps` below for more details.
 When the query parameters change, we can listen for the `query_changed` event and update our page state accordingly.
@@ -85,13 +100,15 @@ Where a query parameter is a `str`, `int`, `float`, `bool` or `None`, this will 
 
 e.g. `?foo=bar&baz=1&eggs=true` will be decoded as `{"foo": "bar", "baz": 1, "eggs": True}`.
 
-!!! note
-
-    If you have numbers in your query parameters, but these should actually be strings, you can convert these to `str` in your `parse_query` method.
-
 For nested, JSON-able objects, i.e. `lists` and `dicts`, the routing library will encode the object as a JSON string in the query string.
 
 e.g. `foo=%5B1%2C+%22a%22%2C+true%5D'` will be decoded as `{"foo": [1, "a", true]}`.
+
+!!! note
+
+    When you pass query parameters to `navigate` or `NavLink`, you should pass them as decoded Python objects (e.g., `{"page": 1}` not `{"page": "1"}`). The routing library handles encoding automatically.
+
+    However, when reading query parameters from the URL (in `parse_query`), numbers will be decoded as integers/floats. If you need them as strings, you can convert them in your `parse_query` method.
 
 ## Loading a new instance of a form
 
