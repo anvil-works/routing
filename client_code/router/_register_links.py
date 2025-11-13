@@ -20,9 +20,6 @@ def register_links(
     selector="a[href^='/']",
     active_class="active",
     active_callback=None,
-    exact_path=False,
-    exact_query=False,
-    exact_hash=False,
     component=None,
 ):
     """
@@ -37,14 +34,20 @@ def register_links(
         selector: CSS selector for finding links in containers (default: internal links)
         active_class: CSS class to add/remove when link matches current route
         active_callback: Custom callback(element, is_active) for styling (overrides active_class)
-        exact_path: If True, path must match exactly (default: False)
-        exact_query: If True, query must match exactly (default: False)
-        exact_hash: If True, hash must match exactly (default: False)
         component: Anvil component - auto setup on show, cleanup on hide (default: None)
 
     Returns:
         Cleanup function to unregister links and remove event listeners
         (or None if component is used)
+
+    Exact Matching:
+        Each link can specify exact matching behavior using data attributes:
+        - data-exact-path: Path must match exactly (presence of attribute enables)
+        - data-exact-query: Query parameters must match exactly (presence of attribute enables)
+        - data-exact-hash: Hash must match exactly (presence of attribute enables)
+
+        These attributes are read from each link element individually, allowing
+        different links to have different exact matching behavior.
 
     Examples:
         # Auto setup/cleanup tied to component lifecycle
@@ -69,11 +72,9 @@ def register_links(
             active_callback=style_link
         )
 
-        # Exact path matching
-        cleanup = router.register_links(
-            self.dom_nodes["breadcrumbs"],
-            exact_path=True
-        )
+        # Exact path matching via data attribute in HTML:
+        # <a href="/articles" data-exact-path>Articles</a>
+        cleanup = router.register_links(self.dom_nodes["breadcrumbs"])
     """
     registered_links = []
     registered = {"done": False}  # nonlocal issue in skulpt
@@ -90,9 +91,6 @@ def register_links(
                 routing_context,
                 active_class,
                 active_callback,
-                exact_path,
-                exact_query,
-                exact_hash,
             )
 
     def initial_walk_links():
@@ -172,11 +170,14 @@ def _update_active_state(
     routing_context,
     active_class,
     active_callback,
-    exact_path,
-    exact_query,
-    exact_hash,
 ):
-    """Internal: Update active state for a registered link (uses NavLink logic)"""
+    """Internal: Update active state for a registered link (uses NavLink logic)
+
+    Reads exact matching flags from data attributes on the element:
+    - data-exact-path: presence enables exact path matching
+    - data-exact-query: presence enables exact query matching
+    - data-exact-hash: presence enables exact hash matching
+    """
     href = element.getAttribute("href")
     if not href:
         return
@@ -185,6 +186,14 @@ def _update_active_state(
         location = Location.from_url(href)
     except Exception:
         return
+
+    # Read exact matching flags from dataset (presence-based)
+    # dataset converts data-exact-path to exactPath, etc.
+    # dataset.get() returns None if attribute doesn't exist
+    dataset = element.dataset
+    exact_path = dataset.get("exactPath") is not None
+    exact_query = dataset.get("exactQuery") is not None
+    exact_hash = dataset.get("exactHash") is not None
 
     # Parse query from location if needed for exact_query check
     query = {}
