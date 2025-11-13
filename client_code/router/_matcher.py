@@ -23,7 +23,10 @@ class Match:
 
 
 def get_segments(path):
-    return path.split("/")
+    if not path:
+        return []
+    else:
+        return path.split("/")
 
 
 def get_match_from_nav_args(context_or_path_or_url, *, path, query, params, hash):
@@ -45,7 +48,7 @@ def get_match_from_nav_args(context_or_path_or_url, *, path, query, params, hash
 
 def get_match(location):
     path = trim_path(location.path)
-    parts = path.split("/")
+    parts = get_segments(path)
 
     for route in sorted_routes:
         iter_segments = iter(route.segments)

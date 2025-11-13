@@ -153,7 +153,7 @@ The `@hooks.before_load` decorator enables you to compose multiple hooks for a s
 
 ### Multiple Hooks and Inheritance
 
-Hooks are collected from all base classes in method resolution order (MRO), so you can layer behaviors:
+Hooks are collected from all base classes and **run in reverse MRO order** (base classes first, derived classes last), allowing you to layer behaviors:
 
 ```python
 from routing.router import Route, hooks, Redirect
@@ -179,7 +179,12 @@ class DashboardRoute(FeatureFlagMixin, AuthenticatedRoute):
         return {"show_dashboard": True}
 ```
 
-Hooks will run in base-to-leaf order: `check_auth` → `add_feature_flag` → `dashboard_flag`.
+**Hook execution order (reverse MRO):**
+1. `AuthenticatedRoute.check_auth` (most base)
+2. `FeatureFlagMixin.add_feature_flag` (middle)
+3. `DashboardRoute.dashboard_flag` (most derived)
+
+This order ensures base classes can set up context (like authentication) that derived classes depend on.
 
 ### Global Hooks
 

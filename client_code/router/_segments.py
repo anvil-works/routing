@@ -31,6 +31,8 @@ class Segment:
     @classmethod
     def from_path(cls, path):
         path = trim_path(path)
+        if not path:
+            return []
         parts = path.split("/")
         segments = []
         for part in parts:
