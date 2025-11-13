@@ -187,6 +187,19 @@ cleanup = router.register_links(
 )
 ```
 
+**Skip active state for specific links**:
+
+```python
+# In your HTML template:
+# <a href="/" data-no-active>Home</a>  # Navigates but doesn't get active state
+# <a href="/about">About</a>  # Normal link with active state
+
+cleanup = router.register_links(
+    self.dom_nodes["nav"],
+    active_class="active"
+)
+```
+
 **Register specific link elements directly**:
 
 ```python
@@ -264,6 +277,11 @@ router.register_links(
 
 `data-exact-hash`
 : If present, hash must match exactly. Default: `False`. Set this attribute on individual link elements in your HTML.
+
+**Skip Active State:**
+
+`data-no-active`
+: If present, the link will navigate but won't receive active state updates. Useful for links like the home page ("/") that you want to navigate but not highlight. Set this attribute on individual link elements in your HTML.
 
 **Returns**: Cleanup function to unregister links and remove event listeners (or `None` if `component` is used)
 

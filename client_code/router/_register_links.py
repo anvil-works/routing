@@ -49,6 +49,11 @@ def register_links(
         These attributes are read from each link element individually, allowing
         different links to have different exact matching behavior.
 
+    Skip Active State:
+        Use data-no-active attribute to skip active state tracking for a link:
+        - data-no-active: Link will navigate but won't receive active state updates
+        - Useful for links like home page ("/") that you want to navigate but not highlight
+
     Examples:
         # Auto setup/cleanup tied to component lifecycle
         router.register_links(self.dom_nodes["header"], component=self)
@@ -181,9 +186,15 @@ def _update_active_state(
     - data-exact-path: presence enables exact path matching
     - data-exact-query: presence enables exact query matching
     - data-exact-hash: presence enables exact hash matching
+    - data-no-active: presence skips active state tracking entirely
     """
     href = element.getAttribute("href")
     if not href:
+        return
+
+    # Check if link should skip active state tracking
+    dataset = element.dataset
+    if dataset.get("noActive") is not None:
         return
 
     try:
@@ -194,7 +205,6 @@ def _update_active_state(
     # Read exact matching flags from dataset (presence-based)
     # dataset converts data-exact-path to exactPath, etc.
     # dataset.get() returns None if attribute doesn't exist
-    dataset = element.dataset
     exact_path = dataset.get("exactPath") is not None
     exact_query = dataset.get("exactQuery") is not None
     exact_hash = dataset.get("exactHash") is not None

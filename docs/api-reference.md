@@ -111,6 +111,9 @@ Can be useful for routes that share data. Or layouts that need access to the dat
 
     These attributes are read from each link element individually, allowing different links to have different exact matching behavior.
 
+    To skip active state tracking for a link (e.g., home page), use `data-no-active`:
+    - `data-no-active`: Link will navigate but won't receive active state updates
+
 `hooks.before_load(func)`
 : Decorator to register a method as a before_load hook for a Route. Hooks are collected from all base classes and **executed in reverse MRO order** (base classes first, derived classes last). Each hook receives a `nav_context` keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.
 
