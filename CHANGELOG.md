@@ -1,6 +1,30 @@
 # Changelog
 
-## v0.4.2 (01/01/1970)
+## v0.5.0 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: circular import race condition in template container routes [#86](https://github.com/anvil-works/routing/pull/86)
+
+### 🚀 Features
+
+- feat: make params always strings avoiding decode issues [#89](https://github.com/anvil-works/routing/pull/89)
+- Feat: add register_links method [#88](https://github.com/anvil-works/routing/pull/88)
+
+### 📖 Documentation
+
+- feat: make params always strings avoiding decode issues [#89](https://github.com/anvil-works/routing/pull/89)
+- Feat: add register_links method [#88](https://github.com/anvil-works/routing/pull/88)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.4.2...v0.5.0
+
+---
+
+## v0.4.2 (05/09/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 

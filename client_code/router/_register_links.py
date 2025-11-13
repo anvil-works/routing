@@ -12,7 +12,7 @@ from ._navigate import navigate_with_location
 from ._route import Route
 from ._router import navigation_emitter
 
-__version__ = "0.4.2"
+__version__ = "0.5.0"
 
 
 def register_links(
