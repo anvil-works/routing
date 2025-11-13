@@ -49,6 +49,10 @@ If you are using the default NavLink component, then `active` means it will set 
 `exact_path`
 : If `True`, then the path must match exactly. By default, this is `False`. This means a NavLink with a path of `/articles` will match the path `/articles`, `/articles/123` and `/articles/123/456`.
 
+!!! note "Special case: Home page link"
+
+    A NavLink with `path="/"` is automatically treated as an exact match. It will only be active when the current path is also `"/"`, not on child routes. This is the expected behavior for home page links, so you don't need to set `exact_path=True` for them.
+
 `exact_query`
 : If `True`, then the query must inclusively match the current routing context's query. By default, this is `False`.
 
@@ -271,6 +275,10 @@ router.register_links(
 
 `data-exact-path`
 : If present, path must match exactly. Default: `False` (parent paths also match). Set this attribute on individual link elements in your HTML.
+
+!!! note "Special case: Home page link"
+
+    A link with `href="/"` is automatically treated as an exact match. It will only be active when the current path is also `"/"`, not on child routes. This is the expected behavior for home page links, so you don't need to set `data-exact-path` for them.
 
 `data-exact-query`
 : If present, query parameters must match exactly. Default: `False`. Set this attribute on individual link elements in your HTML.

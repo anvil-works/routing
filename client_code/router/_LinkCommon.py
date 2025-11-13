@@ -66,6 +66,9 @@ def check_if_location_is_active(
         location_segments = Segment.from_path(location.path)
         if len(location_segments) > len(curr_segments):
             active = False
+        elif len(location_segments) == 0 and len(curr_segments) > 0:
+            # "/" should only be active when current path is also "/"
+            active = False
         else:
             for gbl, loc in zip(curr_segments, location_segments):
                 if gbl.value == loc.value or loc.is_param():
