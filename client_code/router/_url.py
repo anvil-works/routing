@@ -5,7 +5,7 @@ from anvil.history import history
 
 from ._navigate import get_nav_location
 
-__version__ = "0.4.2"
+__version__ = "0.5.0"
 
 
 def get_url(

@@ -7,7 +7,7 @@ from ._logger import logger
 from ._non_blocking import call_async
 from ._utils import await_promise
 
-__version__ = "0.4.2"
+__version__ = "0.5.0"
 
 
 def get_package_name():
