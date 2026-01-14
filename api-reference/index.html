@@ -64,6 +64,16 @@
     </li>
         </ul>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#components">Components</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#context-managers">Context Managers</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a>
+    </li>
     </ul>
                 </li>
               </ul>
@@ -163,19 +173,15 @@ All attributes can be accessed from the <code>routing.router</code> module.</p>
 <p>If your routes are defined in a different module (e.g. <code>utils.routes</code>), set this option to the correct module name.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You only need to manually import your routes module if:</p>
-<ol>
-<li>Your routes module is <strong>not</strong> named <code>routes</code>, <strong>and</strong></li>
-<li>You have <strong>not</strong> set the <code>routes_module</code> config option</li>
-</ol>
-<p>In that case, add explicit imports:</p>
-<p>```python</p>
-<h1 id="in-a-startup-module-eg-startuppy">In a startup module, e.g. startup.py<a class="headerlink" href="#in-a-startup-module-eg-startuppy" title="Permanent link">&para;</a></h1>
-<p>from . import my_custom_routes</p>
-<h1 id="in-a-server-module-eg-serverroutespy">In a server module, e.g. ServerRoutes.py<a class="headerlink" href="#in-a-server-module-eg-serverroutespy" title="Permanent link">&para;</a></h1>
-<p>from . import my_custom_routes
-```</p>
+<p>You only need to manually import your routes module if your routes module is <strong>not</strong> named <code>routes</code> <strong>and</strong> you have <strong>not</strong> set the <code>routes_module</code> config option.</p>
 </div>
+<p>If that's the case, add explicit imports:</p>
+<pre><code class="language-python"># In a startup module, e.g. startup.py
+from . import my_custom_routes
+
+# In a server module, e.g. ServerRoutes.py
+from . import my_custom_routes
+</code></pre>
 <h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>navigate(*, path=None, params=None, query=None, hash=None, replace=False, nav_context=None, form_properties=None)</code></dt>
