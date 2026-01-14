@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Anvil
+# Copyright (c) 2025-2026 Anvil
 # SPDX-License-Identifier: MIT
 
 __version__ = "0.5.0"

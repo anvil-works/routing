@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Anvil
+# Copyright (c) 2024-2026 Anvil
 # SPDX-License-Identifier: MIT
 
 from ._utils import trim_path
