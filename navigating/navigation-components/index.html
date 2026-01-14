@@ -71,6 +71,26 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#anchor">Anchor</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#register_links">register_links()</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#why-use-this">Why Use This?</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#features">Features</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#parameters">Parameters</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#behavior">Behavior</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cleanup">Cleanup</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#comparison-with-navlink">Comparison with NavLink</a>
+    </li>
+        </ul>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../blocking-navigation/">Blocking Navigation</a>
@@ -182,6 +202,12 @@
 <dd>The active state of the NavLink. You probably don't want to set this. The routing library will set it to <code>True</code> when the NavLink's properties match the current routing context.</dd>
 <dt><code>exact_path</code></dt>
 <dd>If <code>True</code>, then the path must match exactly. By default, this is <code>False</code>. This means a NavLink with a path of <code>/articles</code> will match the path <code>/articles</code>, <code>/articles/123</code> and <code>/articles/123/456</code>.</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Special case: Home page link</p>
+<p>A NavLink with <code>path="/"</code> is automatically treated as an exact match. It will only be active when the current path is also <code>"/"</code>, not on child routes. This is the expected behavior for home page links, so you don't need to set <code>exact_path=True</code> for them.</p>
+</div>
+<dl>
 <dt><code>exact_query</code></dt>
 <dd>If <code>True</code>, then the query must inclusively match the current routing context's query. By default, this is <code>False</code>.</dd>
 <dt><code>exact_hash</code></dt>
@@ -190,6 +216,268 @@
 <p>You can set most properties in code or in the designer. In the designer, it is recommended to set <code>query</code> properties by using data bindings.</p>
 <h2 id="anchor">Anchor<a class="headerlink" href="#anchor" title="Permanent link">&para;</a></h2>
 <p>Anchor is a link that you can use inline or as a container for other components. Unlike the NavLink, the Anchor component has no <code>active</code> property.</p>
+<h2 id="register_links">register_links()<a class="headerlink" href="#register_links" title="Permanent link">&para;</a></h2>
+<p>For existing HTML/DOM links, you can use <code>register_links()</code> to enable client-side routing with active state tracking without creating NavLink or Anchor components.</p>
+<h3 id="why-use-this">Why Use This?<a class="headerlink" href="#why-use-this" title="Permanent link">&para;</a></h3>
+<p>Use <code>register_links()</code> when you have navigation links defined in an HTML template component. Instead of manually creating a NavLink component for each link, you can register all links in your HTML with a single function call.</p>
+<h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h3>
+<p><strong>Automatic lifecycle management</strong> (recommended):</p>
+<pre><code class="language-python">from routing import router
+
+class MainLayout(MainLayoutTemplate):
+    def __init__(self, **properties):
+        self.init_components(**properties)
+        # Register links tied to component lifecycle
+        router.register_links(
+            self.dom_nodes[&quot;header&quot;],
+            active_class=&quot;active&quot;,
+            component=self  # Auto setup on page added, cleanup on page removed
+        )
+</code></pre>
+<p><strong>Manual cleanup</strong>:</p>
+<pre><code class="language-python">class MainLayout(MainLayoutTemplate):
+    def __init__(self, **properties):
+        self.init_components(**properties)
+        self._cleanup_links = None
+
+    def form_show(self, **event_args):
+        # Register links and store cleanup function
+        self._cleanup_links = router.register_links(
+            self.dom_nodes[&quot;header&quot;],
+            active_class=&quot;active&quot;
+        )
+
+    def form_hide(self, **event_args):
+        # Manually call cleanup when form is hidden
+        if self._cleanup_links:
+            self._cleanup_links()
+            self._cleanup_links = None
+</code></pre>
+<p><strong>Register all links in the entire component</strong>:</p>
+<pre><code class="language-python">def form_show(self, **event_args):
+    # Register ALL internal links in this component's HTML
+    self._cleanup_links = router.register_links(
+        self,  # The component itself
+        active_class=&quot;active&quot;
+    )
+</code></pre>
+<p>This will find all <code>&lt;a href="/..."&gt;</code> links in your HTML template and enable routing for them.</p>
+<h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Auto-detection</strong>: Automatically detects if elements are <code>&lt;a&gt;</code> tags or containers</li>
+<li><strong>Active state tracking</strong>: Links automatically receive active styling when they match the current route</li>
+<li><strong>Flexible styling</strong>: Use CSS classes or custom callbacks for active state</li>
+<li><strong>Cleanup function</strong>: Returns a function to unregister and clean up event listeners</li>
+<li><strong>Exact matching</strong>: Support for <code>data-exact-path</code>, <code>data-exact-query</code>, and <code>data-exact-hash</code> data attributes on individual links</li>
+<li><strong>Customizable</strong>: Use custom CSS selectors to target specific links</li>
+<li><strong>Idempotent</strong>: Safe to call multiple times on the same elements</li>
+</ul>
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
+<p><strong>Basic usage with active class</strong>:</p>
+<pre><code class="language-python">cleanup = router.register_links(
+    self.dom_nodes[&quot;nav&quot;],
+    active_class=&quot;active&quot;  # CSS class added to matching links
+)
+</code></pre>
+<p><strong>Custom active state callback</strong>:</p>
+<pre><code class="language-python">def style_active_link(element, is_active):
+    if is_active:
+        element.style.fontWeight = &quot;bold&quot;
+        element.style.color = &quot;#007bff&quot;
+    else:
+        element.style.fontWeight = &quot;normal&quot;
+        element.style.color = &quot;&quot;
+
+cleanup = router.register_links(
+    self.dom_nodes[&quot;nav&quot;],
+    active_callback=style_active_link
+)
+</code></pre>
+<p><strong>Exact path matching</strong> (for breadcrumbs):</p>
+<pre><code class="language-python"># In your HTML template:
+# &lt;a href=&quot;/articles&quot; data-exact-path&gt;Articles&lt;/a&gt;
+# &lt;a href=&quot;/about&quot; data-exact-path&gt;About&lt;/a&gt;
+
+cleanup = router.register_links(
+    self.dom_nodes[&quot;breadcrumbs&quot;],
+    active_class=&quot;current&quot;
+)
+</code></pre>
+<p><strong>Multiple exact matching options</strong>:</p>
+<pre><code class="language-python"># In your HTML template, you can use multiple data attributes (presence-based):
+# &lt;a href=&quot;/articles?tab=all&quot; data-exact-path data-exact-query&gt;All Articles&lt;/a&gt;
+# &lt;a href=&quot;/articles#comments&quot; data-exact-hash&gt;Article Comments&lt;/a&gt;
+# &lt;a href=&quot;/articles/123?tab=details#summary&quot; data-exact-path data-exact-query data-exact-hash&gt;Full Match&lt;/a&gt;
+
+cleanup = router.register_links(
+    self.dom_nodes[&quot;nav&quot;],
+    active_class=&quot;active&quot;
+)
+</code></pre>
+<p><strong>Skip active state for specific links</strong>:</p>
+<pre><code class="language-python"># In your HTML template:
+# &lt;a href=&quot;/&quot; data-no-active&gt;Home&lt;/a&gt;  # Navigates but doesn't get active state
+# &lt;a href=&quot;/about&quot;&gt;About&lt;/a&gt;  # Normal link with active state
+
+cleanup = router.register_links(
+    self.dom_nodes[&quot;nav&quot;],
+    active_class=&quot;active&quot;
+)
+</code></pre>
+<p><strong>Register specific link elements directly</strong>:</p>
+<pre><code class="language-python"># Register individual &lt;a&gt; tag dom_nodes
+cleanup = router.register_links(
+    self.dom_nodes[&quot;home_link&quot;],
+    self.dom_nodes[&quot;about_link&quot;],
+    self.dom_nodes[&quot;contact_link&quot;],
+    active_class=&quot;active&quot;
+)
+</code></pre>
+<p><strong>Register multiple containers</strong>:</p>
+<pre><code class="language-python">cleanup = router.register_links(
+    self.dom_nodes[&quot;header&quot;],
+    self.dom_nodes[&quot;footer&quot;],
+    active_class=&quot;active&quot;
+)
+</code></pre>
+<p><strong>Custom selector to target specific links</strong>:</p>
+<pre><code class="language-python"># Only register links with a specific class
+cleanup = router.register_links(
+    self.dom_nodes[&quot;nav&quot;],
+    selector=&quot;a.nav-link&quot;,  # Only &lt;a&gt; tags with class=&quot;nav-link&quot;
+    active_class=&quot;active&quot;
+)
+
+# Or target links by attribute
+cleanup = router.register_links(
+    self,
+    selector=&quot;a[data-route]&quot;,  # Only &lt;a&gt; tags with data-route attribute
+    active_class=&quot;active&quot;
+)
+</code></pre>
+<p><strong>Fire and forget</strong> (for persistent sidebars that never hide):</p>
+<pre><code class="language-python"># No need to store cleanup if form never hides
+router.register_links(
+    self.dom_nodes[&quot;sidebar&quot;],
+    active_class=&quot;active&quot;
+)
+</code></pre>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<dl>
+<dt><code>*dom_nodes</code></dt>
+<dd>DOM elements (links or containers) to register for routing</dd>
+<dt><code>selector</code></dt>
+<dd>CSS selector for finding links in containers. Default: <code>"a[href^='/']"</code> (all internal links)</dd>
+<dt><code>active_class</code></dt>
+<dd>CSS class to add/remove when link matches current route. Default: <code>"active"</code></dd>
+<dt><code>active_callback</code></dt>
+<dd>Custom callback <code>function(element, is_active)</code> for styling. Overrides <code>active_class</code> if provided</dd>
+<dt><code>component</code></dt>
+<dd>Anvil component to tie lifecycle to (auto setup on page added, cleanup on page removed). Default: <code>None</code></dd>
+</dl>
+<p><strong>Exact Matching (via data attributes on each link, presence-based):</strong></p>
+<dl>
+<dt><code>data-exact-path</code></dt>
+<dd>If present, path must match exactly. Default: <code>False</code> (parent paths also match). Set this attribute on individual link elements in your HTML.</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Special case: Home page link</p>
+<p>A link with <code>href="/"</code> is automatically treated as an exact match. It will only be active when the current path is also <code>"/"</code>, not on child routes. This is the expected behavior for home page links, so you don't need to set <code>data-exact-path</code> for them.</p>
+</div>
+<dl>
+<dt><code>data-exact-query</code></dt>
+<dd>If present, query parameters must match exactly. Default: <code>False</code>. Set this attribute on individual link elements in your HTML.</dd>
+<dt><code>data-exact-hash</code></dt>
+<dd>If present, hash must match exactly. Default: <code>False</code>. Set this attribute on individual link elements in your HTML.</dd>
+</dl>
+<p><strong>Skip Active State:</strong></p>
+<dl>
+<dt><code>data-no-active</code></dt>
+<dd>If present, the link will navigate but won't receive active state updates. Useful for links like the home page ("/") that you want to navigate but not highlight. Set this attribute on individual link elements in your HTML.</dd>
+</dl>
+<p><strong>Returns</strong>: Cleanup function to unregister links and remove event listeners (or <code>None</code> if <code>component</code> is used)</p>
+<h3 id="behavior">Behavior<a class="headerlink" href="#behavior" title="Permanent link">&para;</a></h3>
+<ul>
+<li>For <code>&lt;a&gt;</code> tags: Registers them only if they match the selector</li>
+<li>For containers: Searches within using the selector to find matching links</li>
+<li>Click handling:<ul>
+<li>Prevents default browser navigation</li>
+<li>Respects modifier keys (Ctrl/Cmd/Shift) - lets browser handle</li>
+<li>Uses router's navigation for client-side routing</li>
+</ul>
+</li>
+<li>Active state:<ul>
+<li>Updates automatically on every navigation</li>
+<li>Uses same matching logic as <code>NavLink</code> component</li>
+<li>Applies CSS class or calls custom callback</li>
+</ul>
+</li>
+</ul>
+<h3 id="cleanup">Cleanup<a class="headerlink" href="#cleanup" title="Permanent link">&para;</a></h3>
+<p>The returned cleanup function should be called when:</p>
+<ul>
+<li>The form is hidden (in the <code>hide</code> event handler)</li>
+<li>The form is removed from the page</li>
+<li>You want to unregister the links</li>
+</ul>
+<p>The cleanup function:</p>
+<ul>
+<li>Removes navigation event listeners</li>
+<li>Clears active state from all registered links</li>
+<li>Prevents memory leaks</li>
+</ul>
+<h3 id="comparison-with-navlink">Comparison with NavLink<a class="headerlink" href="#comparison-with-navlink" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><code>register_links()</code></th>
+<th><code>NavLink</code> Component</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Use case</td>
+<td>Existing HTML/DOM</td>
+<td>Anvil components</td>
+</tr>
+<tr>
+<td>Active state</td>
+<td>✅ Yes (CSS class or callback)</td>
+<td>✅ Yes (component property)</td>
+</tr>
+<tr>
+<td>Setup</td>
+<td>One function call</td>
+<td>Per-link component</td>
+</tr>
+<tr>
+<td>Flexibility</td>
+<td>High (any DOM)</td>
+<td>Component-based</td>
+</tr>
+<tr>
+<td>Path params</td>
+<td>From href only</td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>Query params</td>
+<td>From href only</td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>Cleanup</td>
+<td>Manual (via returned function)</td>
+<td>Automatic</td>
+</tr>
+<tr>
+<td>Exact matching</td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+</tr>
+</tbody>
+</table>
               
             </div>
           </div><footer>

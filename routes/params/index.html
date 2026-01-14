@@ -143,7 +143,7 @@ class AuthorRoute(Route):
     path = &quot;/authors/:id&quot;
     form = &quot;Pages.Author&quot;
 </code></pre>
-<p>When a user navigates to <code>/authors/123</code>, the routing context will include the path params <code>{"id": 123}</code>.</p>
+<p>When a user navigates to <code>/authors/123</code>, the routing context will include the path params <code>{"id": "123"}</code>.</p>
 <pre><code class="language-python">from ._anvil_designer import AuthorTemplate
 from routing.router import RoutingContext
 
@@ -154,17 +154,17 @@ class Author(AuthorTemplate):
         self.init_components(**properties)
 </code></pre>
 <h2 id="parsing-params">Parsing Params<a class="headerlink" href="#parsing-params" title="Permanent link">&para;</a></h2>
-<p>By default, the params are considered JSON-able. e.g. if the path is <code>"/articles/123"</code> then the <code>123</code> is an integer after calling <code>json.loads</code>. If you want to parse the params into a different type, you can use the <code>parse_params</code> method.</p>
+<p>Path parameters are always strings (they come from URL path segments). If you want to parse the params into a different type, you can use the <code>parse_params</code> method.</p>
 <pre><code class="language-python">class AuthorRoute(Route):
     path = &quot;/authors/:id&quot;
     form = &quot;Pages.Author&quot;
 
     def parse_params(self, params):
-        return {&quot;id&quot;: str(params[&quot;id&quot;])}
+        return {&quot;id&quot;: int(params[&quot;id&quot;])}  # Convert string to int
 </code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you have numbers in your params, but these should actually be strings, you can convert these to <code>str</code> in your <code>parse_params</code> method.</p>
+<p>Path params are always strings. If you need them as numbers or other types, convert them in your <code>parse_params</code> method.</p>
 </div>
 <h2 id="navigating-with-params">Navigating with Params<a class="headerlink" href="#navigating-with-params" title="Permanent link">&para;</a></h2>
 <p>You can navigate to a route with params by passing the params option to the <code>navigate</code> function.</p>
@@ -193,7 +193,7 @@ class RowTemplate(RowTemplateTemplate):
 <p><strong>Other equivalent ways to navigate include:</strong></p>
 <pre><code class="language-python">from routing.router import navigate
 navigate(path=&quot;/authors/123&quot;)
-# the params will still become {&quot;id&quot;: 123}
+# the params will still become {&quot;id&quot;: &quot;123&quot;}
 </code></pre>
 <pre><code class="language-python">from routing.router import navigate
 from ...routes import AuthorRoute

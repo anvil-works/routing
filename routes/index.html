@@ -356,10 +356,7 @@ class AuthorRoute(Route):
 <p>In the above example, it's important that the <code>NewAuthorRoute</code> comes before the <code>AuthorRoute</code> in the list of routes. This is because <code>/authors/new</code> is a valid path for the <code>AuthorRoute</code>, so the router would successfully match the route and open the form.</p>
 <h2 id="server-routes">Server Routes<a class="headerlink" href="#server-routes" title="Permanent link">&para;</a></h2>
 <p>When a user navigates to a URL directly, the router will match routes on the server.</p>
-<p>When you import your routes in server code, the router will automatically create a server route for each route.</p>
-<pre><code class="language-python"># ServerRoutes.py
-from . import routes
-</code></pre>
+<p>The router <strong>automatically imports</strong> your routes module (defaulting to <code>routes</code>) and creates a server route for each route. You do not need to manually import routes in server code.</p>
 <p>Under the hood this will look something like:</p>
 <pre><code class="language-python"># ServerRoutes.py
 from . import routes

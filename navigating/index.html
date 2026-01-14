@@ -276,7 +276,7 @@ class FooForm(FooFormTemplate):
 <h2 id="advanced-composing-hooksbefore_loads">Advanced: Composing hooks.before_loads<a class="headerlink" href="#advanced-composing-hooksbefore_loads" title="Permanent link">&para;</a></h2>
 <p>The <code>@hooks.before_load</code> decorator enables you to compose multiple hooks for a single route, supporting advanced patterns such as mixins, inheritance, and global hooks.</p>
 <h3 id="multiple-hooks-and-inheritance">Multiple Hooks and Inheritance<a class="headerlink" href="#multiple-hooks-and-inheritance" title="Permanent link">&para;</a></h3>
-<p>Hooks are collected from all base classes in method resolution order (MRO), so you can layer behaviors:</p>
+<p>Hooks are collected from all base classes and <strong>run in reverse MRO order</strong> (base classes first, derived classes last), allowing you to layer behaviors:</p>
 <pre><code class="language-python">from routing.router import Route, hooks, Redirect
 
 class AuthenticatedRoute(Route):
@@ -299,7 +299,11 @@ class DashboardRoute(FeatureFlagMixin, AuthenticatedRoute):
     def dashboard_flag(self, **loader_args):
         return {&quot;show_dashboard&quot;: True}
 </code></pre>
-<p>Hooks will run in base-to-leaf order: <code>check_auth</code> → <code>add_feature_flag</code> → <code>dashboard_flag</code>.</p>
+<p><strong>Hook execution order (reverse MRO):</strong>
+1. <code>AuthenticatedRoute.check_auth</code> (most base)
+2. <code>FeatureFlagMixin.add_feature_flag</code> (middle)
+3. <code>DashboardRoute.dashboard_flag</code> (most derived)</p>
+<p>This order ensures base classes can set up context (like authentication) that derived classes depend on.</p>
 <h3 id="global-hooks">Global Hooks<a class="headerlink" href="#global-hooks" title="Permanent link">&para;</a></h3>
 <p>You can attach a hook to the <code>Route</code> base class to apply it to all routes:</p>
 <pre><code class="language-python">@hooks.before_load

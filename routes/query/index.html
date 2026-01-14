@@ -77,6 +77,10 @@
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Query</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#navigating">Navigating</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#query-as-a-function">Query as a function</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#parsing-query-parameters">Parsing Query Parameters</a>
         <ul>
@@ -155,6 +159,7 @@ Query parameters may be referred to by different names, e.g. search, search para
 <p>In this routing library, we will refer to <code>query</code> as a dictionary of query parameters.
 And a <code>query string</code> will be the URL-encoded version of the <code>query</code>.</p>
 <h2 id="navigating">Navigating<a class="headerlink" href="#navigating" title="Permanent link">&para;</a></h2>
+<p>When navigating with <code>navigate</code> or <code>NavLink</code>, you should pass the query as a decoded Python dictionary (not a URL-encoded string). The routing library will handle encoding it into the URL automatically.</p>
 <p>Let's say you have a dashboard page with a tab component.
 The tab component has 2 tabs, income and expenses.</p>
 <pre><code class="language-python">from ._anvil_designer import DashboardTemplate
@@ -173,10 +178,18 @@ class Dashboard(DashboardTemplate):
 
     def tab_changed(self, **event_args):
         tab_value = self.tab_1.value
-        navigate(query={&quot;tab&quot;: tab_value})
+        navigate(query={&quot;tab&quot;: tab_value})  # Pass decoded dict with proper types
 </code></pre>
 <p>Note that in the <code>tab_changed</code> event handler, we are navigating to the same path, and so, we don't need to include the <code>path</code> in the <code>navigate</code> call.
 If we want to be explicit, we can use <code>path="./"</code> or <code>path="/dashboard"</code>.</p>
+<h3 id="query-as-a-function">Query as a function<a class="headerlink" href="#query-as-a-function" title="Permanent link">&para;</a></h3>
+<p>The <code>query</code> argument to <code>navigate</code> or <code>NavLink</code> can also be a function that takes the current query parameters as an argument and returns the new query parameters. This is useful for updating query parameters based on the current state.</p>
+<pre><code class="language-python">def toggle_filter(self, **event_args):
+    def query(prev):
+        return {**prev, &quot;open&quot;: not prev.get(&quot;open&quot;, False)}
+    navigate(query=query)
+</code></pre>
+<p>When using a query function, avoid modifying the query parameters directly. Instead, return a new dictionary.</p>
 <p>By default, if the query parameters change, a new instance of the form will be loaded (even if <code>cache_form</code> is set to <code>True</code>). See <code>cache_deps</code> below for more details.
 When the query parameters change, we can listen for the <code>query_changed</code> event and update our page state accordingly.</p>
 <h2 id="parsing-query-parameters">Parsing Query Parameters<a class="headerlink" href="#parsing-query-parameters" title="Permanent link">&para;</a></h2>
@@ -212,12 +225,13 @@ class DashboardRoute(Route):
 <p>The routing library can encode any JSON-able object as a query parameter.
 Where a query parameter is a <code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code> or <code>None</code>, this will be flat.</p>
 <p>e.g. <code>?foo=bar&amp;baz=1&amp;eggs=true</code> will be decoded as <code>{"foo": "bar", "baz": 1, "eggs": True}</code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If you have numbers in your query parameters, but these should actually be strings, you can convert these to <code>str</code> in your <code>parse_query</code> method.</p>
-</div>
 <p>For nested, JSON-able objects, i.e. <code>lists</code> and <code>dicts</code>, the routing library will encode the object as a JSON string in the query string.</p>
 <p>e.g. <code>foo=%5B1%2C+%22a%22%2C+true%5D'</code> will be decoded as <code>{"foo": [1, "a", true]}</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When you pass query parameters to <code>navigate</code> or <code>NavLink</code>, you should pass them as decoded Python objects (e.g., <code>{"page": 1}</code> not <code>{"page": "1"}</code>). The routing library handles encoding automatically.</p>
+<p>However, when reading query parameters from the URL (in <code>parse_query</code>), numbers will be decoded as integers/floats. If you need them as strings, you can convert them in your <code>parse_query</code> method.</p>
+</div>
 <h2 id="loading-a-new-instance-of-a-form">Loading a new instance of a form<a class="headerlink" href="#loading-a-new-instance-of-a-form" title="Permanent link">&para;</a></h2>
 <p>By default, the routing library will load a new instance of a form when the query parameters change.</p>
 <p>If you do NOT wish to load a new instance of a form when certain query parameters change, you can override the <code>cache_deps</code> method.</p>

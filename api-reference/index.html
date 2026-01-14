@@ -64,16 +64,6 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#components">Components</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#context-managers">Context Managers</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a>
-    </li>
     </ul>
                 </li>
               </ul>
@@ -169,14 +159,23 @@ All attributes can be accessed from the <code>routing.router</code> module.</p>
 <dd>The module where your routes are defined (e.g. <code>utils.routes</code>). Defaults to <code>routes</code>.</dd>
 </dl>
 <h4 id="routes_module"><code>routes_module</code><a class="headerlink" href="#routes_module" title="Permanent link">&para;</a></h4>
-<p>If set, the router will automatically import this module for you, and you do <strong>not</strong> need to explicitly import your routes module in client or server code. This is the preferred approach for most projects. By default this is set to <code>routes</code>.</p>
-<p>If you do not set this option correctly, you must explicitly import your routes module in your startup and server code:</p>
-<pre><code class="language-python">  # In a startup module, e.g. startup.py
-  from . import routes
-
-  # In a server module, e.g. ServerRoutes.py
-  from . import routes
-</code></pre>
+<p>The router <strong>automatically imports</strong> your routes module. By default, it looks for a module named <code>routes</code>. You do <strong>not</strong> need to explicitly import your routes module in client or server code.</p>
+<p>If your routes are defined in a different module (e.g. <code>utils.routes</code>), set this option to the correct module name.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You only need to manually import your routes module if:</p>
+<ol>
+<li>Your routes module is <strong>not</strong> named <code>routes</code>, <strong>and</strong></li>
+<li>You have <strong>not</strong> set the <code>routes_module</code> config option</li>
+</ol>
+<p>In that case, add explicit imports:</p>
+<p>```python</p>
+<h1 id="in-a-startup-module-eg-startuppy">In a startup module, e.g. startup.py<a class="headerlink" href="#in-a-startup-module-eg-startuppy" title="Permanent link">&para;</a></h1>
+<p>from . import my_custom_routes</p>
+<h1 id="in-a-server-module-eg-serverroutespy">In a server module, e.g. ServerRoutes.py<a class="headerlink" href="#in-a-server-module-eg-serverroutespy" title="Permanent link">&para;</a></h1>
+<p>from . import my_custom_routes
+```</p>
+</div>
 <h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>navigate(*, path=None, params=None, query=None, hash=None, replace=False, nav_context=None, form_properties=None)</code></dt>
@@ -229,8 +228,19 @@ All attributes can be accessed from the <code>routing.router</code> module.</p>
 <dd>Shows an alert. If <code>dismissible</code> is <code>True</code>, the alert will be dismissed when the user navigates to a new page. To override Anvil's default alert, you can set the <code>anvil.alert = router.alert</code>.</dd>
 <dt><code>confirm(content, *args, dismissible=True, **kwargs)</code></dt>
 <dd>Shows a confirmation dialog. If <code>dismissible</code> is <code>True</code>, the dialog will be dismissed when the user navigates to a new page. To override Anvil's default alert, you can set the <code>anvil.alert = router.alert</code>.</dd>
+<dt><code>register_links(*dom_nodes, selector="a[href^='/']", active_class="active", active_callback=None, component=None)</code></dt>
+<dd>
+<p>Registers existing DOM links for client-side routing with active state tracking. Automatically detects if elements are <code>&lt;a&gt;</code> tags (registers directly) or containers (searches within using the selector). Use <code>component</code> to tie to a component's lifecycle (auto setup on page added, cleanup on page removed), or manually call the returned cleanup function. Useful for converting static HTML links to use the router without needing NavLink components.</p>
+<p>Each link can specify exact matching behavior using data attributes (presence-based):
+- <code>data-exact-path</code>: Path must match exactly
+- <code>data-exact-query</code>: Query parameters must match exactly
+- <code>data-exact-hash</code>: Hash must match exactly</p>
+<p>These attributes are read from each link element individually, allowing different links to have different exact matching behavior.</p>
+<p>To skip active state tracking for a link (e.g., home page), use <code>data-no-active</code>:
+- <code>data-no-active</code>: Link will navigate but won't receive active state updates</p>
+</dd>
 <dt><code>hooks.before_load(func)</code></dt>
-<dd>Decorator to register a method as a before_load hook for a Route. Hooks are called in the order they are defined on the class. Each hook receives a <code>nav_context</code> keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.</dd>
+<dd>Decorator to register a method as a before_load hook for a Route. Hooks are collected from all base classes and <strong>executed in reverse MRO order</strong> (base classes first, derived classes last). Each hook receives a <code>nav_context</code> keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.</dd>
 </dl>
 <pre><code class="language-python">from routing.router import Route, hooks, Redirect
 
@@ -252,6 +262,7 @@ class AuthenticatedRoute(Route):
             raise Redirect(path=&quot;/login&quot;)
 
 # Both styles are supported; the returned dictionary (if any) will be merged into nav_context after the hook runs.
+# Hooks run in reverse MRO order, so base class hooks execute before derived class hooks.
 </code></pre>
 <p>You may also attach hooks globally to all routes by assigning to the base class:</p>
 <pre><code class="language-python">@hooks.before_load

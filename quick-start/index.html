@@ -201,16 +201,9 @@ class ContactRoute(Route):
 <p>Add a title <code>slot</code> to the <code>Layouts.Main</code> form. Inside <code>Pages.Index</code>, add a label component to the title slot with the <code>text</code> property set to <code>"Home"</code>. Do the same for <code>Pages.About</code> and <code>Pages.Contact</code>.</p>
 <p>You should now be able to navigate using the sidebar nav links.</p>
 <h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
-<p>If your routes aren't working, make sure your file structure is correct. The routes must be defined in the <code>routes</code> module.</p>
-<p>If you have named the routes module something else, you will need to change the configuration options for the routing library. See the API Reference for more information.</p>
-<p><strong>Preferred:</strong> Set the <code>routes_module</code> config option so imports happen automatically.</p>
-<p><strong>Alternatively</strong>, you can explicitly import the routes module in your startup form and server code:</p>
-<pre><code class="language-python"># In a startup module, e.g. startup.py
-from . import routes
-
-# In a server module, e.g. ServerRoutes.py
-from . import routes
-</code></pre>
+<p>If your routes aren't working, make sure your file structure is correct.</p>
+<p>The router <strong>automatically imports</strong> a module named <code>routes</code> by default — you do not need to manually import it. Just define your routes in a <code>routes</code> module and they will be discovered automatically.</p>
+<p>If you have named the routes module something else, set the <code>routes_module</code> config option to the correct module name. See the <a href="../api-reference/#routes_module">API Reference</a> for more information.</p>
               
             </div>
           </div><footer>
