@@ -29,20 +29,18 @@ The router **automatically imports** your routes module. By default, it looks fo
 If your routes are defined in a different module (e.g. `utils.routes`), set this option to the correct module name.
 
 !!! note
-    You only need to manually import your routes module if:
 
-    1. Your routes module is **not** named `routes`, **and**
-    2. You have **not** set the `routes_module` config option
+    You only need to manually import your routes module if your routes module is **not** named `routes` **and** you have **not** set the `routes_module` config option.
 
-    In that case, add explicit imports:
+If that's the case, add explicit imports:
 
-    ```python
-    # In a startup module, e.g. startup.py
-    from . import my_custom_routes
+```python
+# In a startup module, e.g. startup.py
+from . import my_custom_routes
 
-    # In a server module, e.g. ServerRoutes.py
-    from . import my_custom_routes
-    ```
+# In a server module, e.g. ServerRoutes.py
+from . import my_custom_routes
+```
 
 ## Functions
 
