@@ -24,17 +24,25 @@ When adding the routing library as a dependency, in the Anvil IDE, click the "ed
 
 #### `routes_module`
 
-If set, the router will automatically import this module for you, and you do **not** need to explicitly import your routes module in client or server code. This is the preferred approach for most projects. By default this is set to `routes`.
+The router **automatically imports** your routes module. By default, it looks for a module named `routes`. You do **not** need to explicitly import your routes module in client or server code.
 
-If you do not set this option correctly, you must explicitly import your routes module in your startup and server code:
+If your routes are defined in a different module (e.g. `utils.routes`), set this option to the correct module name.
 
-```python
-  # In a startup module, e.g. startup.py
-  from . import routes
+!!! note
+    You only need to manually import your routes module if:
 
-  # In a server module, e.g. ServerRoutes.py
-  from . import routes
-```
+    1. Your routes module is **not** named `routes`, **and**
+    2. You have **not** set the `routes_module` config option
+
+    In that case, add explicit imports:
+
+    ```python
+    # In a startup module, e.g. startup.py
+    from . import my_custom_routes
+
+    # In a server module, e.g. ServerRoutes.py
+    from . import my_custom_routes
+    ```
 
 ## Functions
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Anvil
+# Copyright (c) 2025-2026 Anvil
 # SPDX-License-Identifier: MIT
 
 # adapted form https://anvil.works/forum/t/automatic-sitemap-txt-with-routing/24249

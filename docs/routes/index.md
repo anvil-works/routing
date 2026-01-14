@@ -266,12 +266,7 @@ In the above example, it's important that the `NewAuthorRoute` comes before the 
 
 When a user navigates to a URL directly, the router will match routes on the server.
 
-When you import your routes in server code, the router will automatically create a server route for each route.
-
-```python
-# ServerRoutes.py
-from . import routes
-```
+The router **automatically imports** your routes module (defaulting to `routes`) and creates a server route for each route. You do not need to manually import routes in server code.
 
 Under the hood this will look something like:
 

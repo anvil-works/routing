@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Anvil
+# Copyright (c) 2024-2026 Anvil
 # SPDX-License-Identifier: MIT
 
 import anvil
@@ -86,7 +86,7 @@ def import_form(form, *args, **kws):
 
 def import_routes():
     try:
-        mod = anvil.app.get_client_config("routing").get("routes_module")
+        mod = anvil.app.get_client_config("routing").get("routes_module") or "routes"
         logger.debug(f"Attempting to import routes module: {mod!r}")
         import_module(mod)
     except ModuleNotFoundError as e:

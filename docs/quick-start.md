@@ -75,18 +75,8 @@ You should now be able to navigate using the sidebar nav links.
 
 ### Troubleshooting
 
-If your routes aren't working, make sure your file structure is correct. The routes must be defined in the `routes` module.
+If your routes aren't working, make sure your file structure is correct.
 
-If you have named the routes module something else, you will need to change the configuration options for the routing library. See the API Reference for more information.
+The router **automatically imports** a module named `routes` by default — you do not need to manually import it. Just define your routes in a `routes` module and they will be discovered automatically.
 
-**Preferred:** Set the `routes_module` config option so imports happen automatically.
-
-**Alternatively**, you can explicitly import the routes module in your startup form and server code:
-
-```python
-# In a startup module, e.g. startup.py
-from . import routes
-
-# In a server module, e.g. ServerRoutes.py
-from . import routes
-```
+If you have named the routes module something else, set the `routes_module` config option to the correct module name. See the [API Reference](./api-reference.md#routes_module) for more information.

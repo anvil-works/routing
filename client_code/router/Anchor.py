@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Anvil
+# Copyright (c) 2024-2026 Anvil
 # SPDX-License-Identifier: MIT
 from ._BaseLinks import setup_base_anchor
 from ._LinkCommon import LinkMixinCommon, filter_props, nav_props

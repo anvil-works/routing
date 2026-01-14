@@ -55,7 +55,6 @@ You can override the default `alert` and `confirm` functions by setting the `anv
 # startup.py
 import anvil
 from routing import router
-from . import routes
 
 anvil.alert = router.alert
 anvil.confirm = router.confirm
