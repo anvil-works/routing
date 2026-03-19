@@ -11,7 +11,7 @@ from anvil.js.window import Promise, URLSearchParams, document, setTimeout
 
 from .._constants import TIMEOUT
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 if in_designer:
     from anvil.js.window import decodeURIComponent as url_decode

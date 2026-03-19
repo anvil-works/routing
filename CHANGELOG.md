@@ -1,6 +1,25 @@
 # Changelog
 
-## v0.5.0 (01/01/1970)
+## v0.5.1 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- fix: transition errors hopefully [#93](https://github.com/anvil-works/routing/pull/93)
+- Fix: empty routes module and improve docs [#91](https://github.com/anvil-works/routing/pull/91)
+
+### 📖 Documentation
+
+- Fix: empty routes module and improve docs [#91](https://github.com/anvil-works/routing/pull/91)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@pre-commit-ci[bot] and @s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.5.0...v0.5.1
+
+---
+
+## v0.5.0 (13/11/2025)
 ## What's Changed
 ### 🐛 Bug Fixes
 
