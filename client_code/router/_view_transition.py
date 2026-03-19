@@ -5,7 +5,7 @@ from time import sleep
 
 from ._logger import logger
 from ._non_blocking import Deferred
-from ._utils import document, setTimeout
+from ._utils import await_promise, document, setTimeout
 
 __version__ = "0.5.0"
 
@@ -31,6 +31,15 @@ class ViewTransition:
             _transition = None
         self.deferred.resolve(None)
 
+    def _observe_ready(self):
+        ready = getattr(self.transition, "ready", None)
+        if ready is None:
+            return
+        try:
+            await_promise(ready)
+        except Exception as e:
+            logger.debug(f"View transition ready rejected: {e!r}")
+
     def __enter__(self):
         global _transition
         # Only attempt a view transition when supported, enabled, and visible
@@ -39,6 +48,7 @@ class ViewTransition:
             if _transition is None and _can_transition and _use_transition and visible:
                 self.transition = document.startViewTransition(self.promise_callback)
                 _transition = self.transition
+                setTimeout(self._observe_ready, 0)
                 sleep(0)
                 setTimeout(self.resolve, 100)
 
