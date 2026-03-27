@@ -14,6 +14,7 @@ from ._non_blocking import Result, call_async
 from ._utils import await_promise, report_exceptions
 
 __version__ = "0.5.1"
+_UNSET = object()
 
 
 @anvil.server.portable_class
@@ -42,7 +43,7 @@ class CachedData:
 _initial_request = True
 
 
-def load_data_promise(context, force=False):
+def load_data_promise(context, force=False, *, silent=None):
     match = context.match
     global _initial_request
     is_initial = _initial_request
@@ -63,6 +64,7 @@ def load_data_promise(context, force=False):
     def on_result(result):
         data, error = result
         clean_up_inflight()
+        context._revalidating = False
 
         if error is not None:
             logger.debug(f"data load error: {error}")
@@ -82,7 +84,7 @@ def load_data_promise(context, force=False):
 
     def wrapped_loader(retries=0, **loader_args):
         try:
-            result = route.load_data(**loader_args)
+            result = route.load_data(silent=silent, **loader_args)
         except anvil.server.AppOfflineError as e:
             if not retries:
                 logger.debug(f"{key} {e!r}, retrying")
@@ -100,6 +102,7 @@ def load_data_promise(context, force=False):
             logger.debug(f"{key} data already loading in flight")
             return IN_FLIGHT_DATA[key]
 
+        context._revalidating = True
         data_promise = call_async(wrapped_loader, **context._loader_args)
         data_promise.then(on_result)
         IN_FLIGHT_DATA[key] = data_promise
@@ -112,6 +115,7 @@ def load_data_promise(context, force=False):
 
         fetched_at = cached.fetched_at
         mode = cached.mode
+        is_stale = (datetime.now() - fetched_at).total_seconds() > route.stale_time
 
         if is_initial:
             logger.debug("initial request, using cache")
@@ -122,6 +126,11 @@ def load_data_promise(context, force=False):
             if cached.mode == NO_CACHE:
                 # we were loaded from server data - remove from the cache now
                 del CACHED_DATA[key]
+            elif mode == STALE_WHILE_REVALIDATE and (cached.stale or is_stale):
+                logger.debug(
+                    f"{key} - initial request reloading in the background, {STALE_WHILE_REVALIDATE}"
+                )
+                create_in_flight_data_promise()
         elif mode == NO_CACHE:
             # we (probably) shouldn't be here - but just in case
             del CACHED_DATA[key]
@@ -134,7 +143,6 @@ def load_data_promise(context, force=False):
             data_promise = create_in_flight_data_promise()
         elif mode == STALE_WHILE_REVALIDATE:
             data_promise = Result(cached.data)
-            is_stale = (datetime.now() - fetched_at).total_seconds() > route.stale_time
             if cached.stale or is_stale:
                 logger.debug(
                     f"{key} - reloading in the background, {STALE_WHILE_REVALIDATE}"
@@ -150,8 +158,8 @@ def load_data_promise(context, force=False):
     return data_promise
 
 
-def load_data(context, force=False):
-    await_promise(load_data_promise(context, force))
+def load_data(context, force=False, *, silent=None):
+    await_promise(load_data_promise(context, force, silent=silent))
     return context.data
 
 
@@ -184,4 +192,34 @@ def use_data(
     data, error = await_promise(data_promise)
     if error is not None:
         raise error
+    return data
+
+
+def ensure_data(
+    context_or_path_or_url=None,
+    *,
+    path=None,
+    params=None,
+    query=None,
+    hash=None,
+    data=_UNSET,
+    stale=False,
+):
+    match = get_match_from_nav_args(
+        context_or_path_or_url, path=path, params=params, query=query, hash=hash
+    )
+    key = match.key
+    route = match.route
+
+    assert data is not _UNSET, "ensure_data() requires data="
+
+    if route.cache_data != NO_CACHE:
+        cached = CachedData(
+            data=data,
+            location=match.location,
+            mode=route.cache_data,
+            gc_time=route.gc_time,
+        )
+        cached.stale = stale
+        CACHED_DATA[key] = cached
     return data

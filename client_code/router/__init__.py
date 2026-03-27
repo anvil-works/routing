@@ -16,7 +16,7 @@ from ._constants import (
 from ._context import RoutingContext
 from ._exceptions import NotFound, Redirect
 from ._invalidate import invalidate
-from ._loader import use_data
+from ._loader import ensure_data, use_data
 from ._logger import debug_logging, logger
 from ._navigate import navigate
 from ._register_links import register_links

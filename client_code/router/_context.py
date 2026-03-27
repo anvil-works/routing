@@ -32,6 +32,7 @@ class RoutingContext(EventEmitter):
         self.form_properties = ensure_dict(form_properties, "form_properties")
         self._error = None
         self._data = data
+        self._revalidating = False
         self._listeners = {}
         self._blockers = set()
 
@@ -89,26 +90,32 @@ class RoutingContext(EventEmitter):
     def error(self):
         return self._error
 
+    @property
+    def revalidating(self):
+        return self._revalidating
+
     def raise_init_events(self):
         self.raise_event("data_loaded", data=self.data, error=self.error)
         if self.error is not None:
             self.raise_event("data_error", error=self.error)
+        if self.revalidating:
+            self.raise_event("data_loading")
         self.raise_event("query_changed", query=self.query)
         self.raise_event("hash_changed", hash=self.hash)
 
-    def refetch(self):
+    def refetch(self, *, silent=None):
         self.invalidate(exact=True)
         if self._current is not self:
             return
-        return self._load_data()
+        return self._load_data(silent=silent)
 
     def get_url(self, full=False):
         return self.location.get_url(full)
 
-    def _load_data(self):
+    def _load_data(self, *, silent=None):
         from ._non_blocking import call_async
 
-        data_promise = call_async(load_data, self, force=True)
+        data_promise = call_async(load_data, self, force=True, silent=silent)
         self.raise_event("data_loading")
         return data_promise
 

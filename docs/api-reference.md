@@ -83,6 +83,11 @@ from . import my_custom_routes
 
 Can be useful for routes that share data. Or layouts that need access to the data for the current route.
 
+`ensure_data(context_or_path_or_url=None, *, path=None, params=None, query=None, hash=None, data=..., stale=False)`
+: Inserts `data` into the route cache for the specified url/context using that route's cache policy, then returns the same data. `data` is required. If `stale=True`, the cached entry is marked stale so stale-while-revalidate routes can return the cached data immediately and refresh it in the background.
+
+When route data is loaded, loader args such as `path`, `params`, `query`, `hash`, `deps`, and `location` are passed through to `load_data(...)`. `RoutingContext.refetch(silent=...)` also passes `silent` through as a loader arg, so custom loaders can decide whether to use silent/background fetches or visible loading indicators.
+
 `get_url()`
 `get_url(*, path=None, params=None, query=None, hash=None, full=False)`
 `get_url(path, **kws)`
