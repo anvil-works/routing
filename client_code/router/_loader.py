@@ -64,6 +64,7 @@ def load_data_promise(context, force=False, *, silent=None):
     def on_result(result):
         data, error = result
         clean_up_inflight()
+        context._revalidating = False
 
         if error is not None:
             logger.debug(f"data load error: {error}")
@@ -101,6 +102,7 @@ def load_data_promise(context, force=False, *, silent=None):
             logger.debug(f"{key} data already loading in flight")
             return IN_FLIGHT_DATA[key]
 
+        context._revalidating = True
         data_promise = call_async(wrapped_loader, **context._loader_args)
         data_promise.then(on_result)
         IN_FLIGHT_DATA[key] = data_promise

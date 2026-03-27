@@ -50,6 +50,9 @@ class IndexTemplate(IndexTemplate):
 `data`
 : The data for the current route. This is the value returned from the `load_data` method.
 
+`revalidating`
+: `True` when routing is currently refreshing cached data in the background.
+
 
 <!-- `match`
 
@@ -68,7 +71,7 @@ class IndexTemplate(IndexTemplate):
 The `RoutingContext` instance will emit events when the route changes.
 
 `data_loading`
-: Emitted when the data is loading.
+: Emitted when the data is loading. This also fires from `raise_init_events()` if the current context already has cached data and is revalidating it in the background.
 
 `data_loaded`
 : Emitted when the data has been loaded, or when the data has an error. To determine if the data is loaded successfully, check the `error` property is `None`.

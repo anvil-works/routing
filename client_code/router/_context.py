@@ -32,6 +32,7 @@ class RoutingContext(EventEmitter):
         self.form_properties = ensure_dict(form_properties, "form_properties")
         self._error = None
         self._data = data
+        self._revalidating = False
         self._listeners = {}
         self._blockers = set()
 
@@ -89,10 +90,16 @@ class RoutingContext(EventEmitter):
     def error(self):
         return self._error
 
+    @property
+    def revalidating(self):
+        return self._revalidating
+
     def raise_init_events(self):
         self.raise_event("data_loaded", data=self.data, error=self.error)
         if self.error is not None:
             self.raise_event("data_error", error=self.error)
+        if self.revalidating:
+            self.raise_event("data_loading")
         self.raise_event("query_changed", query=self.query)
         self.raise_event("hash_changed", hash=self.hash)
 
