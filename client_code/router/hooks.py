@@ -1,7 +1,7 @@
 # Copyright (c) 2025-2026 Anvil
 # SPDX-License-Identifier: MIT
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 
 def before_load(func):

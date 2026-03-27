@@ -1,6 +1,24 @@
 # Changelog
 
-## v0.5.1 (01/01/1970)
+## v0.6.0 (01/01/1970)
+## What's Changed
+### 🚀 Features
+
+- Feat: support ensure_data and add silent loader arg to data loaders [#95](https://github.com/anvil-works/routing/pull/95)
+
+### 📖 Documentation
+
+- Feat: support ensure_data and add silent loader arg to data loaders [#95](https://github.com/anvil-works/routing/pull/95)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.5.1...v0.6.0
+
+---
+
+## v0.5.1 (19/03/2026)
 ## What's Changed
 ### 🐛 Bug Fixes
 
