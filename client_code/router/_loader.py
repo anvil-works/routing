@@ -13,7 +13,7 @@ from ._matcher import get_match_from_nav_args
 from ._non_blocking import Result, call_async
 from ._utils import await_promise, report_exceptions
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 _UNSET = object()
 
 
