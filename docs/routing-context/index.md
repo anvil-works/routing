@@ -87,8 +87,8 @@ The `RoutingContext` instance will emit events when the route changes.
 `invalidate(exact=False)`
 : Invalidates any cached data or forms for this routing context. If `exact` is `True`, then the path and deps must match exactly. By default this is `False`. If `False` then any path or deps that are a subset of path and deps arguments will be invalidated.
 
-`refetch()`
-: Invalidates the data for this routing context (with exact=True) and then loads the data again.
+`refetch(silent=None)`
+: Invalidates the data for this routing context (with exact=True) and then loads the data again. The `silent` value is passed through to `load_data(...)` as a loader argument. For `server_fn` routes, `silent=True` uses `anvil.server.call_s(...)`, `silent=False` uses `anvil.server.call(...)`, and `silent=None` uses the route default. Custom `load_data(...)` implementations can inspect `silent` and choose how to handle loading indicators or silent/background fetches.
 
 `raise_init_events()`
 : Raises the `data_loaded`, `data_loading`, `data_error`, `query_changed` and `hash_changed` events.

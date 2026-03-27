@@ -96,19 +96,19 @@ class RoutingContext(EventEmitter):
         self.raise_event("query_changed", query=self.query)
         self.raise_event("hash_changed", hash=self.hash)
 
-    def refetch(self):
+    def refetch(self, *, silent=None):
         self.invalidate(exact=True)
         if self._current is not self:
             return
-        return self._load_data()
+        return self._load_data(silent=silent)
 
     def get_url(self, full=False):
         return self.location.get_url(full)
 
-    def _load_data(self):
+    def _load_data(self, *, silent=None):
         from ._non_blocking import call_async
 
-        data_promise = call_async(load_data, self, force=True)
+        data_promise = call_async(load_data, self, force=True, silent=silent)
         self.raise_event("data_loading")
         return data_promise
 

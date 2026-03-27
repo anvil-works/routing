@@ -223,7 +223,10 @@ class Route:
         if server_fn is not None and existing_loader is None:
 
             def load_data(self, **loader_args):
-                if self.server_silent:
+                silent = loader_args.pop("silent", None)
+                if silent is None:
+                    silent = self.server_silent
+                if silent:
                     return anvil.server.call_s(server_fn, **loader_args)
                 else:
                     return anvil.server.call(server_fn, **loader_args)
