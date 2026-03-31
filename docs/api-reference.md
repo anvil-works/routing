@@ -19,6 +19,12 @@ When adding the routing library as a dependency, in the Anvil IDE, click the "ed
 `robots`
 : If `False`, disables the automatic `/robots.txt` route. Defaults to `False`.
 
+`debug_logging`
+: If `True`, enables verbose routing logs in both client and server app logs. Defaults to `False`.
+
+`raise_on_data_error`
+: If `True`, route data loading failures are raised. If `False`, they are exposed on `routing_context.error` and via the `data_error` event for page-level handling. Defaults to `True`.
+
 `routes_module`
 : The module where your routes are defined (e.g. `utils.routes`). Defaults to `routes`.
 

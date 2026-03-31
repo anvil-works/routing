@@ -7,6 +7,7 @@ from time import sleep
 import anvil.server
 
 from ._cached import CACHED_DATA, IN_FLIGHT_DATA
+from ._config import get_raise_on_data_error
 from ._constants import CACHE_FIRST, NETWORK_FIRST, NO_CACHE, STALE_WHILE_REVALIDATE
 from ._logger import logger
 from ._matcher import get_match_from_nav_args
@@ -68,8 +69,9 @@ def load_data_promise(context, force=False, *, silent=None):
 
         if error is not None:
             logger.debug(f"data load error: {error}")
-            # TODO: is this the right thing to do?
             context.set_data(None, error)
+            if get_raise_on_data_error():
+                raise error
             return
         else:
             logger.debug(f"data loaded: {key}")

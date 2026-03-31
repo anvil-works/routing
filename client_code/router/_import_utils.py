@@ -3,6 +3,7 @@
 
 import anvil
 
+from ._config import get_routes_module
 from ._logger import logger
 from ._non_blocking import call_async
 from ._utils import await_promise
@@ -86,7 +87,7 @@ def import_form(form, *args, **kws):
 
 def import_routes():
     try:
-        mod = anvil.app.get_client_config("routing").get("routes_module") or "routes"
+        mod = get_routes_module()
         logger.debug(f"Attempting to import routes module: {mod!r}")
         import_module(mod)
     except ModuleNotFoundError as e:
