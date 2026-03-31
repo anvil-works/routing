@@ -6,7 +6,7 @@ import anvil.server
 
 from ._utils import document
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 _CACHE = {}
 
