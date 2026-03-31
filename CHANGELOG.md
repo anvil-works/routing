@@ -1,6 +1,24 @@
 # Changelog
 
-## v0.6.0 (01/01/1970)
+## v0.6.1 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix: data error should throw by default [#98](https://github.com/anvil-works/routing/pull/98)
+
+### 📖 Documentation
+
+- Fix: data error should throw by default [#98](https://github.com/anvil-works/routing/pull/98)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.6.0...v0.6.1
+
+---
+
+## v0.6.0 (27/03/2026)
 ## What's Changed
 ### 🚀 Features
 

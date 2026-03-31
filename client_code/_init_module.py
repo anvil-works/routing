@@ -9,7 +9,7 @@ from anvil.js import get_dom_node
 from .router._config import get_debug_logging
 from .router._logger import debug_logging
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 BaseAnvilLink = get_design_component(anvil.Link)
 

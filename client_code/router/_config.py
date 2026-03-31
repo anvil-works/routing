@@ -3,7 +3,7 @@
 
 import anvil
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 _DEFAULTS = {
     "debug_logging": False,

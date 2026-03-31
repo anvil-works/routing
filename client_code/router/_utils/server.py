@@ -4,7 +4,7 @@
 # ruff: noqa: F401
 from urllib.parse import urlencode
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 try:
     from anvil.http import (
