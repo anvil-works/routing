@@ -61,6 +61,8 @@ try:
 except AttributeError:
     routing_config = {}
 
+router.debug_logging(bool(routing_config.get("debug_logging")))
+
 import_routes()
 
 if routing_config.get("sitemap"):

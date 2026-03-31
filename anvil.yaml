@@ -10,6 +10,14 @@ config_schema:
       default_value: false
       description: Whether to generate a robots.txt file for this app
       type: boolean
+    debug_logging:
+      default_value: false
+      description: Enable verbose routing debug logs in the client app logs
+      type: boolean
+    raise_on_data_error:
+      default_value: true
+      description: If true, route data loading failures are raised. If false, they are exposed on routing_context.error and via the data_error event for page-level handling.
+      type: boolean
     routes_module:
       default_value: "routes"
       description: The module where routes are defined. Setting this correctly means, server routes will work automatically and in the designer double clicking on NavLinks will navigate to those forms in the designer.

@@ -6,6 +6,9 @@ import anvil
 from anvil.designer import get_design_component
 from anvil.js import get_dom_node
 
+from .router._config import get_debug_logging
+from .router._logger import debug_logging
+
 __version__ = "0.6.0"
 
 BaseAnvilLink = get_design_component(anvil.Link)
@@ -54,3 +57,5 @@ except ImportError:
 anvil.pluggable_ui.provide_defaults(
     "routing", {"routing.NavLink": BaseNavLink, "routing.Anchor": BaseAnchor}
 )
+
+debug_logging(get_debug_logging())
