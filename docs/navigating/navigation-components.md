@@ -80,6 +80,7 @@ Use `register_links()` when you have navigation links defined in an HTML templat
 ```python
 from routing import router
 
+
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
         self.init_components(**properties)
@@ -87,7 +88,7 @@ class MainLayout(MainLayoutTemplate):
         router.register_links(
             self.dom_nodes["header"],
             active_class="active",
-            component=self  # Auto setup on page added, cleanup on page removed
+            component=self,  # Auto setup on page added, cleanup on page removed
         )
 ```
 
@@ -102,8 +103,7 @@ class MainLayout(MainLayoutTemplate):
     def form_show(self, **event_args):
         # Register links and store cleanup function
         self._cleanup_links = router.register_links(
-            self.dom_nodes["header"],
-            active_class="active"
+            self.dom_nodes["header"], active_class="active"
         )
 
     def form_hide(self, **event_args):
@@ -120,7 +120,7 @@ def form_show(self, **event_args):
     # Register ALL internal links in this component's HTML
     self._cleanup_links = router.register_links(
         self,  # The component itself
-        active_class="active"
+        active_class="active",
     )
 ```
 
@@ -143,7 +143,7 @@ This will find all `<a href="/...">` links in your HTML template and enable rout
 ```python
 cleanup = router.register_links(
     self.dom_nodes["nav"],
-    active_class="active"  # CSS class added to matching links
+    active_class="active",  # CSS class added to matching links
 )
 ```
 
@@ -158,9 +158,9 @@ def style_active_link(element, is_active):
         element.style.fontWeight = "normal"
         element.style.color = ""
 
+
 cleanup = router.register_links(
-    self.dom_nodes["nav"],
-    active_callback=style_active_link
+    self.dom_nodes["nav"], active_callback=style_active_link
 )
 ```
 
@@ -171,10 +171,7 @@ cleanup = router.register_links(
 # <a href="/articles" data-exact-path>Articles</a>
 # <a href="/about" data-exact-path>About</a>
 
-cleanup = router.register_links(
-    self.dom_nodes["breadcrumbs"],
-    active_class="current"
-)
+cleanup = router.register_links(self.dom_nodes["breadcrumbs"], active_class="current")
 ```
 
 **Multiple exact matching options**:
@@ -185,10 +182,7 @@ cleanup = router.register_links(
 # <a href="/articles#comments" data-exact-hash>Article Comments</a>
 # <a href="/articles/123?tab=details#summary" data-exact-path data-exact-query data-exact-hash>Full Match</a>
 
-cleanup = router.register_links(
-    self.dom_nodes["nav"],
-    active_class="active"
-)
+cleanup = router.register_links(self.dom_nodes["nav"], active_class="active")
 ```
 
 **Skip active state for specific links**:
@@ -198,10 +192,7 @@ cleanup = router.register_links(
 # <a href="/" data-no-active>Home</a>  # Navigates but doesn't get active state
 # <a href="/about">About</a>  # Normal link with active state
 
-cleanup = router.register_links(
-    self.dom_nodes["nav"],
-    active_class="active"
-)
+cleanup = router.register_links(self.dom_nodes["nav"], active_class="active")
 ```
 
 **Register specific link elements directly**:
@@ -212,7 +203,7 @@ cleanup = router.register_links(
     self.dom_nodes["home_link"],
     self.dom_nodes["about_link"],
     self.dom_nodes["contact_link"],
-    active_class="active"
+    active_class="active",
 )
 ```
 
@@ -220,9 +211,7 @@ cleanup = router.register_links(
 
 ```python
 cleanup = router.register_links(
-    self.dom_nodes["header"],
-    self.dom_nodes["footer"],
-    active_class="active"
+    self.dom_nodes["header"], self.dom_nodes["footer"], active_class="active"
 )
 ```
 
@@ -233,14 +222,14 @@ cleanup = router.register_links(
 cleanup = router.register_links(
     self.dom_nodes["nav"],
     selector="a.nav-link",  # Only <a> tags with class="nav-link"
-    active_class="active"
+    active_class="active",
 )
 
 # Or target links by attribute
 cleanup = router.register_links(
     self,
     selector="a[data-route]",  # Only <a> tags with data-route attribute
-    active_class="active"
+    active_class="active",
 )
 ```
 
@@ -248,10 +237,7 @@ cleanup = router.register_links(
 
 ```python
 # No need to store cleanup if form never hides
-router.register_links(
-    self.dom_nodes["sidebar"],
-    active_class="active"
-)
+router.register_links(self.dom_nodes["sidebar"], active_class="active")
 ```
 
 ### Parameters

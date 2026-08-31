@@ -9,6 +9,7 @@ The default implementations for the `NavLink` and `Anchor` base classes are as f
 ```python
 import anvil
 
+
 class NavLinkBase(anvil.Link):
     def __init__(self, active=None, **properties):
         self._props = properties

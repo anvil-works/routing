@@ -21,12 +21,13 @@ The tab component has 2 tabs, income and expenses.
 from ._anvil_designer import DashboardTemplate
 from routing.router import navigate, RoutingContext
 
+
 class Dashboard(DashboardTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.init_components(**properties)
         self.routing_context = routing_context
         routing_context.add_event_handler("query_changed", self.on_query_change)
-        routing_context.raise_init_events() # raises the query_changed event
+        routing_context.raise_init_events()  # raises the query_changed event
 
     def on_query_change(self, **event_args):
         query = self.routing_context.query
@@ -48,6 +49,7 @@ The `query` argument to `navigate` or `NavLink` can also be a function that take
 def toggle_filter(self, **event_args):
     def query(prev):
         return {**prev, "open": not prev.get("open", False)}
+
     navigate(query=query)
 ```
 
@@ -63,6 +65,7 @@ It's also generally a good idea to ignore unknown query parameters and provide s
 
 ```python
 from routing.router import Route
+
 
 class DashboardRoute(Route):
     path = "/dashboard"
@@ -84,13 +87,12 @@ You can use a validator library. And if the validator has a `parse` method, it c
 ```python
 from anvil_extras import zod as z
 
+
 class DashboardRoute(Route):
     path = "/dashboard"
     form = "Pages.Dashboard"
 
-    parse_query = z.typed_dict({
-        "tab": z.enum(["income", "expenses"]).catch("income")
-    })
+    parse_query = z.typed_dict({"tab": z.enum(["income", "expenses"]).catch("income")})
 ```
 
 ## Query encoding
@@ -120,6 +122,7 @@ This method should return a `dict` of dependencies, which determine when a form 
 
 ```python
 from routing.router import Route
+
 
 class DashboardRoute(Route):
     path = "/dashboard"
