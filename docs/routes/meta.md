@@ -11,16 +11,19 @@ Override the `meta` method in your route class to return a dictionary of meta ta
 ```python
 from routing import Route
 
+
 class ProductRoute(Route):
     path = "/product"
     form = "Pages.Product"
 
     def meta(self, **kwargs):
         meta_data = {}
-        meta_data['title'] = "Product Page"
-        meta_data['description'] = "Details and specifications for our featured product."
-        meta_data['og:title'] = "Featured Product"
-        meta_data['og:description'] = "Learn more about our latest product release."
+        meta_data["title"] = "Product Page"
+        meta_data["description"] = (
+            "Details and specifications for our featured product."
+        )
+        meta_data["og:title"] = "Featured Product"
+        meta_data["og:description"] = "Learn more about our latest product release."
         meta_data["og:image"] = "asset:product.jpeg"  # Use a theme asset
         return meta_data
 ```
@@ -32,6 +35,7 @@ If you want to provide an absolute URL for Open Graph images (recommended for so
 ```python
 from routing import Route, get_app_origin
 
+
 class AboutRoute(Route):
     path = "/about"
     form = "Pages.About"
@@ -39,11 +43,11 @@ class AboutRoute(Route):
     def meta(self, **kwargs):
         origin = get_app_origin()
         meta_data = {
-            'title': "About Us",
-            'description': "Information about our company and team.",
-            'og:title': "About Our Company",
-            'og:description': "Discover our mission, values, and team members.",
-            'og:image': f"{origin}/_/theme/about.jpeg"  # Absolute URL
+            "title": "About Us",
+            "description": "Information about our company and team.",
+            "og:title": "About Our Company",
+            "og:description": "Discover our mission, values, and team members.",
+            "og:image": f"{origin}/_/theme/about.jpeg",  # Absolute URL
         }
         return meta_data
 ```
@@ -65,12 +69,12 @@ class BlogPostRoute(Route):
 
     def meta(self, **kwargs):
         meta_data = {
-            'title': "Blog Post Title",
-            'description': "A summary of the blog post.",
-            'twitter:card': "summary_large_image",
-            'twitter:title': "Blog Post Title",
-            'twitter:description': "A summary of the blog post.",
-            'twitter:image': "asset:blogpost.jpeg",  # Uses an app asset
+            "title": "Blog Post Title",
+            "description": "A summary of the blog post.",
+            "twitter:card": "summary_large_image",
+            "twitter:title": "Blog Post Title",
+            "twitter:description": "A summary of the blog post.",
+            "twitter:image": "asset:blogpost.jpeg",  # Uses an app asset
         }
         return meta_data
 ```

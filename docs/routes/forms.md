@@ -23,6 +23,7 @@ from routing.router import TemplateWithContainerRoute as BaseRoute
 
 BaseRoute.template = "MainTemplate"
 
+
 class IndexRoute(BaseRoute):
     path = "/"
     form = "Pages.Index"
@@ -40,6 +41,7 @@ from routing.router import TemplateWithContainerRoute as BaseRoute
 BaseRoute.template = "MainTemplate"
 BaseRoute.template_container = "content_panel"
 BaseRoute.template_container_properties = {"full_width_row": True}
+
 
 class IndexRoute(BaseRoute):
     path = "/"

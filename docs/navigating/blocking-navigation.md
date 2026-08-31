@@ -9,6 +9,7 @@ You may want to prevent the user from navigating away from a page, for example, 
 ```python
 from routing.router import RoutingContext, navigate
 
+
 class EditForm(EditFormTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
@@ -16,7 +17,9 @@ class EditForm(EditFormTemplate):
         self.init_components(**properties)
 
     def prevent_navigation(self, **event_args):
-        c = confirm("Are you sure you want to leave this page? Your changes will be lost.")
+        c = confirm(
+            "Are you sure you want to leave this page? Your changes will be lost."
+        )
         return not c
 
     def save_button_click(self, **event_args):
@@ -32,6 +35,7 @@ Alternatively, you can use the `NavigationBlocker` context manager.
 
 ```python
 from routing.router import NavigationBlocker
+
 
 class Form(FormTemplate):
     def __init__(self, **properties):

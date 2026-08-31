@@ -5,6 +5,7 @@ You can redirect to a different route by raising a `Redirect` exception in a rou
 ```python
 from routing.router import Route, Redirect
 
+
 class IndexRoute(Route):
     path = "/"
 
@@ -20,6 +21,7 @@ A common use case for redirecting is to ensure that a user is logged in before n
 from routing.router import Route, Redirect
 import anvil.users
 
+
 class IndexRoute(Route):
     path = "/"
 
@@ -29,12 +31,14 @@ class IndexRoute(Route):
         else:
             raise Redirect(path="/login")
 
+
 class EnsureUserMixin:
     def before_load(self, **loader_args):
         if not anvil.users.get_user():
             # Note this will make a server call
             # so you may want to cache the call to anvil.users.get_user()
             raise Redirect(path="/login")
+
 
 class DashboardRoute(EnsureUserMixin, Route):
     path = "/dashboard"

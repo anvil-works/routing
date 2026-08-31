@@ -10,13 +10,16 @@ The `Route` class is used to define routes for your app. When a user navigates t
 # routes.py
 from routing.router import Route
 
+
 class IndexRoute(Route):
     path = "/"
     form = "Pages.Index"
 
+
 class AboutRoute(Route):
     path = "/about"
     form = "Pages.About"
+
 
 class ContactRoute(Route):
     path = "/contact"
@@ -113,6 +116,7 @@ By default, all routes are included in the sitemap. To exclude a route from the 
 ```python
 from routing.router import Route
 
+
 class PrivateRoute(Route):
     path = "/admin"
     form = "Pages.Admin"
@@ -131,6 +135,7 @@ To control meta tags for SEO and social sharing, override the `meta` method on y
 ```python
 from routing.router import Route
 
+
 class ArticleRoute(Route):
     path = "/articles/:id"
     form = "Pages.Article"
@@ -141,7 +146,6 @@ class ArticleRoute(Route):
         return {
             "title": title,
             "description": f"Viewing article: {title}",
-
             "og:image": "asset:article_cover.png",  # use asset: prefix or a full URL
             "twitter:card": "summary_large_image",  # arbitrary tags supported
         }
@@ -173,6 +177,7 @@ By definition, if there is no matching route, the router has no route to navigat
 ```python
 from routing.router import Route
 
+
 class NotFoundRoute(Route):
     form = "Pages.NotFound"
     default_not_found = True
@@ -188,6 +193,7 @@ If you raise a `NotFound` exception in a route's `before_load` or `load_data` me
 
 ```python
 from routing.router import Route
+
 
 class ArticleRoute(Route):
     path = "/articles/:id"
@@ -216,6 +222,7 @@ from routing.router import Route
 # Either define the error form globally
 Route.error_form = "Pages.Error"
 
+
 # or define the error form per route
 class IndexRoute(Route):
     path = "/"
@@ -227,13 +234,12 @@ class IndexRoute(Route):
 # Pages.Error
 import anvil
 
+
 class Error(ErrorTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.init_components(**properties)
         self.routing_context = routing_context
-        self.label.text = (
-            f"Error when navigating to {routing_context.path!r}, got {routing_context.error!r}"
-        )
+        self.label.text = f"Error when navigating to {routing_context.path!r}, got {routing_context.error!r}"
 
     def form_show(self, **event_args):
         if anvil.app.environment.name.startswith("Debug"):
@@ -247,13 +253,16 @@ The router will try to match routes in the order they are defined.
 ```python
 from routing.router import Route
 
+
 class AuthorsRoute(Route):
     path = "/authors"
     form = "Pages.Authors"
 
+
 class NewAuthorRoute(Route):
     path = "/authors/new"
     form = "Pages.NewAuthor"
+
 
 class AuthorRoute(Route):
     path = "/authors/:id"

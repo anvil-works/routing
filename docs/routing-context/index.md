@@ -11,6 +11,7 @@ It provides information about the current route and the current navigation conte
 from ._anvil_designer import IndexTemplate
 from routing.router import RoutingContext
 
+
 class IndexTemplate(IndexTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
