@@ -137,6 +137,7 @@ When route data is loaded, loader args such as `path`, `params`, `query`, `hash`
 ```python
 from routing.router import Route, hooks, Redirect
 
+
 class AuthenticatedRoute(Route):
     # Style 1: Mutate nav_context directly
     @hooks.before_load
@@ -154,6 +155,7 @@ class AuthenticatedRoute(Route):
         if not user or not user.has_permission():
             raise Redirect(path="/login")
 
+
 # Both styles are supported; the returned dictionary (if any) will be merged into nav_context after the hook runs.
 # Hooks run in reverse MRO order, so base class hooks execute before derived class hooks.
 ```
@@ -164,6 +166,8 @@ You may also attach hooks globally to all routes by assigning to the base class:
 @hooks.before_load
 def global_hook(self, nav_context, **loader_args):
     nav_context["feature_enabled"] = True
+
+
 Route.global_hook = global_hook
 ```
 

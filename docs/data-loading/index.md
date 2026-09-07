@@ -19,6 +19,7 @@ from routing.router import Route
 
 Route.cache_form = True
 
+
 class ArticleRoute(Route):
     path = "/articles/:id"
     form = "Pages.Article"
@@ -27,12 +28,15 @@ class ArticleRoute(Route):
 ```python
 from routing import router
 
+
 class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
         if properties.get("item") is None:
             # The user navigated directly to the form by changing the URL
-            properties["item"] = anvil.server.call("get_article", routing_context.params["id"])
+            properties["item"] = anvil.server.call(
+                "get_article", routing_context.params["id"]
+            )
 
         self.init_components(**properties)
 ```
@@ -50,7 +54,7 @@ class RowTemplate(RowTemplateTemplate):
         router.navigate(
             path="/articles/:id",
             params={"id": self.item["id"]},
-            form_properties={"item": self.item}
+            form_properties={"item": self.item},
         )
 ```
 
@@ -59,6 +63,7 @@ class RowTemplate(RowTemplateTemplate):
 ```python
 # routes.py
 from routing.router import Route
+
 
 class ArticleRoute(Route):
     path = "/articles/:id"
@@ -74,6 +79,7 @@ class ArticleRoute(Route):
 
 ```python
 from routing import router
+
 
 class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
@@ -93,7 +99,7 @@ class RowTemplate(RowTemplateTemplate):
         router.navigate(
             path="/articles/:id",
             params={"id": self.item["id"]},
-            nav_context={"row": self.item}
+            nav_context={"row": self.item},
         )
 ```
 
@@ -110,18 +116,20 @@ The pending form is determined by the `Route.pending_form` attribute. When the d
 ```python
 from routing.router import Route
 
+
 class ArticleRoute(Route):
     path = "/articles/:id"
     form = "Pages.Article"
     pending_form = "Pages.Loading"
-    pending_delay = 1 # default is 1
-    pending_min = 0.5 # default is 0.5
+    pending_delay = 1  # default is 1
+    pending_min = 0.5  # default is 0.5
 ```
 
 A common implementation will be to create a pending form with the same layout as the form. Where the content would be, place an `Anvil.Spacer` component. Inside the `show` and `hide` event handlers, call the `anvil.server.loading_indicator.start` and `anvil.server.loading_indicator.stop` functions.
 
 ```python
 from anvil.server import loading_indicator
+
 
 class LoadingForm(LoadingFormTemplate):
     def __init__(self, **properties):

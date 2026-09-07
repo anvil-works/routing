@@ -15,6 +15,7 @@ Do note that the `navigate` function can only be called from client code.
 ```python
 from routing.router import navigate
 
+
 class Form(FormTemplate):
     def nav_button_click(self, **event_args):
         navigate(path="/articles/:id", params={"id": 123})
@@ -43,12 +44,11 @@ class Form(FormTemplate):
 : The query parameters to navigate to. e.g. `{"tab": "income"}`. This can be a function that takes the current query parameters as an argument and returns the new query parameters. If you provide a query function, avoid modifying the query parameters directly, instead return a new dictionary.
 
 ```python
-
 def on_button_click(self, **event_args):
     def query(prev):
         return {**prev, "open": not prev.get("open", False)}
-    navigate(query=query)
 
+    navigate(query=query)
 ```
 
 `hash`
@@ -70,6 +70,7 @@ The `form_properties` is a dictionary that is passed to the `open_form` function
 ```python
 from routing import router
 
+
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
         self.init_components(**properties)
@@ -78,7 +79,7 @@ class RowTemplate(RowTemplateTemplate):
         router.navigate(
             path="/articles/:id",
             params={"id": self.item["id"]},
-            form_properties={"item": self.item}
+            form_properties={"item": self.item},
         )
 ```
 
@@ -86,6 +87,7 @@ And then in the `/articles/:id` route:
 
 ```python
 from routing import router
+
 
 class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
@@ -106,6 +108,7 @@ The `nav_context` is a dictionary that is passed to the `navigate` function. A u
 ```python
 from routing import router
 
+
 def on_button_click(self, **event_args):
     current_context = router.get_routing_context()
     router.navigate(path="/foo", nav_context={"prev_context": current_context})
@@ -115,6 +118,7 @@ And then in the `/foo` route:
 
 ```python
 from routing import router
+
 
 class FooForm(FooFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
@@ -138,6 +142,7 @@ You can also update the navigation context from a route's `before_load` method b
 class DashboardRoute(Route):
     path = "/dashboard"
     form = "Pages.Dashboard"
+
     def before_load(self, **loader_args):
         # Add a value to nav_context for this navigation
         return {"show_sidebar": True}
@@ -158,6 +163,7 @@ Hooks are collected from all base classes and **run in reverse MRO order** (base
 ```python
 from routing.router import Route, hooks, Redirect
 
+
 class AuthenticatedRoute(Route):
     @hooks.before_load
     def check_auth(self, **loader_args):
@@ -165,10 +171,12 @@ class AuthenticatedRoute(Route):
             raise Redirect(path="/login")
         return {"user": get_current_user()}
 
+
 class FeatureFlagMixin:
     @hooks.before_load
     def add_feature_flag(self, **loader_args):
         return {"feature_enabled": True}
+
 
 class DashboardRoute(FeatureFlagMixin, AuthenticatedRoute):
     path = "/dashboard"
@@ -196,6 +204,7 @@ def global_hook(self, **loader_args):
     # e.g., add analytics or logging
     return {"analytics_id": "xyz"}
 
+
 Route.global_hook = global_hook
 ```
 
@@ -211,6 +220,7 @@ Route.global_hook = global_hook
 ```python
 from routing.router import Route, hooks, Redirect, Redirect
 
+
 class AuthenticatedRoute(Route):
     @hooks.before_load
     def set_user(self, nav_context, **loader_args):
@@ -221,6 +231,7 @@ class AuthenticatedRoute(Route):
         user = nav_context.get("user")
         if not user or not user.has_permission():
             raise Redirect(path="/login")
+
 
 class FeatureRoute(AuthenticatedRoute):
     @hooks.before_load

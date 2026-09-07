@@ -21,6 +21,7 @@ from routing.router import TemplateWithContainerRoute as BaseRoute
 
 BaseRoute.template = "MainTemplate"
 
+
 class IndexRoute(BaseRoute):
     path = "/"
     form = "Pages.Index"
@@ -45,6 +46,7 @@ from routing.router import TemplateWithContainerRoute as BaseRoute
 
 BaseRoute.template = "MainTemplate"
 
+
 class IndexRoute(BaseRoute):
     path = "/"
     form = "Pages.Index"
@@ -58,7 +60,6 @@ from routing.router import TemplateWithContainerRoute as BaseRoute
 
 BaseRoute.template = "MainTemplate"
 BaseRoute.template_container_properties = {"full_width_row": True}
-
 ```
 
 ### Navigation Links
@@ -66,17 +67,15 @@ BaseRoute.template_container_properties = {"full_width_row": True}
 Replace regular HTML links with `NavLink` components. Instead of using click handlers and manually managing navigation, configure the path directly on the component (either in code or in the designer):
 
 ```python
-
 from ._anvil_designer import MainTemplate
 from routing import router
 
 
 class Main(MainTemplate):
     def __init__(self, **properties):
-        self.nav_home.path = '/home'
-        self.nav_settings.path = '/settings'
+        self.nav_home.path = "/home"
+        self.nav_settings.path = "/settings"
         self.init_components(**properties)
-
 ```
 
 NavLinks provide several advantages:
@@ -94,7 +93,6 @@ In hash routing the `on_navigation` method is called on the Template form when t
 If you want to keep your existing `on_navigation` method, you can achieve this through the `router`'s event system. The `router` will emit a `navigation` event when the url changes.
 
 ```python
-
 from ._anvil_designer import MainTemplate
 from routing import router
 
@@ -124,7 +122,6 @@ class Main(MainTemplate):
 
     def form_hide(self, **event_args):
         router.remove_event_handler("navigate", self.on_navigate)
-
 ```
 
 If you have multiple Templates, we recommend subscribing to the `navigation` event in the `form_show` method of your template form, and unsubscribing in the `form_hide` method. If you only have a single template, you can subscribe to the `navigation` event in the `__init__` method of your template form and there is no need to unsubscribe.
@@ -139,7 +136,6 @@ When migrating from anvil_extras, you might have different templates for differe
 You can configure this by setting different templates for different routes. You can also configure redirects and caching settings within each route class. Below is an example with two templates - one for authentication and one for the main app.
 
 ```python
-
 from routing.router import TemplateWithContainerRoute as BaseRoute
 from routing.router import Redirect
 from .Global import Global  # if you have a module for global (cached) variables
@@ -154,41 +150,40 @@ class EnsureUserMixin:
 
 
 class SigninRoute(BaseRoute):
-    template = 'Templates.Static'  # Template for auth screen
-    path = '/signin'
-    form = 'Pages.Signin'
+    template = "Templates.Static"  # Template for auth screen
+    path = "/signin"
+    form = "Pages.Signin"
     cache_form = True  # Cache settings for this route form.
 
 
 class SignupRoute(BaseRoute):
-    template = 'Templates.Static'  # Template for auth screen
-    path = '/signup'
-    form = 'Pages.Signup'
+    template = "Templates.Static"  # Template for auth screen
+    path = "/signup"
+    form = "Pages.Signup"
     cache_form = True
 
 
 class HomeRoute(EnsureUserMixin, BaseRoute):
     # This route and ones below inherits from two classes,
     # which propagates the redirect from EnsureUserMixin
-    template = 'Templates.Router' # Main template for app
-    path = '/app/home'
-    form = 'Pages.Home'
+    template = "Templates.Router"  # Main template for app
+    path = "/app/home"
+    form = "Pages.Home"
     cache_form = True
 
 
 class SettingsRoute(EnsureUserMixin, BaseRoute):
-    template = 'Templates.Router'
-    path = '/app/settings'
-    form = 'Pages.Settings'
+    template = "Templates.Router"
+    path = "/app/settings"
+    form = "Pages.Settings"
     cache_form = True
 
 
 class AdminRoute(EnsureUserMixin, BaseRoute):
-    template = 'Templates.Router'
-    path = '/app/admin'
-    form = 'Pages.Admin'
+    template = "Templates.Router"
+    path = "/app/admin"
+    form = "Pages.Admin"
     cache_form = True
-
 ```
 
 Note that redirects are no longer defined in the startup form, but the routes module. In addition, caching is defined for each route, not as a parameter in the navigation function (anvil_extras `set_url_hash`). Any common attributes and methods can be set on base classes or mix-in classes.
