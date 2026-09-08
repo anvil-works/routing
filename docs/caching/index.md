@@ -29,18 +29,6 @@ Set `cache_data=True` to reuse loaded data until it is invalidated or garbage-co
 
 `gc_time` defaults to 30 minutes and controls when navigation can remove old cached data and any form with the same cache key. `stale_time` does not expire data cached with `cache_data=True`.
 
-### Stale-while-revalidate and current limitations
-
-`STALE_WHILE_REVALIDATE` returns cached data immediately and starts a background load when explicitly marked stale or older than `stale_time` seconds. It is not consistently applied across all data access paths.
-
-The following limitations apply:
-
-- Reusing a cached form skips the loader entirely, regardless of the data policy. The client router explicitly leaves integration between form caching and data policies unfinished.
-- `use_data()` returns an existing cache entry directly, without applying the policy or checking freshness.
-- `stale_time`, default `0`, controls background refreshes for `STALE_WHILE_REVALIDATE` only. Refreshes are triggered by loading data, not by a timer.
-
-If an app uses background refreshes, its forms must handle `data_loaded` and `data_error` events. Register handlers before calling `raise_init_events()`, and inspect `revalidating` for an active refresh. Verify these flows in the app, including navigation with cached forms. See [Routing context](../routing-context/index.md).
-
 !!! Caching Forms with data loaders
 
     If you are using the `load_data` method and `cache_form` is set to `True`, then the `load_data` method will not be called if there is an existing cached form.

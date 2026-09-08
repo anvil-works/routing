@@ -61,7 +61,7 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 : Whether to cache the route's form. By default this is `False`.
 
 `cache_data=False`
-: Set to `True` to reuse cached data, or `False` to load without retaining it for later navigation. `CACHE_FIRST` and `NO_CACHE` are aliases for these values. For background refreshes and their limitations, see [Stale-while-revalidate](../caching/index.md#stale-while-revalidate-and-current-limitations).
+: Set to `True` to reuse cached data, or `False` to load without retaining it for later navigation. `CACHE_FIRST` and `NO_CACHE` are aliases for these values. See [Caching](../caching/index.md).
 
 `stale_time=0`
 : The time in seconds before data is considered stale for `STALE_WHILE_REVALIDATE`. This does not expire `CACHE_FIRST` data.
