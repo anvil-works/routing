@@ -56,6 +56,37 @@ To run the checks manually:
 pre-commit run --all-files
 ```
 
+## Running tests
+
+Use Python 3.12 and run these commands from the repository root:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r tests/requirements.txt
+python -m pytest -q
+```
+
+The `Tests` GitHub Actions workflow runs the same suite on pull requests and
+pushes to `master`. It can also be run manually.
+
+The suite currently protects two sets of regressions:
+
+- Sitemap responses include enabled static routes and omit disabled or
+  parameterised routes.
+- Changing link navigation properties updates both the href and click
+  destination. Missing parameters invalidate the link, and valid parameters
+  restore it. Navigation events preserve cached fixed destinations.
+
+These tests execute the production response and link logic with stand-ins for
+the Anvil runtime and UI provider. They do not exercise browser history, form
+rendering, or asynchronous loader behaviour in a running Anvil app. Changes to
+those behaviours need validation in an Anvil app.
+
+Add tests for concrete behaviour or regressions using the current API. The old
+matcher and loader experiments were removed because they used obsolete APIs
+and could not be collected by pytest.
+
 ## Contributing to Documentation
 
 We use MkDocs for our documentation. To set up the documentation environment:
