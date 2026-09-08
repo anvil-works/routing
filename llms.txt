@@ -301,4 +301,4 @@ Dependency configuration defaults:
 - `raise_on_data_error=True`: Report loader failures through Anvil's exception handler. `False` still sets context errors and emits `data_error`; it does not bypass navigation error forms or unhandled navigation exceptions.
 - `sitemap=False`, `robots=False`: Enable the generated `/sitemap.txt` and `/robots.txt` endpoints when set to `True`.
 
-The intended route-level sitemap flag is `Route.sitemap=True` for inclusion. This version filters it backwards and emits parameterised route patterns without expanding them. Do not rely on `sitemap=False` to exclude a route from the generated sitemap.
+The generated sitemap includes static routes with `sitemap=True`, the route default. Set `sitemap=False` to exclude a route. Routes with path parameters are omitted because the router cannot enumerate their concrete URLs. The root URL appears only when a `/` route is defined and included.

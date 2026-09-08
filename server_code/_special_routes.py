@@ -20,13 +20,12 @@ def create_text_file(lines, name: str):
 
 def site_map_iter():
     origin = anvil.server.get_app_origin()
-    # I don't really know if this bare url is necessary, but what's the harm?
-    yield origin
-
     yield from (
         f"{origin}{route.path}"
         for route in router.sorted_routes
-        if not route.sitemap and route.path
+        if route.sitemap
+        and route.path
+        and not any(segment.is_param() for segment in route.segments)
     )
 
 

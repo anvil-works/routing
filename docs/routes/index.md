@@ -76,7 +76,7 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 : If `True` then the server function will be called using `anvil.server.call_s`. By default this is `False`.
 
 `sitemap=True`
-: Whether to include this route in the sitemap. By default this is `True`.
+: Whether to include this static route in the sitemap. By default this is `True`. Routes with path parameters are omitted.
 
 ## Route Methods
 
@@ -111,7 +111,7 @@ See the navigation documentation for practical usage examples.
 
 ## Excluding Routes from the Sitemap
 
-The intended meaning of `sitemap = True` is to include the route, and `sitemap = False` is to exclude it. However, the current implementation reverses this filter. The example below expresses the intended configuration; it does not currently exclude `/admin`.
+Static routes are included in the sitemap by default. Set `sitemap = False` to exclude a route:
 
 ```python
 from routing.router import Route
@@ -119,15 +119,12 @@ from routing.router import Route
 class PrivateRoute(Route):
     path = "/admin"
     form = "Pages.Admin"
-    sitemap = False  # Intended exclusion; see the current limitation below
+    sitemap = False  # Exclude /admin from the sitemap
 ```
 
 The dependency's `sitemap` configuration must also be enabled to serve `/sitemap.txt`.
 
-!!! warning "Current sitemap limitation"
-
-    The current implementation filters for `sitemap = False`, the reverse of the intended behaviour described above. Check the generated sitemap before relying on this setting. Parameterised paths are emitted as route patterns, not expanded into individual URLs.
-
+Routes with path parameters, such as `/articles/:id`, are omitted because the router cannot enumerate their concrete URLs. The root URL is included only when a `/` route is defined with `sitemap = True`.
 
 ## Setting Meta Tags Per Route
 
