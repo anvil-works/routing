@@ -1,80 +1,56 @@
-# Route Meta Method
+# Route meta
 
-The `meta` method on a `Route` class allows you to dynamically set the meta tags for each page, such as the title, description, Open Graph tags, and images. This is useful for SEO, social sharing, and customizing how your app appears in search engines and link previews.
-
-## Defining Meta Tags
-
-Override the `meta` method in your route class to return a dictionary of meta tags. Standard tags (like `title` or `description`) will be rendered as `<meta name="...">` tags, while Open Graph tags (such as `og:title` or `og:image`) will be rendered as `<meta property="...">` tags in the HTML.
-
-### Basic Example
+Override a route's `meta` method to return a dictionary of page metadata. The router calls it before loading data, so use its loader arguments rather than relying on `routing_context.data`.
 
 ```python
-from routing import Route
+from routing.router import Route
 
 class ProductRoute(Route):
     path = "/product"
     form = "Pages.Product"
 
-    def meta(self, **kwargs):
-        meta_data = {}
-        meta_data['title'] = "Product Page"
-        meta_data['description'] = "Details and specifications for our featured product."
-        meta_data['og:title'] = "Featured Product"
-        meta_data['og:description'] = "Learn more about our latest product release."
-        meta_data["og:image"] = "asset:product.jpeg"  # Use a theme asset
-        return meta_data
+    def meta(self, **loader_args):
+        return {
+            "title": "Product page",
+            "description": "Details and specifications for our product.",
+            "og:image": "asset:product.jpeg",
+            "twitter:card": "summary_large_image",
+        }
 ```
 
-### Using `get_app_origin()` for Absolute URLs
+## Asset URLs
 
-If you want to provide an absolute URL for Open Graph images (recommended for social sharing), you can use the `get_app_origin()` utility:
+Use `asset:product.jpeg` to refer to an app theme asset. To construct an absolute URL yourself, use `anvil.server.get_app_origin()`:
 
 ```python
-from routing import Route, get_app_origin
+import anvil.server
+from routing.router import Route
 
 class AboutRoute(Route):
     path = "/about"
     form = "Pages.About"
 
-    def meta(self, **kwargs):
-        origin = get_app_origin()
-        meta_data = {
-            'title': "About Us",
-            'description': "Information about our company and team.",
-            'og:title': "About Our Company",
-            'og:description': "Discover our mission, values, and team members.",
-            'og:image': f"{origin}/_/theme/about.jpeg"  # Absolute URL
+    def meta(self, **loader_args):
+        origin = anvil.server.get_app_origin()
+        return {
+            "title": "About us",
+            "description": "Information about our company and team.",
+            "og:image": f"{origin}/_/theme/about.jpeg",
         }
-        return meta_data
 ```
 
-## Notes
+## Client and server behaviour
 
--   All meta tags will be injected into the page as `<meta ...>` tags, except for `title`, which will be used for both the `<title>` tag and a `<meta name="title">` tag.
--   You can set any meta tag supported by your app or required by social platforms. Arbitrary meta tags are supported (e.g., Twitter cards `twitter:card`, `twitter:image`).
--   If a meta value starts with `asset:`, such as `asset:foo.jpeg`, it will use the corresponding URL for an asset in your app’s Assets or theme assets folder.
--   For absolute URLs, use `get_app_origin()` to construct the full URL.
--   If a route does not define a particular meta tag, the value from a default or previously set meta tag may be used. For consistency and to avoid unexpected results, it’s recommended to explicitly define all relevant meta tags for each route.
+On a direct URL request, the router passes the metadata to Anvil's `AppResponder`, which controls the initial response's metadata. On client navigation, the router updates the document's `<title>` and writes metadata as `<meta name="..." content="...">` elements, including Open Graph names such as `og:image`.
 
-### Example: Adding Twitter Card Tags
+The client supports arbitrary names, including Twitter card tags. A tag appearing after client navigation does not establish that it is present in the initial HTML read by a social preview crawler. Check the initial response when validating previews.
 
-```python
-class BlogPostRoute(Route):
-    path = "/blog/post"
-    form = "Pages.BlogPost"
+## Defaults
 
-    def meta(self, **kwargs):
-        meta_data = {
-            'title': "Blog Post Title",
-            'description': "A summary of the blog post.",
-            'twitter:card': "summary_large_image",
-            'twitter:title': "Blog Post Title",
-            'twitter:description': "A summary of the blog post.",
-            'twitter:image': "asset:blogpost.jpeg",  # Uses an app asset
-        }
-        return meta_data
-```
+The base `Route.meta` method returns `{}`. On the client:
 
----
+- `title` updates both `<title>` and `<meta name="title">`.
+- `og:title` and `og:description` use `title` and `description` when those values are supplied without their Open Graph equivalents.
+- When a tag is omitted, the current implementation restores the value captured before its most recent explicit update. This can restore metadata from an earlier route, so explicitly supply values that must be consistent across navigation. A newly created tag starts with an empty value.
 
-For more details on available meta tags and advanced usage, see the [SEO & Meta Tags guide](../seo.md) or the [Route class documentation](./index.md).
+See the [Route class](index.md) for the rest of the route lifecycle.

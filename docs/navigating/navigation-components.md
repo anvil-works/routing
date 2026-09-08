@@ -7,13 +7,13 @@ The routing library provides two Navigation Components:
 -   [NavLink](#navlink)
 -   [Anchor](#anchor)
 
-Navigation Components by default are subclasses of the `Anvil.Link` component. However, this can be customised. See [Themes](/theme) for details.
+Navigation Components by default are subclasses of the `anvil.Link` component. However, this can be customised. See [Themes](../theme/index.md) for details.
 
 ## NavLink
 
 The NavLink component is a link that you will likely use in your main layout's sidebar. The routing library will set the `active` property on the NavLink to `True` when the NavLink's properties match the current routing context.
 
-If you are using the default NavLink component, then `active` means it will set its `role` property to `active`. If the NavLink component is not the default, then how the `active` property behaves is determined by the Base class of the NavLink component.
+If you are using the default NavLink component, then `active` means it will set its `role` property to `selected`. If the NavLink component is not the default, then how the `active` property behaves is determined by the Base class of the NavLink component.
 
 ### Navigation Attributes
 
@@ -39,7 +39,7 @@ If you are using the default NavLink component, then `active` means it will set 
 
     If you want to set `params` or `query` in the designer, you can use the data binding feature of the designer.
 
-    ![Data Binding](/img/screenshots/data-binding.png)
+    ![Data Binding](../img/screenshots/data-binding.png)
 
 ### Active State
 
@@ -54,7 +54,7 @@ If you are using the default NavLink component, then `active` means it will set 
     A NavLink with `path="/"` is automatically treated as an exact match. It will only be active when the current path is also `"/"`, not on child routes. This is the expected behavior for home page links, so you don't need to set `exact_path=True` for them.
 
 `exact_query`
-: If `True`, then the query must inclusively match the current routing context's query. By default, this is `False`.
+: If `True`, then the query must exactly match the current routing context's query. Otherwise, the link's query entries must be present with matching values in the current query. By default, this is `False`.
 
 `exact_hash`
 : If `True`, then the hash must match exactly. By default, this is `False`.

@@ -61,7 +61,10 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 : Whether to cache the route's form. By default this is `False`.
 
 `cache_data=False`
-: Whether to cache data. By default this is `False`.
+: The data caching policy: `NO_CACHE` (`False`), `CACHE_FIRST` (`True`), `NETWORK_FIRST` or `STALE_WHILE_REVALIDATE`. See [Caching](../caching/index.md).
+
+`stale_time=0`
+: The time in seconds before data is considered stale for `STALE_WHILE_REVALIDATE`. This does not expire `CACHE_FIRST` data.
 
 `gc_time=30*60`
 : The time in seconds that determines when data is released from the cache for garbage collection. By default this is 30 minutes. When data is released from the cache, any cached forms with the same `path` and `cache_deps` will also be released.
@@ -78,7 +81,7 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 ## Route Methods
 
 `before_load`
-: Called before the route is matched. If it raises a `Redirect`, navigation is redirected. If it returns a dictionary, its contents are merged into the navigation context (`nav_context`).
+: Called after the route is matched, before loading its data or form. If it raises a `Redirect`, navigation is redirected. If it returns a dictionary, its contents are merged into the navigation context (`nav_context`).
 
 Note - you may prefer not to override this method, and instead use the `@hooks.before_load` decorator.
 
@@ -92,7 +95,7 @@ See the navigation documentation for practical usage examples.
 : Should return a dictionary of path parameters. By default this returns the original path parameters.
 
 `meta`
-: Should return a dictionary with the `title` and `description` of the page. This will be used to update the meta tags and the title of the page. By default this returns the original title and description.
+: Should return a dictionary with the `title` and `description` of the page. This will be used to update the meta tags and the title of the page. By default this returns an empty dictionary.
 
 `load_data`
 : Called when the route is matched. The return value will be available in the `data` property of the `RoutingContext` instance. By default this returns `None`.
@@ -101,14 +104,14 @@ See the navigation documentation for practical usage examples.
 : This method is called with two arguments. The first argument is a form name (e.g. `"Pages.Index"`) or, if you are using cached forms, the cached form instance. The second argument is the `RoutingContext` instance. By default this calls `anvil.open_form` on the form.
 
 `cache_deps`
-: Returns an object, by default the `query` dictionary (more information in the [query section](/routes/query/) and the [RoutingContext section](/routing-context/)). This method is part of the process of creating caching keys.
-: When a route needs to cache a form or data (more information in the [caching section](/caching/)), it does so by storing it in a global dictionary under a caching key. This key is composed of the route's path and the return of its `cache_deps` method at the moment of caching.
-: If, when accessing the same route, its `cache_deps` method returns something different than when caching first occured, the caching key points to a different place within the cache, usually empty. The router thus understands this as a new route and navigates to it again.
+: Returns an object, by default the `query` dictionary (more information in the [query section](query.md) and the [RoutingContext section](../routing-context/index.md)). This method is part of the process of creating caching keys.
+: When a route needs to cache a form or data (more information in the [caching section](../caching/index.md)), it does so by storing it in a global dictionary under a caching key. This key is composed of the route's path and the return of its `cache_deps` method at the moment of caching.
+: If, when accessing the same route, its `cache_deps` method returns something different than when caching first occurred, the caching key points to a different place within the cache, usually empty. The router thus understands this as a new route and navigates to it again.
 
 
 ## Excluding Routes from the Sitemap
 
-By default, all routes are included in the sitemap. To exclude a route from the sitemap, set `sitemap = False` on your `Route` class:
+The intended meaning of `sitemap = True` is to include the route, and `sitemap = False` is to exclude it. However, the current implementation reverses this filter. The example below expresses the intended configuration; it does not currently exclude `/admin`.
 
 ```python
 from routing.router import Route
@@ -116,51 +119,19 @@ from routing.router import Route
 class PrivateRoute(Route):
     path = "/admin"
     form = "Pages.Admin"
-    sitemap = False  # This route will NOT appear in the sitemap
+    sitemap = False  # Intended exclusion; see the current limitation below
 ```
 
-Only routes with `sitemap = True` (the default) will be included in the sitemap.
+The dependency's `sitemap` configuration must also be enabled to serve `/sitemap.txt`.
+
+!!! warning "Current sitemap limitation"
+
+    The current implementation filters for `sitemap = False`, the reverse of the intended behaviour described above. Check the generated sitemap before relying on this setting. Parameterised paths are emitted as route patterns, not expanded into individual URLs.
 
 
 ## Setting Meta Tags Per Route
 
-To control meta tags for SEO and social sharing, override the `meta` method on your `Route` class. Return a dictionary of tags you want to set for that route. You can set any meta tag, including Open Graph and custom tags.
-
-**Example:**
-
-```python
-from routing.router import Route
-
-class ArticleRoute(Route):
-    path = "/articles/:id"
-    form = "Pages.Article"
-
-    def meta(self, **loader_args):
-        query = loader_args["query"]  # Use query params for dynamic meta
-        title = f"Article: {query.get('title', 'Untitled')}"
-        return {
-            "title": title,
-            "description": f"Viewing article: {title}",
-
-            "og:image": "asset:article_cover.png",  # use asset: prefix or a full URL
-            "twitter:card": "summary_large_image",  # arbitrary tags supported
-        }
-```
-
-**Fallbacks:**
-
--   `og:title` and `og:description` will automatically use `title` and `description` if not set.
--   If a meta tag is not set for a route, it falls back to the value present at app load.
-
-**Server vs Client Meta Tags:**
-
--   `title`, `description`, `og:title` and `og:description` are set on the server.
--   All other tags are set after page load on the client.
-
-**og:image and other assets:**
-
--   Use a full URL (e.g., `"https://my-app.anvil.app/_/theme/image.png"`)
--   Or use an asset from your app: `"asset:image.png"` and it will be resolved to the full URL
+Override `meta` to return the tags for a route. See [Route meta](meta.md) for examples, asset URLs and client/server behaviour.
 
 ## Not Found Form
 
@@ -187,7 +158,8 @@ If no `default_not_found` attribute is set, then the router will raise a `NotFou
 If you raise a `NotFound` exception in a route's `before_load` or `load_data` method, the router will call the route's `load_form` method with the route's not found form.
 
 ```python
-from routing.router import Route
+import anvil.server
+from routing.router import Route, NotFound
 
 class ArticleRoute(Route):
     path = "/articles/:id"
@@ -196,7 +168,7 @@ class ArticleRoute(Route):
 
     def load_data(self, **loader_args):
         id = loader_args["params"]["id"]
-        article = app_tables.articles.get(id=id)
+        article = anvil.server.call("get_article", id)
         if article is None:
             raise NotFound(f"No article with id {id}")
         return article
@@ -225,6 +197,8 @@ class IndexRoute(Route):
 
 ```python
 # Pages.Error
+from ._anvil_designer import ErrorTemplate
+from routing.router import RoutingContext
 import anvil
 
 class Error(ErrorTemplate):

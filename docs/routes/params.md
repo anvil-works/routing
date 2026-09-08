@@ -47,7 +47,7 @@ You can navigate to a route with params by passing the params option to the `nav
 ```python
 from routing.router import navigate
 
-...
+class AuthorForm(AuthorFormTemplate):
     def button_click(self, **event_args):
         navigate(path="/authors/:id", params={"id": 123})
 ```
@@ -56,7 +56,7 @@ Or equivalently with routing `NavLink` or `Anchor` components.
 
 ```python
 from ._anvil_designer import RowTemplateTemplate
-from routing.router import NavLink
+from routing.router.NavLink import NavLink
 
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):

@@ -2,7 +2,9 @@
 
 ## Overview
 
-The routing library provides a router for your Anvil app. It uses a combination of client and server routing to provide a seamless experience for your users.
+The routing library maps URL paths to forms in an Anvil app. It supports direct links, browser history, client navigation and route data loading.
+
+Start with the [quick start](docs/quick-start.md), browse the [documentation](docs/index.md), or use the root [llms.txt](llms.txt) as an agent-oriented index.
 
 ## Third party dependency
 
@@ -10,7 +12,7 @@ To use as a third party dependency, use the code `3PIDO5P3H4VPEMPL`
 
 ## Clone from github
 
-Copy the url and clone the app anonymously from github in the anvil designer.
+Clone `https://github.com/anvil-works/routing` anonymously in the Anvil editor, then add the clone as a dependency of your app. See [Installation](docs/installation.md).
 
 ## License
 

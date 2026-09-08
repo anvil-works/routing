@@ -1,0 +1,55 @@
+# Anvil Routing
+
+> Python routing library for Anvil apps. Map URL paths to forms, support browser history and client navigation, and load route data on the server for direct page requests.
+
+This index describes the library in this checkout. Links are relative to the repository root and lead to Markdown documentation or implementation files. Start with the quick start and API reference, then read the guide for the feature you are changing. These docs describe this library, not `anvil_extras.routing` or a general-purpose Python web framework.
+
+Add the Anvil dependency `3PIDO5P3H4VPEMPL`, or clone this repository into Anvil and add that app as a dependency. Import the API with `from routing import router` or `from routing.router import Route, navigate`. Import component classes from their modules: `from routing.router.NavLink import NavLink` and `from routing.router.Anchor import Anchor`.
+
+Define `Route` subclasses in your app's client `routes` module and call `router.launch()` from the selected startup module. The router imports `routes` automatically; use the dependency's `routes_module` setting for another name. Route definitions and loaders must work on both the client and server. Forms and navigation run on the client.
+
+Routes match in definition order. Put static paths such as `/articles/new` before `/articles/:id`. Raw path parameters are strings; use `parse_params` for conversion. Query values are JSON-decoded before `parse_query`. Pass decoded Python dictionaries to navigation APIs.
+
+The router passes `routing_context` to forms. Loaders receive `path`, `params`, `query`, `deps`, `location`, `nav_context` and `form_properties`; client data loads also receive `silent`. Use `params`, not `path_params`, and read fragments from `location.hash`. Direct visits do not carry client-provided `nav_context` or `form_properties`. Check authentication and authorisation on the server before returning protected data.
+
+Caching defaults to off. Cache keys combine the concrete URL path with `cache_deps`, which defaults to the parsed query. Reusing a cached form skips its loader. Data policies include `CACHE_FIRST`, `NETWORK_FIRST` and `STALE_WHILE_REVALIDATE`; read the caching guide before combining form caching and data refreshes.
+
+Before-load hooks run in reverse MRO order and, within a class, reverse definition order. Keep dependent steps in one hook. Attach global hooks before defining route subclasses. The current sitemap implementation reverses the intended `sitemap` flag; see the Route guide before enabling sitemap generation.
+
+## Start here
+
+- [Quick start](docs/quick-start.md): App structure, startup module, route definitions and navigation links.
+- [Installation](docs/installation.md): Add the dependency or clone it into Anvil.
+- [Overview](docs/index.md): Route lifecycle and division between client and server.
+- [API reference](docs/api-reference.md): Public functions, configuration, hooks, components and exceptions.
+
+## Feature guides
+
+- [Route class](docs/routes/index.md): Route attributes, ordering, not-found and error forms, and sitemap limitations.
+- [Path parameters](docs/routes/params.md): Dynamic path segments, parsing and navigation.
+- [Query parameters](docs/routes/query.md): Encoding, validation and form reuse when query values change.
+- [Redirects](docs/routes/redirecting.md): Before-load redirects and server-side access checks.
+- [Forms and templates](docs/routes/forms.md): Default form loading and `TemplateWithContainerRoute`.
+- [Page metadata](docs/routes/meta.md): Metadata dictionaries, asset URLs and client/server behaviour.
+- [Navigation](docs/navigating/index.md): `navigate`, form properties, navigation context and hook composition.
+- [Navigation components](docs/navigating/navigation-components.md): `NavLink`, `Anchor`, active state and `register_links`.
+- [Blocking navigation](docs/navigating/blocking-navigation.md): Context blockers, alerts and confirmation dialogues.
+- [Routing context](docs/routing-context/index.md): Form context, data events, invalidation and refetching.
+- [Data loading](docs/data-loading/index.md): Loader examples, initial server data and pending forms.
+- [Caching](docs/caching/index.md): Cache policies, keys, freshness and partial invalidation.
+
+## Implementation and validation
+
+- [Public exports](client_code/router/__init__.py): Verify API names against the current checkout.
+- [Route implementation](client_code/router/_route.py): Registration, defaults, hooks and server route handling.
+- [Client navigation](client_code/router/_router/client.py): Form reuse, pending forms and navigation error handling.
+- [Data loader](client_code/router/_loader.py): Cache policies, `use_data` and `ensure_data`.
+- [Routing context implementation](client_code/router/_context.py): Loader arguments, events and `refetch` behaviour.
+- [Contributing](CONTRIBUTING.md): Environment setup and contribution checks. Build docs with `mkdocs build --strict`; Anvil form examples require the Anvil runtime and designer-generated templates.
+
+## Optional
+
+- [Migration](docs/migrating/index.md): Moving from `anvil.open_form` or `anvil_extras.routing`.
+- [Theme integration](docs/theme/index.md): Custom navigation component base classes.
+- [Changelog](CHANGELOG.md): Release history.
+- [Repository overview](README.md): Repository setup and documentation preview commands.

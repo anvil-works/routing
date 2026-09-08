@@ -26,7 +26,7 @@ We welcome contributions to the routing library! This document outlines the proc
     git checkout -b feat/<your-feature-name>
     ```
 
-    or for a docs changes:
+    or for documentation changes:
 
     ```
     git checkout -b docs/<your-docs-changes-name>
