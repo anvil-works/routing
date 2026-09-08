@@ -25,28 +25,27 @@ class IndexRoute(Route):
 
 The routing library can cache data loaded by the `load_data` method. If you are not using the `load_data` method, you can skip this section. For more details, see the [Data Loading](../data-loading/index.md) section.
 
-Set `cache_data` to one of the constants exported by `routing.router`:
+Set `cache_data=True` to reuse loaded data until it is invalidated or garbage-collected. The default is `False`, which does not retain data for later navigation. Initial data sent by the server is still used once. The exported constants `CACHE_FIRST` and `NO_CACHE` are aliases for `True` and `False` respectively.
 
-| Policy | Behaviour when navigation needs data |
+`gc_time` defaults to 30 minutes and controls when navigation can remove old cached data and any form with the same cache key. `stale_time` does not expire data cached with `cache_data=True`.
+
+### Advanced policies and current limitations
+
+`NETWORK_FIRST` and `STALE_WHILE_REVALIDATE` have implementations in the data loader, but they are not consistently applied across all data access paths. They should not be treated as a complete freshness or offline strategy.
+
+| Policy | Behaviour when the loader runs |
 | --- | --- |
-| `NO_CACHE` (`False`, default) | Load data without retaining it for later navigation. Initial data sent by the server is still used once. |
-| `CACHE_FIRST` (`True`) | Reuse cached data until it is invalidated or garbage-collected. |
-| `NETWORK_FIRST` | Load again, retaining cached data as a fallback after offline retries. |
-| `STALE_WHILE_REVALIDATE` | Return cached data immediately and refresh it in the background when stale. |
+| `NETWORK_FIRST` | Attempt a new load. If it raises `anvil.server.AppOfflineError`, retry once after one second, then use cached data if available. Other errors do not trigger that fallback. |
+| `STALE_WHILE_REVALIDATE` | Return cached data immediately and start a background load when explicitly marked stale or older than `stale_time` seconds. |
 
-For `STALE_WHILE_REVALIDATE`, `stale_time` sets the freshness period in seconds and defaults to `0`. `gc_time` defaults to 30 minutes and controls when navigation can remove old cached data and any form with the same cache key.
+The following limitations apply:
 
-```python
-from routing.router import Route, STALE_WHILE_REVALIDATE
+- Reusing a cached form skips the loader entirely, regardless of the data policy. The client router explicitly leaves integration between form caching and data policies unfinished.
+- `use_data()` returns an existing cache entry directly, without applying the policy or checking freshness.
+- Initial server data is reused for the first client load. `NETWORK_FIRST` does not immediately fetch it again.
+- `stale_time`, default `0`, controls background refreshes for `STALE_WHILE_REVALIDATE` only. Refreshes are triggered by loading data, not by a timer.
 
-class ArticlesRoute(Route):
-    path = "/articles"
-    form = "Pages.Articles"
-    cache_data = STALE_WHILE_REVALIDATE
-    stale_time = 60
-```
-
-Forms that display refreshing data should handle the routing context's `data_loaded` and `data_error` events. Register handlers before calling `raise_init_events()`, and use `revalidating` to check for an active refresh. See [Routing context](../routing-context/index.md).
+If an app uses background refreshes, its forms must handle `data_loaded` and `data_error` events. Register handlers before calling `raise_init_events()`, and inspect `revalidating` for an active refresh. Verify these flows in the app, including navigation with cached forms. See [Routing context](../routing-context/index.md).
 
 !!! Caching Forms with data loaders
 

@@ -4,7 +4,7 @@
 
 The routing library maps URL paths to forms in an Anvil app. It supports direct links, browser history, client navigation and route data loading.
 
-Start with the [quick start](docs/quick-start.md), browse the [documentation](docs/index.md), or use the root [llms.txt](llms.txt) as an agent-oriented index.
+Start with the [quick start](docs/quick-start.md), browse the [documentation](docs/index.md), or use the root [llms.txt](llms.txt) as a self-contained usage reference for agents working in an app with the dependency.
 
 ## Third party dependency
 

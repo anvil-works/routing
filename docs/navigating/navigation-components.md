@@ -54,7 +54,7 @@ If you are using the default NavLink component, then `active` means it will set 
     A NavLink with `path="/"` is automatically treated as an exact match. It will only be active when the current path is also `"/"`, not on child routes. This is the expected behavior for home page links, so you don't need to set `exact_path=True` for them.
 
 `exact_query`
-: If `True`, then the query must exactly match the current routing context's query. Otherwise, the link's query entries must be present with matching values in the current query. By default, this is `False`.
+: If `True`, the link's query entries must be present with matching values in the current query. Extra current query entries are allowed. If `False` (the default), query values do not affect the active state.
 
 `exact_hash`
 : If `True`, then the hash must match exactly. By default, this is `False`.
