@@ -23,7 +23,7 @@ from routing.router import navigate, RoutingContext
 
 class Dashboard(DashboardTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self.routing_context = routing_context
         routing_context.add_event_handler("query_changed", self.on_query_change)
         routing_context.raise_init_events() # raises the query_changed event

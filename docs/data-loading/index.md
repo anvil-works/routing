@@ -34,7 +34,7 @@ class ArticleForm(ArticleFormTemplate):
             # The user navigated directly to the form by changing the URL
             properties["item"] = anvil.server.call("get_article", routing_context.params["id"])
 
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 In the above example, if a user goes directly to the URL `/articles/123`, the initial page request will send the user to the `ArticleForm`, but there will be no data. The App will then need to make a server call to get the data.
@@ -44,7 +44,7 @@ Note that during normal navigation, i.e. when the user clicks a link, we can tak
 ```python
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def on_button_click(self, **event_args):
         router.navigate(
@@ -80,7 +80,7 @@ class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
         properties["item"] = routing_context.data
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 In the above example, `load_data` runs when navigation needs data, unless a cached form or the data caching policy supplies it. If a user navigates directly to the URL `/articles/123`, the initial page request will come in, the load_data method will be called (on the server), and the user will be directed to the `ArticleForm` with the data already loaded. During normal navigation, i.e. when the user clicks a link, we can take advantage of the `nav_context` (or `form_properties`) attribute to ensure we do not make unnecessary server calls during client-side navigation.
@@ -88,7 +88,7 @@ In the above example, `load_data` runs when navigation needs data, unless a cach
 ```python
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def on_button_click(self, **event_args):
         router.navigate(
@@ -126,7 +126,7 @@ from anvil.server import loading_indicator
 
 class LoadingForm(LoadingFormTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self.loading_indicator = loading_indicator(self.spacer_1)
 
     def show(self, **event_args):

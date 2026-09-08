@@ -13,7 +13,7 @@ class EditForm(EditFormTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
         self.routing_context.register_blocker(self.prevent_navigation)
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def prevent_navigation(self, **event_args):
         c = confirm("Are you sure you want to leave this page? Your changes will be lost.")
@@ -35,7 +35,7 @@ from routing.router import NavigationBlocker, alert
 
 class Form(FormTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def run_important_alert(self, **event_args):
         with NavigationBlocker(warn_before_unload=True):

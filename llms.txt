@@ -39,7 +39,7 @@ On a direct URL request, the server matches the route and runs `before_load`, `m
 
 ## Receive the routing context in forms
 
-The router passes `routing_context` as a keyword argument to the form. Consume it before calling `init_components`. Keep the form's existing designer-generated template import and class name; for a form at `Pages.Article`, the pattern is:
+The router passes `routing_context` as a keyword argument to the form. Consume it before calling `super().__init__(**properties)`. Keep the form's existing designer-generated template import and class name; for a form at `Pages.Article`, the pattern is:
 
 ```python
 from ._anvil_designer import ArticleTemplate
@@ -48,7 +48,7 @@ from routing.router import RoutingContext
 class Article(ArticleTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 The default route calls `anvil.open_form` with the page form. Create page forms using the app's intended layout. For an existing app with a template and `content_panel`, use the container route instead:
@@ -124,7 +124,7 @@ Use ordinary anchors with concrete app URLs, then register their container. Mark
 </nav>
 ```
 
-`anvil-name="nav"` makes the container available as `self.dom_nodes["nav"]`. In the form or custom component containing that HTML, register once after `init_components`, before it is added to the page:
+`anvil-name="nav"` makes the container available as `self.dom_nodes["nav"]`. In the form or custom component containing that HTML, register once after `super().__init__(**properties)`, before it is added to the page:
 
 ```python
 from ._anvil_designer import MainLayoutTemplate
@@ -132,7 +132,7 @@ from routing import router
 
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         router.register_links(
             self.dom_nodes["nav"],
             selector="a[data-route]",
@@ -191,7 +191,7 @@ class ArticleRoute(Route):
         return article
 ```
 
-`get_article` above is an app-defined server callable. It must return data suitable for sending to the client. In the page constructor, you can set `properties["item"] = routing_context.data` before `init_components(**properties)` to use Anvil data bindings.
+`get_article` above is an app-defined server callable. It must return data suitable for sending to the client. In the page constructor, you can set `properties["item"] = routing_context.data` before `super().__init__(**properties)` to use Anvil data bindings.
 
 `before_load`, `meta` and `load_data` receive these keyword arguments: `path`, `params`, `query`, `deps`, `location`, `nav_context` and `form_properties`. Use `params`, not `path_params`. Read the fragment from `location.hash`; these methods do not receive a separate `hash` keyword. Client data loads also receive `silent`, so use `**loader_args` to accept additional arguments.
 
@@ -228,7 +228,7 @@ from routing.router import RoutingContext
 class Article(ArticleTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
         routing_context.add_event_handler("data_loaded", self.data_loaded)
         routing_context.add_event_handler("data_error", self.data_error)
         routing_context.raise_init_events()

@@ -20,7 +20,7 @@ class Author(AuthorTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
         self.author = anvil.server.call("get_author", routing_context.params.get("id"))
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 ## Parsing Params
@@ -60,7 +60,7 @@ from routing.router.NavLink import NavLink
 
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
         self.add_component(
             NavLink(

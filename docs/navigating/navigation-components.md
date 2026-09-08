@@ -87,7 +87,7 @@ Use ordinary anchors with concrete app URLs, then register their container. Mark
 </nav>
 ```
 
-`anvil-name="nav"` makes the container available as `self.dom_nodes["nav"]`. In the form or custom component containing that HTML, register once after `init_components`, before it is added to the page:
+`anvil-name="nav"` makes the container available as `self.dom_nodes["nav"]`. In the form or custom component containing that HTML, register once after `super().__init__(**properties)`, before it is added to the page:
 
 ```python
 from ._anvil_designer import MainLayoutTemplate
@@ -95,7 +95,7 @@ from routing import router
 
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         router.register_links(
             self.dom_nodes["nav"],
             selector="a[data-route]",
@@ -119,7 +119,7 @@ from routing import router
 
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         # Register links tied to component lifecycle
         router.register_links(
             self.dom_nodes["header"],
@@ -133,7 +133,7 @@ class MainLayout(MainLayoutTemplate):
 ```python
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self._cleanup_links = None
 
     def form_show(self, **event_args):

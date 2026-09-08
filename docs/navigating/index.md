@@ -72,7 +72,7 @@ from routing import router
 
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def button_click(self, **event_args):
         router.navigate(
@@ -96,7 +96,7 @@ class ArticleForm(ArticleFormTemplate):
             article_id = routing_context.params["id"]
             properties["item"] = anvil.server.call("get_article", article_id)
 
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 ### Use of `nav_context`
@@ -119,7 +119,7 @@ from routing import router
 class FooForm(FooFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def cancel_button_click(self, **event_args):
         prev_context = self.routing_context.nav_context.get("prev_context")

@@ -73,7 +73,7 @@ from routing import router
 
 class Main(MainTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self.nav_home.path = '/home'
         self.nav_settings.path = '/settings'
 
@@ -101,7 +101,7 @@ from routing import router
 
 class Main(MainTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self.links = {"/": self.home_nav, "/about": self.about_nav}
 
     def on_navigate(self, **event_args):

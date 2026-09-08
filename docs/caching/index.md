@@ -114,7 +114,7 @@ from routing import router
 class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def delete_button_click(self, **event_args):
         self.remove_from_parent()

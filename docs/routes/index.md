@@ -203,7 +203,7 @@ import anvil
 
 class Error(ErrorTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self.routing_context = routing_context
         self.label.text = (
             f"Error when navigating to {routing_context.path!r}, got {routing_context.error!r}"

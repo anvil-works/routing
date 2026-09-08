@@ -14,7 +14,7 @@ from routing.router import RoutingContext
 class Index(IndexTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 !!! Autocompletion
