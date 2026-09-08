@@ -102,8 +102,6 @@ about_link = Anchor(text="About", path="/about")
 
 Add these components to the app's appropriate container, or configure their properties in the designer. Both support `path`, `params`, `query`, `hash`, `nav_context` and `form_properties`. `NavLink.active` is managed by the router; its visual treatment depends on the theme. A parent path stays active on descendant paths unless `exact_path=True`. `/` only matches `/`. `exact_hash=True` also requires the hash to match. In this version, `exact_query=True` requires the link's query entries to match but allows extra current query entries; `False` ignores query values for active state.
 
-For existing HTML links, call `router.register_links(self.dom_nodes["nav"], component=self)` after `init_components`. It finds anchors matching `a[href^='/']`, manages their lifecycle and adds the `active` CSS class. Options include `selector`, `active_class` and `active_callback(element, is_active)`. Without `component`, it returns a cleanup function; call that when removing the links. Per-link attributes `data-exact-path`, `data-exact-query`, `data-exact-hash` and `data-no-active` control active state.
-
 Other client helpers:
 
 - `router.back()`, `router.forward()` and `router.go(n)` move relative to the current history entry.
@@ -111,6 +109,49 @@ Other client helpers:
 - `router.get_routing_context()` returns the current context.
 - `router.reload()` invalidates the current path's cache and reloads on the client. `router.reload(hard=True)` reloads from the server.
 - `router.open_form("Pages.About", **properties)` navigates to a registered form by name. It requires a string form name and a route without path parameters.
+
+## Route links in HTML markup
+
+Use ordinary anchors with concrete app URLs, then register their container. Mark only links intended for client routing with `data-route`:
+
+```html
+<nav anvil-name="nav">
+  <a data-route href="/">Home</a>
+  <a data-route href="/articles" data-exact-path>Articles</a>
+  <a data-route href="/articles/123?tab=details&amp;page=1">Article 123</a>
+  <a href="https://example.com/">External site</a>
+  <a href="/articles/123" target="_blank">Open in new tab</a>
+</nav>
+```
+
+`anvil-name="nav"` makes the container available as `self.dom_nodes["nav"]`. In the form or custom component containing that HTML, register once after `init_components`, before it is added to the page:
+
+```python
+from ._anvil_designer import MainLayoutTemplate
+from routing import router
+
+class MainLayout(MainLayoutTemplate):
+    def __init__(self, **properties):
+        self.init_components(**properties)
+        router.register_links(
+            self.dom_nodes["nav"],
+            selector="a[data-route]",
+            active_class="active",
+            component=self,
+        )
+```
+
+Keep the existing template import and class name for your component. Define `.active` styling in the app's CSS if you want the current link highlighted. No per-link Python click handler is needed. Without registration, these remain normal browser links and cause a full page request.
+
+Use `/articles/123`, not the route pattern `/articles/:id`, in `href`. Encode query strings as URLs and escape `&` as `&amp;` in HTML. Registered anchors derive their destination from `href`; they do not carry Python `nav_context` or `form_properties`.
+
+Only add `data-route` to app navigation links. Leave external URLs, protocol-relative URLs (`//...`), downloads and links with `target` unregistered. The click handler does not check origin, `target` or `download`. It preserves Ctrl/Cmd/Shift-click, but an ordinary click on a registered `target="_blank"` link would still be intercepted.
+
+The default selector is `a[href^='/']`; it does not include relative, fragment-only or absolute same-origin URLs, and it also matches `//...`. The explicit `data-route` selector above gives you control over which anchors participate.
+
+`component=self` sets up active-state tracking on page addition and cleans it up on removal. Registration scans the DOM once; it does not observe links inserted later. For dynamically replaced markup, register after rendering without `component`, keep the returned cleanup function, and call it before re-registering the new DOM and when removing the component. Cleanup stops active-state tracking and clears styling, but currently leaves the routing click handlers on the anchor nodes. Remove the old nodes when replacing markup; cleanup alone does not restore native link behaviour.
+
+Per-link attributes are presence-based: `data-exact-path` requires the current path to match, `data-exact-query` checks the link's query entries while allowing extra current entries, `data-exact-hash` checks the fragment, and `data-no-active` disables highlighting while retaining routing. Omit an attribute to disable it; `data-exact-path="false"` still enables exact path matching.
 
 ## Parse URL state
 

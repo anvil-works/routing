@@ -111,13 +111,15 @@ The loader arguments passed to `before_load`, `meta` and `load_data` are `path`,
 
     Each link can specify exact matching behavior using data attributes (presence-based):
     - `data-exact-path`: Path must match exactly
-    - `data-exact-query`: Query parameters must match exactly
+    - `data-exact-query`: The link's query entries must match; extra current entries are allowed
     - `data-exact-hash`: Hash must match exactly
 
     These attributes are read from each link element individually, allowing different links to have different exact matching behavior.
 
     To skip active state tracking for a link (e.g., home page), use `data-no-active`:
     - `data-no-active`: Link will navigate but won't receive active state updates
+
+See [HTML link usage](navigating/navigation-components.md#usage) for a complete markup and Python example. Registration scans once and does not discover later DOM additions. Cleanup stops active-state tracking but leaves routing click handlers attached. Exclude external, download and target links from registration; the click handler does not check those attributes.
 
 `hooks.before_load(func)`
 : Decorator to register a method as a before_load hook for a Route. Hooks are collected from all base classes and **executed in reverse MRO order** (base classes first, derived classes last). Each hook receives a `nav_context` keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.
