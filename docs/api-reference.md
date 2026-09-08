@@ -127,6 +127,7 @@ See [HTML link usage](navigating/navigation-components.md#usage) for a complete 
 ```python
 from routing.router import Route, hooks, Redirect
 
+
 class AuthenticatedRoute(Route):
     @hooks.before_load
     def require_user(self, nav_context, **loader_args):
@@ -142,6 +143,8 @@ Attach global hooks to the base class before defining route subclasses:
 @hooks.before_load
 def global_hook(self, nav_context, **loader_args):
     nav_context["feature_enabled"] = True
+
+
 Route.global_hook = global_hook
 ```
 
