@@ -9,7 +9,7 @@ import anvil.server
 from . import router
 from .router._import_utils import import_routes
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 
 def create_text_file(lines, name: str):

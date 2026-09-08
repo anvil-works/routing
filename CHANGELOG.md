@@ -1,6 +1,26 @@
 # Changelog
 
-## v0.6.1 (01/01/1970)
+## v0.6.2 (01/01/1970)
+## What's Changed
+### 🐛 Bug Fixes
+
+- Fix sitemap filtering, clarify routing docs and add llms.txt [#104](https://github.com/anvil-works/routing/pull/104)
+- Fix Anchor href updates after navigation property changes [#102](https://github.com/anvil-works/routing/pull/102)
+
+### 📖 Documentation
+
+- Replace experimental tests with CI regressions [#105](https://github.com/anvil-works/routing/pull/105)
+- Fix sitemap filtering, clarify routing docs and add llms.txt [#104](https://github.com/anvil-works/routing/pull/104)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@pre-commit-ci[bot] and @s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.6.1...v0.6.2
+
+---
+
+## v0.6.1 (31/03/2026)
 ## What's Changed
 ### 🐛 Bug Fixes
 
