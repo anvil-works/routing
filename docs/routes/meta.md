@@ -5,6 +5,7 @@ Override a route's `meta` method to return a dictionary of page metadata. The ro
 ```python
 from routing.router import Route
 
+
 class ProductRoute(Route):
     path = "/product"
     form = "Pages.Product"
@@ -25,6 +26,7 @@ Use `asset:product.jpeg` to refer to an app theme asset. To construct an absolut
 ```python
 import anvil.server
 from routing.router import Route
+
 
 class AboutRoute(Route):
     path = "/about"

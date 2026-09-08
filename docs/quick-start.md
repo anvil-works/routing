@@ -45,13 +45,16 @@ if __name__ == "__main__":
 # routes.py
 from routing.router import Route
 
+
 class IndexRoute(Route):
     path = "/"
     form = "Pages.Index"
 
+
 class AboutRoute(Route):
     path = "/about"
     form = "Pages.About"
+
 
 class ContactRoute(Route):
     path = "/contact"

@@ -9,6 +9,7 @@ To override the default behaviour, you can set the `Route.cache_form` attribute 
 
 ```python
 from routing.router import Route
+
 Route.cache_form = True
 ```
 
@@ -43,6 +44,7 @@ To clear all cached content, you can call the `clear_cache` function.
 
 ```python
 from routing import router
+
 router.clear_cache()
 ```
 
@@ -52,6 +54,7 @@ If you want to invalidate the cache for a specific path, you can call the `inval
 
 ```python
 from routing import router
+
 router.invalidate(path="/articles")
 ```
 
@@ -77,9 +80,11 @@ invalidate(routing_context, **kws)
 ```python
 from routing.router import Route
 
+
 class ArticlesRoute(Route):
     path = "/articles"
     form = "Pages.Articles"
+
 
 class ArticleRoute(Route):
     path = "/articles/:id"
@@ -90,6 +95,7 @@ In the above example, if you call `invalidate("/articles", exact=True)`, then da
 
 ```python
 from routing.router import Route
+
 
 class ArticlesRoute(Route):
     path = "/articles"
@@ -110,6 +116,7 @@ A routing context also has an `invalidate` method for convenience.
 
 ```python
 from routing import router
+
 
 class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):

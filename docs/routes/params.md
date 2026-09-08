@@ -5,6 +5,7 @@ The path may contain one or more path parameters, denoted by the `:` character, 
 ```python
 from routing.router import Route
 
+
 class AuthorRoute(Route):
     path = "/authors/:id"
     form = "Pages.Author"
@@ -15,6 +16,7 @@ When a user navigates to `/authors/123`, the routing context will include the pa
 ```python
 from ._anvil_designer import AuthorTemplate
 from routing.router import RoutingContext
+
 
 class Author(AuthorTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
@@ -47,6 +49,7 @@ You can navigate to a route with params by passing the params option to the `nav
 ```python
 from routing.router import navigate
 
+
 class AuthorForm(AuthorFormTemplate):
     def button_click(self, **event_args):
         navigate(path="/authors/:id", params={"id": 123})
@@ -57,6 +60,7 @@ Or equivalently with routing `NavLink` or `Anchor` components.
 ```python
 from ._anvil_designer import RowTemplateTemplate
 from routing.router.NavLink import NavLink
+
 
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
@@ -75,6 +79,7 @@ class RowTemplate(RowTemplateTemplate):
 
 ```python
 from routing.router import navigate
+
 navigate(path="/authors/123")
 # the params will still become {"id": "123"}
 ```
