@@ -205,7 +205,7 @@ Use `cache_data=False` (the default) to load data when needed without retaining 
 
 `gc_time`, default `1800` seconds, controls when navigation can remove old data and a form sharing its cache key. `stale_time` does not expire data cached with `cache_data=True`; explicitly invalidate or refetch when it changes.
 
-The library also exports `NETWORK_FIRST` and `STALE_WHILE_REVALIDATE`, but their integration is incomplete: cached forms bypass the loader, and `use_data()` returns cached data without applying either policy. Do not introduce these modes as a general freshness or offline solution. If the app already uses them, preserve its intended behaviour and verify navigation and refreshes in the app before changing its caching.
+`STALE_WHILE_REVALIDATE` returns cached data immediately and refreshes stale data in the background. Its integration has limits: cached forms bypass the loader, and `use_data()` returns cached data without checking freshness. Verify navigation and refreshes in the app before relying on this policy.
 
 Cache keys combine the concrete URL path, such as `/articles/123`, and `cache_deps(self, **loader_args)`, which defaults to the parsed query dictionary. Override `cache_deps` to return a JSON-serialisable dictionary containing the query values that affect the data or form. Return `{}` to key only by path.
 
