@@ -221,7 +221,7 @@ class LinkMixinCommon(Component):
     @path.setter
     def path(self, value):
         self._rn.props["path"] = value
-        self._rn_set_href()
+        self._rn_set_href(force=True)
 
     @property
     def query(self):
@@ -230,7 +230,7 @@ class LinkMixinCommon(Component):
     @query.setter
     def query(self, value):
         self._rn.props["query"] = value
-        self._rn_set_href()
+        self._rn_set_href(force=True)
 
     @property
     def params(self):
@@ -239,7 +239,7 @@ class LinkMixinCommon(Component):
     @params.setter
     def params(self, value):
         self._rn.props["params"] = value
-        self._rn_set_href()
+        self._rn_set_href(force=True)
 
     @property
     def hash(self):
@@ -248,9 +248,9 @@ class LinkMixinCommon(Component):
     @hash.setter
     def hash(self, value):
         self._rn.props["hash"] = value
-        self._rn_set_href()
+        self._rn_set_href(force=True)
 
-    def _rn_set_href(self, **nav_args):
+    def _rn_set_href(self, *, force=False, **nav_args):
         prev_location = self._rn.location
 
         path = self.path or None
@@ -258,9 +258,10 @@ class LinkMixinCommon(Component):
         query = self.query
         hash = self.hash
 
-        # fast path
+        # Navigation events can reuse a fixed destination; property setters cannot.
         if (
-            path is not None
+            not force
+            and path is not None
             and not callable(query)
             and not in_designer
             and prev_location is not None
