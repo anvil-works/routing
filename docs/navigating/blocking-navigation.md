@@ -7,13 +7,13 @@ weight: 10
 You may want to prevent the user from navigating away from a page, for example, if they are editing a form.
 
 ```python
-from routing.router import RoutingContext, navigate
+from routing.router import RoutingContext, navigate, confirm
 
 class EditForm(EditFormTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
         self.routing_context.register_blocker(self.prevent_navigation)
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def prevent_navigation(self, **event_args):
         c = confirm("Are you sure you want to leave this page? Your changes will be lost.")
@@ -31,11 +31,11 @@ class EditForm(EditFormTemplate):
 Alternatively, you can use the `NavigationBlocker` context manager.
 
 ```python
-from routing.router import NavigationBlocker
+from routing.router import NavigationBlocker, alert
 
 class Form(FormTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def run_important_alert(self, **event_args):
         with NavigationBlocker(warn_before_unload=True):
@@ -47,7 +47,7 @@ The above navigation blocker will prevent the user from navigating away from the
 
 ## Alerts
 
-The `alert` and `confirm` functions are provided by the routing library. These functions behave similarly to Anvil's default `alert` and `confirm` functions, but they will block navigation when `dismissible` is `True`, or close the alert when the user navigates to a new page.
+The `alert` and `confirm` functions are provided by the routing library. These functions behave similarly to Anvil's default `alert` and `confirm` functions, but they block navigation when `dismissible=False` and close when navigation occurs if `dismissible=True`. The default is `True` for `alert` and `False` for `confirm`.
 
 You can override the default `alert` and `confirm` functions by setting the `anvil.alert` and `anvil.confirm` attributes in your startup module.
 

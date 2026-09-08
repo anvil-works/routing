@@ -11,10 +11,10 @@ It provides information about the current route and the current navigation conte
 from ._anvil_designer import IndexTemplate
 from routing.router import RoutingContext
 
-class IndexTemplate(IndexTemplate):
+class Index(IndexTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 !!! Autocompletion
@@ -74,7 +74,7 @@ The `RoutingContext` instance will emit events when the route changes.
 : Emitted when the data is loading. This also fires from `raise_init_events()` if the current context already has cached data and is revalidating it in the background.
 
 `data_loaded`
-: Emitted when the data has been loaded, or when the data has an error. To determine if the data is loaded successfully, check the `error` property is `None`.
+: Emitted when data loads successfully. `raise_init_events()` also emits this event with the current data and error, so check `routing_context.error` when handling initial state.
 
 `data_error`
 : Emitted when the data has an error.
@@ -88,11 +88,11 @@ The `RoutingContext` instance will emit events when the route changes.
 ## Methods
 
 `invalidate(exact=False)`
-: Invalidates any cached data or forms for this routing context. If `exact` is `True`, then the path and deps must match exactly. By default this is `False`. If `False` then any path or deps that are a subset of path and deps arguments will be invalidated.
+: Invalidates any cached data or forms for this routing context. If `exact` is `True`, then the path and deps must match exactly. By default this is `False`. If `False`, matching paths and their descendants are invalidated when their dependencies contain all the entries in this context's `deps`.
 
-`refetch(silent=None)`
-: Invalidates the data for this routing context (with exact=True) and then loads the data again. The `silent` value is passed through to `load_data(...)` as a loader argument. For `server_fn` routes, `silent=True` uses `anvil.server.call_s(...)`, `silent=False` uses `anvil.server.call(...)`, and `silent=None` uses the route default. Custom `load_data(...)` implementations can inspect `silent` and choose how to handle loading indicators or silent/background fetches.
+`refetch(*, silent=None)`
+: Invalidates cached forms and data for this routing context with `exact=True`. If this is the current routing context, starts a new data load and returns its asynchronous result. Otherwise, returns without loading data. The `silent` value is passed through to `load_data(...)` as a loader argument. For `server_fn` routes, `silent=True` uses `anvil.server.call_s(...)`, `silent=False` uses `anvil.server.call(...)`, and `silent=None` uses the route default. Custom `load_data(...)` implementations can inspect `silent` and choose how to handle loading indicators or silent/background fetches.
 
 `raise_init_events()`
-: Raises the `data_loaded`, `data_loading`, `data_error`, `query_changed` and `hash_changed` events.
+: Raises `data_loaded`, `query_changed` and `hash_changed` for the current state. Also raises `data_error` if an error exists and `data_loading` if data is revalidating.
 This method is useful during instantiation of the form. First set up your event handlers, then call `raise_init_events()`.

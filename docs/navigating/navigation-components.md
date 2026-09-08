@@ -7,13 +7,13 @@ The routing library provides two Navigation Components:
 -   [NavLink](#navlink)
 -   [Anchor](#anchor)
 
-Navigation Components by default are subclasses of the `Anvil.Link` component. However, this can be customised. See [Themes](/theme) for details.
+Navigation Components by default are subclasses of the `anvil.Link` component. However, this can be customised. See [Themes](../theme/index.md) for details.
 
 ## NavLink
 
 The NavLink component is a link that you will likely use in your main layout's sidebar. The routing library will set the `active` property on the NavLink to `True` when the NavLink's properties match the current routing context.
 
-If you are using the default NavLink component, then `active` means it will set its `role` property to `active`. If the NavLink component is not the default, then how the `active` property behaves is determined by the Base class of the NavLink component.
+If you are using the default NavLink component, then `active` means it will set its `role` property to `selected`. If the NavLink component is not the default, then how the `active` property behaves is determined by the Base class of the NavLink component.
 
 ### Navigation Attributes
 
@@ -39,7 +39,7 @@ If you are using the default NavLink component, then `active` means it will set 
 
     If you want to set `params` or `query` in the designer, you can use the data binding feature of the designer.
 
-    ![Data Binding](/img/screenshots/data-binding.png)
+    ![Data Binding](../img/screenshots/data-binding.png)
 
 ### Active State
 
@@ -54,7 +54,7 @@ If you are using the default NavLink component, then `active` means it will set 
     A NavLink with `path="/"` is automatically treated as an exact match. It will only be active when the current path is also `"/"`, not on child routes. This is the expected behavior for home page links, so you don't need to set `exact_path=True` for them.
 
 `exact_query`
-: If `True`, then the query must inclusively match the current routing context's query. By default, this is `False`.
+: If `True`, the link's query entries must be present with matching values in the current query. Extra current query entries are allowed. If `False` (the default), query values do not affect the active state.
 
 `exact_hash`
 : If `True`, then the hash must match exactly. By default, this is `False`.
@@ -75,6 +75,43 @@ Use `register_links()` when you have navigation links defined in an HTML templat
 
 ### Usage
 
+Use ordinary anchors with concrete app URLs, then register their container. Mark only links intended for client routing with `data-route`:
+
+```html
+<nav anvil-name="nav">
+  <a data-route href="/">Home</a>
+  <a data-route href="/articles" data-exact-path>Articles</a>
+  <a data-route href="/articles/123?tab=details&amp;page=1">Article 123</a>
+  <a href="https://example.com/">External site</a>
+  <a href="/articles/123" target="_blank">Open in new tab</a>
+</nav>
+```
+
+`anvil-name="nav"` makes the container available as `self.dom_nodes["nav"]`. In the form or custom component containing that HTML, register once after `super().__init__(**properties)`, before it is added to the page:
+
+```python
+from ._anvil_designer import MainLayoutTemplate
+from routing import router
+
+class MainLayout(MainLayoutTemplate):
+    def __init__(self, **properties):
+        super().__init__(**properties)
+        router.register_links(
+            self.dom_nodes["nav"],
+            selector="a[data-route]",
+            active_class="active",
+            component=self,
+        )
+```
+
+Keep the existing template import and class name for your component. Define `.active` styling in the app's CSS if you want the current link highlighted. No per-link Python click handler is needed. Without registration, these remain normal browser links and cause a full page request.
+
+Use `/articles/123`, not the route pattern `/articles/:id`, in `href`. Encode query strings as URLs and escape `&` as `&amp;` in HTML. Registered anchors derive their destination from `href`; they do not carry Python `nav_context` or `form_properties`.
+
+Only add `data-route` to app navigation links. Leave external URLs, protocol-relative URLs (`//...`), downloads and links with `target` unregistered. The click handler does not check origin, `target` or `download`. It preserves Ctrl/Cmd/Shift-click, but an ordinary click on a registered `target="_blank"` link would still be intercepted.
+
+### Lifecycle options
+
 **Automatic lifecycle management** (recommended):
 
 ```python
@@ -82,7 +119,7 @@ from routing import router
 
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         # Register links tied to component lifecycle
         router.register_links(
             self.dom_nodes["header"],
@@ -96,7 +133,7 @@ class MainLayout(MainLayoutTemplate):
 ```python
 class MainLayout(MainLayoutTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self._cleanup_links = None
 
     def form_show(self, **event_args):
@@ -131,10 +168,10 @@ This will find all `<a href="/...">` links in your HTML template and enable rout
 -   **Auto-detection**: Automatically detects if elements are `<a>` tags or containers
 -   **Active state tracking**: Links automatically receive active styling when they match the current route
 -   **Flexible styling**: Use CSS classes or custom callbacks for active state
--   **Cleanup function**: Returns a function to unregister and clean up event listeners
+-   **Cleanup function**: Returns a function to stop active-state tracking and clear its styling
 -   **Exact matching**: Support for `data-exact-path`, `data-exact-query`, and `data-exact-hash` data attributes on individual links
 -   **Customizable**: Use custom CSS selectors to target specific links
--   **Idempotent**: Safe to call multiple times on the same elements
+-   **Registration**: Register once per rendered set of links. Clean up earlier registrations before registering again.
 
 ### Examples
 
@@ -260,7 +297,7 @@ router.register_links(
 : DOM elements (links or containers) to register for routing
 
 `selector`
-: CSS selector for finding links in containers. Default: `"a[href^='/']"` (all internal links)
+: CSS selector for finding links in containers. Default: `"a[href^='/']"` (anchors whose `href` starts with `/`, including protocol-relative URLs). It does not include relative, fragment-only or absolute same-origin URLs.
 
 `active_class`
 : CSS class to add/remove when link matches current route. Default: `"active"`
@@ -281,7 +318,7 @@ router.register_links(
     A link with `href="/"` is automatically treated as an exact match. It will only be active when the current path is also `"/"`, not on child routes. This is the expected behavior for home page links, so you don't need to set `data-exact-path` for them.
 
 `data-exact-query`
-: If present, query parameters must match exactly. Default: `False`. Set this attribute on individual link elements in your HTML.
+: If present, the link's query entries must match the current query; extra current entries are allowed. If absent, query values do not affect active state.
 
 `data-exact-hash`
 : If present, hash must match exactly. Default: `False`. Set this attribute on individual link elements in your HTML.
@@ -291,7 +328,7 @@ router.register_links(
 `data-no-active`
 : If present, the link will navigate but won't receive active state updates. Useful for links like the home page ("/") that you want to navigate but not highlight. Set this attribute on individual link elements in your HTML.
 
-**Returns**: Cleanup function to unregister links and remove event listeners (or `None` if `component` is used)
+**Returns**: Cleanup function to stop active-state tracking and clear its styling (or `None` if `component` is used)
 
 ### Behavior
 
@@ -301,6 +338,7 @@ router.register_links(
     -   Prevents default browser navigation
     -   Respects modifier keys (Ctrl/Cmd/Shift) - lets browser handle
     -   Uses router's navigation for client-side routing
+    -   Does not check origin, `target` or `download`; exclude those links when selecting anchors to register
 -   Active state:
     -   Updates automatically on every navigation
     -   Uses same matching logic as `NavLink` component
@@ -318,7 +356,15 @@ The cleanup function:
 
 -   Removes navigation event listeners
 -   Clears active state from all registered links
--   Prevents memory leaks
+-   Leaves routing click handlers attached to the anchor nodes. Calling cleanup does not restore native browser navigation.
+
+### Dynamic markup
+
+Registration scans its containers once. It does not observe newly inserted or replaced links. With `component=self`, later page additions reuse the original set of nodes. Call this form of registration before the component is added to the page.
+
+When replacing markup dynamically, call `register_links` after rendering, without `component`, and retain its cleanup function. Call the previous cleanup before registering the new DOM, and call the latest cleanup when removing the component. Remove the old anchor nodes as part of replacement, since cleanup leaves their click handlers attached.
+
+Data attributes are presence-based. For example, `data-exact-path="false"` still enables exact matching; remove the attribute to disable it.
 
 ### Comparison with NavLink
 

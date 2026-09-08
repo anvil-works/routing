@@ -1,0 +1,304 @@
+# Anvil Routing
+
+> Usage reference for an agent building an Anvil app that already has the `routing` dependency. This file contains the API guidance and examples needed to use the library without reading its repository or fetching other documentation.
+
+## Define routes and launch
+
+Put route definitions in a client module named `routes`. The library imports this module automatically on both the client and server. If the app already uses another module, set the dependency's `routes_module` configuration to its dotted name, such as `utils.routes`.
+
+```python
+# Client module: routes
+from routing.router import Route
+
+class HomeRoute(Route):
+    path = "/"
+    form = "Pages.Home"
+
+class NewArticleRoute(Route):
+    path = "/articles/new"
+    form = "Pages.NewArticle"
+
+class ArticleRoute(Route):
+    path = "/articles/:id"
+    form = "Pages.Article"
+```
+
+Each subclass with a `path` registers automatically. Routes match in definition order, so put `/articles/new` before `/articles/:id`. Form names are dotted paths within the consuming app. `Route.create(path="/about", form="Pages.About")` is an alternative to defining a subclass.
+
+Call `launch()` from the app's selected startup module. It opens the route matching the current URL, not necessarily `/`.
+
+```python
+# Client module selected as the app's startup module
+from routing import router
+
+if __name__ == "__main__":
+    router.launch()
+```
+
+On a direct URL request, the server matches the route and runs `before_load`, `meta` and `load_data`. The client then runs `before_load` and `meta` again and opens the form using the initial data. Subsequent navigation runs on the client. Keep route modules safe to import and route methods safe to execute in both environments. Do not import forms or manipulate UI at module scope in `routes`.
+
+## Receive the routing context in forms
+
+The router passes `routing_context` as a keyword argument to the form. Consume it before calling `super().__init__(**properties)`. Keep the form's existing designer-generated template import and class name; for a form at `Pages.Article`, the pattern is:
+
+```python
+from ._anvil_designer import ArticleTemplate
+from routing.router import RoutingContext
+
+class Article(ArticleTemplate):
+    def __init__(self, routing_context: RoutingContext, **properties):
+        self.routing_context = routing_context
+        super().__init__(**properties)
+```
+
+The default route calls `anvil.open_form` with the page form. Create page forms using the app's intended layout. For an existing app with a template and `content_panel`, use the container route instead:
+
+```python
+from routing.router import TemplateWithContainerRoute
+
+class HomeRoute(TemplateWithContainerRoute):
+    path = "/"
+    form = "Pages.Home"
+    template = "MainTemplate"
+    template_container = "content_panel"
+    template_container_properties = {"full_width_row": True}
+```
+
+This opens the template if necessary, clears its container and adds the page form. `template_container` defaults to `"content_panel"`; container properties default to `{}`.
+
+## Navigate and create links
+
+```python
+from routing import router
+
+router.navigate(path="/articles/:id", params={"id": 123})
+router.navigate("/articles/123?tab=details")
+router.navigate(query={"tab": "details"}, replace=True)
+router.navigate(query=lambda previous: {**previous, "page": 2})
+router.navigate(hash="comments")
+```
+
+`navigate` accepts `path`, `params`, `query`, `hash`, `replace`, `nav_context` and `form_properties` as keyword arguments. Its optional first argument is a path, URL or `RoutingContext`; do not also supply `path` when using that argument.
+
+- Omit `path` to keep the current path. Relative paths such as `./` are supported.
+- Pass `query` as a decoded Python dictionary or a function returning a new dictionary. A supplied dictionary replaces the query; use a function to preserve existing entries.
+- `replace=True` replaces the current history entry. The default adds an entry.
+- Navigating to the unchanged path, query and hash does nothing. Use `reload()` or context `refetch()` when you need to reload.
+- `nav_context` passes a dictionary to route methods and the form's context. `form_properties` passes keyword arguments to the form constructor. Neither is available on a fresh direct URL visit; load required data from the URL when those values are absent.
+
+Prefer navigation components for clickable destinations so browser link previews and Ctrl/Cmd-click work:
+
+```python
+from routing.router.NavLink import NavLink
+from routing.router.Anchor import Anchor
+
+article_link = NavLink(
+    text="Article 123",
+    path="/articles/:id",
+    params={"id": 123},
+)
+about_link = Anchor(text="About", path="/about")
+```
+
+Add these components to the app's appropriate container, or configure their properties in the designer. Both support `path`, `params`, `query`, `hash`, `nav_context` and `form_properties`. `NavLink.active` is managed by the router; its visual treatment depends on the theme. A parent path stays active on descendant paths unless `exact_path=True`. `/` only matches `/`. `exact_hash=True` also requires the hash to match. In this version, `exact_query=True` requires the link's query entries to match but allows extra current query entries; `False` ignores query values for active state.
+
+Other client helpers:
+
+- `router.back()`, `router.forward()` and `router.go(n)` move relative to the current history entry.
+- `router.get_url()` gets the current URL. Supply `path`, `params`, `query` and `hash` to construct one; `full=True` includes the origin.
+- `router.get_routing_context()` returns the current context.
+- `router.reload()` invalidates the current path's cache and reloads on the client. `router.reload(hard=True)` reloads from the server.
+- `router.open_form("Pages.About", **properties)` navigates to a registered form by name. It requires a string form name and a route without path parameters.
+
+## Route links in HTML markup
+
+Use ordinary anchors with concrete app URLs, then register their container. Mark only links intended for client routing with `data-route`:
+
+```html
+<nav anvil-name="nav">
+  <a data-route href="/">Home</a>
+  <a data-route href="/articles" data-exact-path>Articles</a>
+  <a data-route href="/articles/123?tab=details&amp;page=1">Article 123</a>
+  <a href="https://example.com/">External site</a>
+  <a href="/articles/123" target="_blank">Open in new tab</a>
+</nav>
+```
+
+`anvil-name="nav"` makes the container available as `self.dom_nodes["nav"]`. In the form or custom component containing that HTML, register once after `super().__init__(**properties)`, before it is added to the page:
+
+```python
+from ._anvil_designer import MainLayoutTemplate
+from routing import router
+
+class MainLayout(MainLayoutTemplate):
+    def __init__(self, **properties):
+        super().__init__(**properties)
+        router.register_links(
+            self.dom_nodes["nav"],
+            selector="a[data-route]",
+            active_class="active",
+            component=self,
+        )
+```
+
+Keep the existing template import and class name for your component. Define `.active` styling in the app's CSS if you want the current link highlighted. No per-link Python click handler is needed. Without registration, these remain normal browser links and cause a full page request.
+
+Use `/articles/123`, not the route pattern `/articles/:id`, in `href`. Encode query strings as URLs and escape `&` as `&amp;` in HTML. Registered anchors derive their destination from `href`; they do not carry Python `nav_context` or `form_properties`.
+
+Only add `data-route` to app navigation links. Leave external URLs, protocol-relative URLs (`//...`), downloads and links with `target` unregistered. The click handler does not check origin, `target` or `download`. It preserves Ctrl/Cmd/Shift-click, but an ordinary click on a registered `target="_blank"` link would still be intercepted.
+
+The default selector is `a[href^='/']`; it does not include relative, fragment-only or absolute same-origin URLs, and it also matches `//...`. The explicit `data-route` selector above gives you control over which anchors participate.
+
+`component=self` sets up active-state tracking on page addition and cleans it up on removal. Registration scans the DOM once; it does not observe links inserted later. For dynamically replaced markup, register after rendering without `component`, keep the returned cleanup function, and call it before re-registering the new DOM and when removing the component. Cleanup stops active-state tracking and clears styling, but currently leaves the routing click handlers on the anchor nodes. Remove the old nodes when replacing markup; cleanup alone does not restore native link behaviour.
+
+Per-link attributes are presence-based: `data-exact-path` requires the current path to match, `data-exact-query` checks the link's query entries while allowing extra current entries, `data-exact-hash` checks the fragment, and `data-no-active` disables highlighting while retaining routing. Omit an attribute to disable it; `data-exact-path="false"` still enables exact path matching.
+
+## Parse URL state
+
+Path parameters start as strings. Convert them in `parse_params` only when the app needs another type. Query values are URL-decoded and JSON-decoded before `parse_query`: numbers, booleans, lists and dictionaries can already be Python values. Validate unknown or invalid values and return a dictionary.
+
+```python
+from routing.router import Route
+
+class ArticlesRoute(Route):
+    path = "/articles"
+    form = "Pages.Articles"
+
+    def parse_query(self, query):
+        tab = query.get("tab", "recent")
+        return {"tab": tab if tab in ("recent", "popular") else "recent"}
+```
+
+Use URL state for bookmarkable state. `params`, `query` and `hash` are available on `routing_context`. A changed query creates a different cache key by default, so it can create another form instance. To reuse a form across query changes, set `cache_form=True`, exclude those query values from `cache_deps` and handle `query_changed` on the context.
+
+## Load data
+
+Override `load_data(self, **loader_args)` and return the data the page needs. The result becomes `routing_context.data`. Use a server callable for data access, with the app's authentication and authorisation checks inside that callable.
+
+```python
+import anvil.server
+from routing.router import Route, NotFound
+
+class ArticleRoute(Route):
+    path = "/articles/:id"
+    form = "Pages.Article"
+    not_found_form = "Pages.ArticleNotFound"
+
+    def load_data(self, **loader_args):
+        article = anvil.server.call("get_article", loader_args["params"]["id"])
+        if article is None:
+            raise NotFound("Article not found")
+        return article
+```
+
+`get_article` above is an app-defined server callable. It must return data suitable for sending to the client. In the page constructor, you can set `properties["item"] = routing_context.data` before `super().__init__(**properties)` to use Anvil data bindings.
+
+`before_load`, `meta` and `load_data` receive these keyword arguments: `path`, `params`, `query`, `deps`, `location`, `nav_context` and `form_properties`. Use `params`, not `path_params`. Read the fragment from `location.hash`; these methods do not receive a separate `hash` keyword. Client data loads also receive `silent`, so use `**loader_args` to accept additional arguments.
+
+As a shortcut, set `server_fn="get_article_data"` instead of overriding `load_data`. That server callable receives the loader keyword arguments, unlike the positional `get_article` example above. `server_silent=True` uses `anvil.server.call_s`; the default is `False`.
+
+For a loading page, set `pending_form="Pages.Loading"`. The client waits `pending_delay` seconds before showing it and shows it for at least `pending_min` seconds. Defaults are `1` and `0.5` respectively.
+
+## Cache and refresh
+
+Use `cache_data=False` (the default) to load data when needed without retaining it for later navigation. Initial data sent by the server is still used once. Set `cache_data=True` to reuse loaded data until it is invalidated or garbage-collected. `NO_CACHE` and `CACHE_FIRST` are aliases for `False` and `True` respectively.
+
+`gc_time`, default `1800` seconds, controls when navigation can remove old data and a form sharing its cache key. `stale_time` does not expire data cached with `cache_data=True`; explicitly invalidate or refetch when it changes.
+
+Cache keys combine the concrete URL path, such as `/articles/123`, and `cache_deps(self, **loader_args)`, which defaults to the parsed query dictionary. Override `cache_deps` to return a JSON-serialisable dictionary containing the query values that affect the data or form. Return `{}` to key only by path.
+
+`cache_form=True` reuses the form instance and updates its existing context. Reusing a cached form skips `load_data`, even if the data policy would otherwise refresh. Leave form caching off when navigation must trigger data refreshes, or explicitly refetch the current context.
+
+- `router.clear_cache()` removes all cached forms and data.
+- `router.invalidate(path="/articles")` invalidates that path and descendants, including `/articles/123`. Supply `deps={"page": 1}` to filter by dependency entries. `exact=True` requires both the path and entire dependency dictionary to match.
+- Invalidation removes forms. It removes data too, except `STALE_WHILE_REVALIDATE` data, which it keeps and marks stale. It does not itself navigate or refresh the displayed form.
+- `routing_context.invalidate(exact=True)` invalidates that context's cache key.
+- `routing_context.refetch(silent=True)` invalidates its key and starts a data load if it is the current context, returning an asynchronous result. An inactive context is only invalidated. For `server_fn`, `silent=True` uses `call_s`, `False` uses `call`, and `None` uses the route default.
+- `router.use_data(path="/articles/:id", params={"id": 123})` returns cached data or waits for a load. It raises on loading errors. Existing cached data is returned directly without checking freshness.
+- `router.ensure_data(path="/articles/:id", params={"id": 123}, data=article)` seeds the route's cache and returns `article`. `data` is required; `stale=True` marks the entry stale. A `NO_CACHE` route returns the data without storing it.
+
+## React to context changes
+
+Context properties include `path`, `params`, `query`, `hash`, `deps`, `nav_context`, `form_properties`, `data`, `error` and `revalidating`. Register handlers before calling `raise_init_events()` so cached or initial data is displayed without waiting for another load:
+
+```python
+from ._anvil_designer import ArticleTemplate
+from routing.router import RoutingContext
+
+class Article(ArticleTemplate):
+    def __init__(self, routing_context: RoutingContext, **properties):
+        self.routing_context = routing_context
+        super().__init__(**properties)
+        routing_context.add_event_handler("data_loaded", self.data_loaded)
+        routing_context.add_event_handler("data_error", self.data_error)
+        routing_context.raise_init_events()
+
+    def data_loaded(self, **event_args):
+        self.item = self.routing_context.data
+        self.refresh_data_bindings()
+
+    def data_error(self, **event_args):
+        # Replace this with the app's error display if appropriate.
+        raise self.routing_context.error
+```
+
+Events are `data_loaded`, `data_error`, `data_loading`, `query_changed` and `hash_changed`. Handlers should accept `**event_args`. `raise_init_events()` emits current data, query and hash state, plus `data_error` if an error exists and `data_loading` if revalidating. `data_loaded` also fires during initialisation even when there is an error; handle errors separately.
+
+For app-wide events, use `router.add_event_handler("navigate", handler)` and the matching `remove_event_handler`. Other router events are `pending` and `idle`. The event name is `navigate`, not `navigation`.
+
+## Redirect and handle errors
+
+Raise `Redirect(path="/login")` from `before_load` to redirect. Returning a dictionary merges it into `nav_context`. Before-load logic runs even when a cached form is reused, and can run on both server and client during a direct visit.
+
+```python
+import anvil.users
+from routing.router import Route, Redirect
+
+class AuthenticatedRoute(Route):
+    def before_load(self, **loader_args):
+        user = anvil.users.get_user()
+        if user is None:
+            raise Redirect(path="/login")
+        return {"user": user}
+
+class AccountRoute(AuthenticatedRoute):
+    path = "/account"
+    form = "Pages.Account"
+```
+
+Define the `/login` destination separately. Client redirects do not enforce access control; server callables must check access before returning protected data.
+
+For composable hooks, decorate methods with `@hooks.before_load`, importing `hooks` from `routing.router`. Hooks run base classes first in reverse MRO order. Within one class, this version runs them in reverse definition order, so put dependent steps in one hook. Hooks can mutate `nav_context` or return a dictionary to merge. Attach global hooks to `Route` before defining subclasses. Overriding `before_load` bypasses decorated hooks unless the override calls `super().before_load(**loader_args)`.
+
+Set `error_form="Pages.Error"` to handle navigation errors, and `not_found_form="Pages.NotFound"` to handle `NotFound` raised from `before_load` or `load_data`. Those forms receive a context containing `error`. Without a matching error form, the exception is raised. For unmatched URLs, define a route without a path:
+
+```python
+from routing.router import Route
+
+class NotFoundRoute(Route):
+    default_not_found = True
+    form = "Pages.NotFound"
+```
+
+## Block navigation and show dialogues
+
+`routing_context.register_blocker(callback)` registers a callback returning `True` to prevent leaving. Unregister it with `routing_context.unregister_blocker(callback)`, for example after saving. The browser also warns on leaving the app while a blocker is registered.
+
+`router.alert(content, dismissible=True)` closes on navigation by default. `router.confirm(content, dismissible=False)` blocks navigation by default. Setting `dismissible=False` blocks navigation while either dialogue is open; `True` allows navigation and closes the dialogue.
+
+Use `with router.NavigationBlocker(warn_before_unload=True):` around work during which navigation must be blocked. `warn_before_unload` defaults to `False`; `True` requests the browser warning when leaving the app.
+
+## Page metadata and dependency configuration
+
+Override `meta(self, **loader_args)` to return a dictionary such as `{"title": "Article", "description": "Article details", "og:image": "asset:cover.png"}`. It runs before data loading, so do not depend on loaded data. `asset:` refers to a theme asset; `anvil.server.get_app_origin()` is available for constructing absolute URLs.
+
+The server passes metadata to Anvil's `AppResponder`; the client updates the title and named meta tags. Client `og:title` and `og:description` fall back to supplied `title` and `description`. Omitted tags can restore earlier route metadata in this version; explicitly set values that must be consistent. Client-visible tags do not guarantee the same tags appear in the initial HTML used for social previews.
+
+Dependency configuration defaults:
+
+- `routes_module="routes"`: Module to import for route definitions.
+- `debug_logging=False`: Enable routing logs on client and server. `router.debug_logging(True)` also enables logging.
+- `raise_on_data_error=True`: Report loader failures through Anvil's exception handler. `False` still sets context errors and emits `data_error`; it does not bypass navigation error forms or unhandled navigation exceptions.
+- `sitemap=False`, `robots=False`: Enable the generated `/sitemap.txt` and `/robots.txt` endpoints when set to `True`.
+
+The generated sitemap includes static routes with `sitemap=True`, the route default. Set `sitemap=False` to exclude a route. Routes with path parameters are omitted because the router cannot enumerate their concrete URLs. The root URL appears only when a `/` route is defined and included.

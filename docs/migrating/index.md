@@ -6,7 +6,7 @@ weight: 9
 
 ## From an app that navigates with `anvil.open_form`
 
-Define your routes. If you are not using `params` in any routes, you should be able to replace all calls to `anvil.open_form` with `router.open_form`. To begin with, make sure to set `cached_forms` to `False`. As you decide certain routes should have `params`, you will need to replace `router.open_form` with `router.navigate`. The keyword arguments to `open_form` will be a dictionary you pass to the `form_properties` argument of `navigate`.
+Define your routes. If you are not using `params` in any routes, you should be able to replace all calls to `anvil.open_form` with `router.open_form`. To begin with, make sure to set `cache_form` to `False`. As you decide certain routes should have `params`, you will need to replace `router.open_form` with `router.navigate`. The keyword arguments to `open_form` will be a dictionary you pass to the `form_properties` argument of `navigate`.
 
 A common pitfall will be that a Form could previously rely on the `item` property always being passed to the form. However, this will not be the case if a user navigates directly to the form. In this case, the `item` property will be `None`, and you will have to fetch the item based on the `routing_context`.
 
@@ -51,7 +51,7 @@ class IndexRoute(BaseRoute):
     template_container_properties = {"full_width_row": True}
 ```
 
-If you are using `full_width_row` on all routes then you can set the `full_width_row` attribute on the `Route` class.
+If you are using `full_width_row` on all routes then you can set `template_container_properties` on the shared base route.
 
 ```python
 from routing.router import TemplateWithContainerRoute as BaseRoute
@@ -73,9 +73,9 @@ from routing import router
 
 class Main(MainTemplate):
     def __init__(self, **properties):
+        super().__init__(**properties)
         self.nav_home.path = '/home'
         self.nav_settings.path = '/settings'
-        self.init_components(**properties)
 
 ```
 
@@ -91,7 +91,7 @@ NavLinks provide several advantages:
 
 In hash routing the `on_navigation` method is called on the Template form when the hash changes. This is often used to update the active nav link in the sidebar. If you are using `Link` components in your sidebar, we recommend replacing these with `NavLink` components (see previous section).
 
-If you want to keep your existing `on_navigation` method, you can achieve this through the `router`'s event system. The `router` will emit a `navigation` event when the url changes.
+If you want to keep your existing `on_navigation` method, you can achieve this through the `router`'s event system. The `router` will emit a `navigate` event when the url changes.
 
 ```python
 
@@ -101,8 +101,8 @@ from routing import router
 
 class Main(MainTemplate):
     def __init__(self, **properties):
+        super().__init__(**properties)
         self.links = {"/": self.home_nav, "/about": self.about_nav}
-        self.init_components(**properties)
 
     def on_navigate(self, **event_args):
         context = router.get_routing_context()
@@ -127,7 +127,7 @@ class Main(MainTemplate):
 
 ```
 
-If you have multiple Templates, we recommend subscribing to the `navigation` event in the `form_show` method of your template form, and unsubscribing in the `form_hide` method. If you only have a single template, you can subscribe to the `navigation` event in the `__init__` method of your template form and there is no need to unsubscribe.
+If you have multiple Templates, we recommend subscribing to the `navigate` event in the `form_show` method of your template form, and unsubscribing in the `form_hide` method. If you only have a single template, you can subscribe to the `navigate` event in the `__init__` method of your template form and there is no need to unsubscribe.
 
 ### Using multiple templates, redirects, and other advanced usage
 

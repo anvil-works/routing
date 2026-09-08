@@ -23,7 +23,7 @@ from routing.router import navigate, RoutingContext
 
 class Dashboard(DashboardTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self.routing_context = routing_context
         routing_context.add_event_handler("query_changed", self.on_query_change)
         routing_context.raise_init_events() # raises the query_changed event
@@ -58,7 +58,7 @@ When the query parameters change, we can listen for the `query_changed` event an
 
 ## Parsing Query Parameters
 
-Since query parameters are encoded in the URL, we may need to decode them.
+The router URL-decodes query parameters and attempts JSON decoding before calling `parse_query`. Use `parse_query` to validate and normalise those Python values.
 It's also generally a good idea to ignore unknown query parameters and provide sensible defaults if any are missing or incorrect. This provides a better user experience.
 
 ```python
@@ -102,7 +102,7 @@ e.g. `?foo=bar&baz=1&eggs=true` will be decoded as `{"foo": "bar", "baz": 1, "eg
 
 For nested, JSON-able objects, i.e. `lists` and `dicts`, the routing library will encode the object as a JSON string in the query string.
 
-e.g. `foo=%5B1%2C+%22a%22%2C+true%5D'` will be decoded as `{"foo": [1, "a", true]}`.
+e.g. `?foo=%5B1%2C%22a%22%2Ctrue%5D` will be decoded as `{"foo": [1, "a", True]}`.
 
 !!! note
 
@@ -129,7 +129,7 @@ class DashboardRoute(Route):
     def cache_deps(self, **loader_args):
         # this form is cached uniquely by the `path` only - there are no `query` dependencies
         # i.e. if the `tab` changes, we keep the same instance of the form
-        return None
+        return {}
 ```
 
-For more details on `cache_deps`, see the data loading section.
+For more details on `cache_deps`, see [Caching](../caching/index.md#caching-keys).

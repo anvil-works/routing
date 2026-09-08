@@ -4,7 +4,7 @@ weight: -9
 
 # Navigation
 
-There are two ways to navigate. The first is with the `navigate` function, and the second is with a [navigation component](/navigating/navigation-components).
+There are two ways to navigate. The first is with the `navigate` function, and the second is with a [navigation component](navigation-components.md).
 
 ## Navigating with `navigate`
 
@@ -72,7 +72,7 @@ from routing import router
 
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def button_click(self, **event_args):
         router.navigate(
@@ -96,7 +96,7 @@ class ArticleForm(ArticleFormTemplate):
             article_id = routing_context.params["id"]
             properties["item"] = anvil.server.call("get_article", article_id)
 
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 ### Use of `nav_context`
@@ -119,7 +119,7 @@ from routing import router
 class FooForm(FooFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def cancel_button_click(self, **event_args):
         prev_context = self.routing_context.nav_context.get("prev_context")
@@ -188,7 +188,7 @@ This order ensures base classes can set up context (like authentication) that de
 
 ### Global Hooks
 
-You can attach a hook to the `Route` base class to apply it to all routes:
+Attach a hook to the `Route` base class before defining route subclasses. Hooks are collected when each subclass is created:
 
 ```python
 @hooks.before_load
@@ -209,18 +209,15 @@ Route.global_hook = global_hook
 
 **Example:**
 ```python
-from routing.router import Route, hooks, Redirect, Redirect
+from routing.router import Route, hooks, Redirect
 
 class AuthenticatedRoute(Route):
     @hooks.before_load
-    def set_user(self, nav_context, **loader_args):
-        nav_context["user"] = get_current_user()
-
-    @hooks.before_load
-    def check_permissions(self, nav_context, **loader_args):
-        user = nav_context.get("user")
+    def require_user(self, nav_context, **loader_args):
+        user = get_current_user()  # Application-defined helper
         if not user or not user.has_permission():
             raise Redirect(path="/login")
+        return {"user": user}
 
 class FeatureRoute(AuthenticatedRoute):
     @hooks.before_load
@@ -228,4 +225,4 @@ class FeatureRoute(AuthenticatedRoute):
         nav_context["feature_enabled"] = True
 ```
 
-Hooks are called in order, and each can build on the output of previous hooks via `nav_context`.
+Hooks in different classes run in reverse MRO order. Within one class, the current implementation runs hooks in reverse definition order. Keep dependent steps in a single hook, as in `require_user` above. Overriding `before_load` bypasses decorated hooks unless the override calls `super().before_load(**loader_args)`.

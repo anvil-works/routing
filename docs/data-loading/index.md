@@ -2,11 +2,11 @@
 
 The `load_data` method allows data to be sent from the server during the initial page request, rather than loading data during form instantiation.
 
-Most apps will not need to use the `load_data` method and will load data during the form's instantiation or pass data through form properties. Many of the advantages of data loading can be achieved by using [cached forms](/caching#form-caching).
+Most apps will not need to use the `load_data` method and will load data during the form's instantiation or pass data through form properties. Many of the advantages of data loading can be achieved by using [cached forms](../caching/index.md#form-caching).
 
 ## Limitations
 
-* Since the routing library takes advantage of client-side routing after the initial page request, the advantages of data loading are limited to the first page request.
+* Sending data with the initial app response helps only on a direct page request. Loaders also run during client navigation, where they support caching, pending forms and data refreshes.
 * Data caching is determined by the `path` and the dictionary returned by the `cache_deps` method. If your App needs to share data between routes, you may find that data caching is not sufficient and results in duplicate data being loaded. You can mitigate duplicate data by using `form_properties` or `nav_context` for simple data sharing.
 
 ## Example
@@ -34,7 +34,7 @@ class ArticleForm(ArticleFormTemplate):
             # The user navigated directly to the form by changing the URL
             properties["item"] = anvil.server.call("get_article", routing_context.params["id"])
 
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
 In the above example, if a user goes directly to the URL `/articles/123`, the initial page request will send the user to the `ArticleForm`, but there will be no data. The App will then need to make a server call to get the data.
@@ -44,7 +44,7 @@ Note that during normal navigation, i.e. when the user clicks a link, we can tak
 ```python
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def on_button_click(self, **event_args):
         router.navigate(
@@ -58,6 +58,7 @@ class RowTemplate(RowTemplateTemplate):
 
 ```python
 # routes.py
+import anvil.server
 from routing.router import Route
 
 class ArticleRoute(Route):
@@ -67,7 +68,7 @@ class ArticleRoute(Route):
     def load_data(self, **loader_args):
         row = loader_args["nav_context"].get("row")
         if row is None:
-            id = loader_args["path_params"]["id"]
+            id = loader_args["params"]["id"]
             row = anvil.server.call("get_row", id)
         return row
 ```
@@ -79,15 +80,15 @@ class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
         properties["item"] = routing_context.data
-        self.init_components(**properties)
+        super().__init__(**properties)
 ```
 
-In the above example, the `load_data` is called whenever the user navigates. If a user navigates directly to the URL `/articles/123`, the initial page request will come in, the load_data method will be called (on the server), and the user will be directed to the `ArticleForm` with the data already loaded. During normal navigation, i.e. when the user clicks a link, we can take advantage of the `nav_context` (or `form_properties`) attribute to ensure we do not make unnecessary server calls during client-side navigation.
+In the above example, `load_data` runs when navigation needs data, unless a cached form or the data caching policy supplies it. If a user navigates directly to the URL `/articles/123`, the initial page request will come in, the load_data method will be called (on the server), and the user will be directed to the `ArticleForm` with the data already loaded. During normal navigation, i.e. when the user clicks a link, we can take advantage of the `nav_context` (or `form_properties`) attribute to ensure we do not make unnecessary server calls during client-side navigation.
 
 ```python
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def on_button_click(self, **event_args):
         router.navigate(
@@ -99,7 +100,7 @@ class RowTemplate(RowTemplateTemplate):
 
 ## Invalidating Data
 
-See [Invalidating Cache](/caching#invalidating-cache).
+See [Invalidating Cache](../caching/index.md#invalidating-cache).
 
 ## Pending Form
 
@@ -118,15 +119,15 @@ class ArticleRoute(Route):
     pending_min = 0.5 # default is 0.5
 ```
 
-A common implementation will be to create a pending form with the same layout as the form. Where the content would be, place an `Anvil.Spacer` component. Inside the `show` and `hide` event handlers, call the `anvil.server.loading_indicator.start` and `anvil.server.loading_indicator.stop` functions.
+A common implementation will be to create a pending form with the same layout as the form. Where the content would be, place an `anvil.Spacer` component. Inside the `show` and `hide` event handlers, call `start()` and `stop()` on the loading indicator instance.
 
 ```python
 from anvil.server import loading_indicator
 
 class LoadingForm(LoadingFormTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
-        self.loading_indicator = anvil.server.loading_indicator(self.spacer_1)
+        super().__init__(**properties)
+        self.loading_indicator = loading_indicator(self.spacer_1)
 
     def show(self, **event_args):
         self.loading_indicator.start()

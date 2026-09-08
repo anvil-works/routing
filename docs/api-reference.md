@@ -5,7 +5,7 @@ weight: -9.7
 # API Reference
 
 The routing library provides the following functions, classes, and attributes.
-All attributes can be accessed from the `routing.router` module.
+Import functions and classes from `routing.router`, or use `from routing import router`. Component classes have their own modules, as shown below.
 
 ## Router Configuration
 
@@ -23,7 +23,7 @@ When adding the routing library as a dependency, in the Anvil IDE, click the "ed
 : If `True`, enables verbose routing logs in both client and server app logs. Defaults to `False`.
 
 `raise_on_data_error`
-: If `True`, route data loading failures are raised. If `False`, they are exposed on `routing_context.error` and via the `data_error` event for page-level handling. Defaults to `True`.
+: Controls whether the data loader reports failures through Anvil's exception handler. Failures also set `routing_context.error` and emit `data_error`. Setting this to `False` does not suppress navigation error handling: a failed initial load still opens the route's `error_form` or raises if none is defined. Defaults to `True`.
 
 `routes_module`
 : The module where your routes are defined (e.g. `utils.routes`). Defaults to `routes`.
@@ -34,19 +34,7 @@ The router **automatically imports** your routes module. By default, it looks fo
 
 If your routes are defined in a different module (e.g. `utils.routes`), set this option to the correct module name.
 
-!!! note
-
-    You only need to manually import your routes module if your routes module is **not** named `routes` **and** you have **not** set the `routes_module` config option.
-
-If that's the case, add explicit imports:
-
-```python
-# In a startup module, e.g. startup.py
-from . import my_custom_routes
-
-# In a server module, e.g. ServerRoutes.py
-from . import my_custom_routes
-```
+Setting `routes_module` is the simplest way to support discovery on both the client and server. Keep that module safe to import in both environments.
 
 ## Functions
 
@@ -57,10 +45,10 @@ from . import my_custom_routes
 : Navigates to a new page.
 
 `launch()`
-: Launches the routing library and navigates to the first route. Call this in your startup module.
+: Launches the routing library and navigates to the route matching the current URL. Call this in your startup module.
 
 `go(n=0)`
-: Navigates to the nth page in the history stack.
+: Moves by `n` entries relative to the current history position. Negative values go back; positive values go forward.
 
 `back()`
 : Navigates back in the history stack.
@@ -90,9 +78,9 @@ from . import my_custom_routes
 Can be useful for routes that share data. Or layouts that need access to the data for the current route.
 
 `ensure_data(context_or_path_or_url=None, *, path=None, params=None, query=None, hash=None, data=..., stale=False)`
-: Inserts `data` into the route cache for the specified url/context using that route's cache policy, then returns the same data. `data` is required. If `stale=True`, the cached entry is marked stale so stale-while-revalidate routes can return the cached data immediately and refresh it in the background.
+: Inserts `data` into the route cache for the specified url/context using that route's cache policy, then returns the same data. Routes with `cache_data=NO_CACHE` return the data without caching it. `data` is required. If `stale=True`, the cached entry is marked stale so stale-while-revalidate routes can return the cached data immediately and refresh it in the background.
 
-When route data is loaded, loader args such as `path`, `params`, `query`, `hash`, `deps`, and `location` are passed through to `load_data(...)`. `RoutingContext.refetch(silent=...)` also passes `silent` through as a loader arg, so custom loaders can decide whether to use silent/background fetches or visible loading indicators.
+The loader arguments passed to `before_load`, `meta` and `load_data` are `path`, `params`, `query`, `deps`, `location`, `nav_context` and `form_properties`. Read the URL fragment from `location.hash`; `hash` is not a separate argument to these methods. Client data loads also receive `silent`. `RoutingContext.refetch(silent=...)` also passes `silent` through as a loader arg, so custom loaders can decide whether to use silent/background fetches or visible loading indicators.
 
 `get_url()`
 `get_url(*, path=None, params=None, query=None, hash=None, full=False)`
@@ -115,21 +103,23 @@ When route data is loaded, loader args such as `path`, `params`, `query`, `hash`
 `alert(content, *args, dismissible=True, **kwargs)`
 : Shows an alert. If `dismissible` is `True`, the alert will be dismissed when the user navigates to a new page. To override Anvil's default alert, you can set the `anvil.alert = router.alert`.
 
-`confirm(content, *args, dismissible=True, **kwargs)`
-: Shows a confirmation dialog. If `dismissible` is `True`, the dialog will be dismissed when the user navigates to a new page. To override Anvil's default alert, you can set the `anvil.alert = router.alert`.
+`confirm(content, *args, dismissible=False, **kwargs)`
+: Shows a confirmation dialogue. The default `dismissible=False` blocks navigation while it is open. With `dismissible=True`, navigation closes the dialogue. To override Anvil's default confirmation dialogue, set `anvil.confirm = router.confirm`.
 
 `register_links(*dom_nodes, selector="a[href^='/']", active_class="active", active_callback=None, component=None)`
 : Registers existing DOM links for client-side routing with active state tracking. Automatically detects if elements are `<a>` tags (registers directly) or containers (searches within using the selector). Use `component` to tie to a component's lifecycle (auto setup on page added, cleanup on page removed), or manually call the returned cleanup function. Useful for converting static HTML links to use the router without needing NavLink components.
 
     Each link can specify exact matching behavior using data attributes (presence-based):
     - `data-exact-path`: Path must match exactly
-    - `data-exact-query`: Query parameters must match exactly
+    - `data-exact-query`: The link's query entries must match; extra current entries are allowed
     - `data-exact-hash`: Hash must match exactly
 
     These attributes are read from each link element individually, allowing different links to have different exact matching behavior.
 
     To skip active state tracking for a link (e.g., home page), use `data-no-active`:
     - `data-no-active`: Link will navigate but won't receive active state updates
+
+See [HTML link usage](navigating/navigation-components.md#usage) for a complete markup and Python example. Registration scans once and does not discover later DOM additions. Cleanup stops active-state tracking but leaves routing click handlers attached. Exclude external, download and target links from registration; the click handler does not check those attributes.
 
 `hooks.before_load(func)`
 : Decorator to register a method as a before_load hook for a Route. Hooks are collected from all base classes and **executed in reverse MRO order** (base classes first, derived classes last). Each hook receives a `nav_context` keyword argument (the context dict accumulated so far), which can be read and updated for composable navigation logic.
@@ -138,27 +128,15 @@ When route data is loaded, loader args such as `path`, `params`, `query`, `hash`
 from routing.router import Route, hooks, Redirect
 
 class AuthenticatedRoute(Route):
-    # Style 1: Mutate nav_context directly
     @hooks.before_load
-    def set_user(self, nav_context, **loader_args):
-        nav_context["user"] = get_current_user()
-
-    # Style 2: Return a partial dict to be merged into nav_context
-    @hooks.before_load
-    def set_user_partial(self, nav_context, **loader_args):
-        return {"user": get_current_user()}
-
-    @hooks.before_load
-    def check_permissions(self, nav_context, **loader_args):
-        user = nav_context.get("user")
+    def require_user(self, nav_context, **loader_args):
+        user = get_current_user()  # Application-defined helper
         if not user or not user.has_permission():
             raise Redirect(path="/login")
-
-# Both styles are supported; the returned dictionary (if any) will be merged into nav_context after the hook runs.
-# Hooks run in reverse MRO order, so base class hooks execute before derived class hooks.
+        return {"user": user}
 ```
 
-You may also attach hooks globally to all routes by assigning to the base class:
+Attach global hooks to the base class before defining route subclasses:
 
 ```python
 @hooks.before_load
@@ -167,7 +145,7 @@ def global_hook(self, nav_context, **loader_args):
 Route.global_hook = global_hook
 ```
 
-See the navigation documentation for advanced composition and usage patterns.
+Within one class, hooks currently run in reverse definition order. Keep dependent steps in a single hook. Overriding `before_load` bypasses these hooks unless the override calls `super().before_load(**loader_args)`. See [Navigation](navigating/index.md#advanced-composing-hooksbefore_loads) for composition examples.
 
 ## Classes
 
@@ -182,15 +160,17 @@ See the navigation documentation for advanced composition and usage patterns.
 
 ## Components
 
-`NavLink.NavLink`
+`routing.router.NavLink.NavLink`
 : A link that you will likely use in your main layout's sidebar. Has an `active` property that is set when the NavLink's navigation properties match the current routing context.
 
-`Anchor.Anchor`
+`routing.router.Anchor.Anchor`
 : A link that you can use inline or as a container for other components.
+
+Import component classes with `from routing.router.NavLink import NavLink` or `from routing.router.Anchor import Anchor`.
 
 ## Context Managers
 
-`NavigationBlocker`
+`NavigationBlocker(warn_before_unload=False)`
 : A context manager that will prevent the user from navigating away during the context.
 
 ## Exceptions

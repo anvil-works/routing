@@ -10,7 +10,7 @@ Clone the following Anvil app: [https://anvil.works/build#clone:34ZTMM7IQRTCMIAD
 
 ## From a New App
 
-Create a new app.
+Create a new app and [add the routing dependency](installation.md).
 
 ### Client Code Structure
 
@@ -28,6 +28,8 @@ The client code structure should look like this:
 ```
 
 ### Startup Module
+
+Create `startup` as a client module and select it as your app's startup module in the Anvil editor.
 
 ```python
 # startup.py
@@ -77,6 +79,6 @@ You should now be able to navigate using the sidebar nav links.
 
 If your routes aren't working, make sure your file structure is correct.
 
-The router **automatically imports** a module named `routes` by default — you do not need to manually import it. Just define your routes in a `routes` module and they will be discovered automatically.
+The router **automatically imports** a module named `routes` by default. You do not need to manually import it. Just define your routes in a `routes` module and they will be discovered automatically.
 
 If you have named the routes module something else, set the `routes_module` config option to the correct module name. See the [API Reference](./api-reference.md#routes_module) for more information.

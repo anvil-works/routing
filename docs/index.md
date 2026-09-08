@@ -15,6 +15,7 @@ The ultimate goal is to open the form associated with the given URL.
 The router will attempt to match routes in the order they are defined.
 
 When a route is found, the router will call the route's `before_load` method.
+
 - If the `before_load` method raises a `Redirect`, the router will navigate to the redirected URL.
 - If the `before_load` method returns a dictionary, its contents will be merged into the navigation context (`nav_context`) for the route.
 
@@ -28,8 +29,10 @@ There are two types of caching: form caching and data caching.
 
 If a form is cached, instead of creating a new instance, the router will call the route's `load_form` method with the cached form instance.
 
-If data is cached, the router will only call the `load_data` method if the data is stale. See the [Caching](/caching) section for more details.
+If data is cached, the route's `cache_data` policy determines whether to reuse it or call `load_data` again. See the [Caching](caching/index.md) section for more details.
 
 ## Server vs Client Routing
 
-Should the user open the app directly through a URL as their initial page request, the routing process will occur entirely on the server. Otherwise, if the user is navigating from within the app, the process occurs on the client.
+On a direct URL request, the server matches the route and runs `before_load`, `meta` and `load_data`. It sends the initial data with the app. The client then launches the router, runs `before_load` and `meta` again, and opens the form using that data. Subsequent navigation runs on the client.
+
+Keep route definitions and loaders safe to run on both the server and client. Create and manipulate forms only on the client.
