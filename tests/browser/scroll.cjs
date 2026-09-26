@@ -34,7 +34,9 @@ async function settled(page) {
       ).$d._displayed;
       return (
         displayed !== Sk.builtin.none.none$ &&
-        Sk.ffi.remapToJs(displayed.v[0]) === (history.state.key || "default")
+        !Sk.ffi.remapToJs(Sk.sysmodules.mp$subscript(
+          new Sk.builtin.str("routing.router._scroll")
+        ).$d._suspended)
       );
     },
     null,
@@ -246,6 +248,33 @@ fixed_link._rn_do_click(None)`
     await page.goBack();
     await page.waitForURL("**/__scroll/a");
     await check(page, 410, "repeated URL entries restore independently");
+
+    await navigate(page, 'path="/__scroll/by-path"');
+    await position(page, 75, 740);
+    await navigate(page, 'path="/__scroll/b"');
+    await py(page, `path_link = Anchor(path="/__scroll/by-path")
+path_link._rn_setup()
+path_link._rn_do_click(None)`);
+    await check(page, 740, "path key restores on link click");
+    assert.equal(await page.evaluate(() => scrollX), 75);
+    await navigate(page, 'query={"tab":2}, hash="section:a"');
+    await check(page, 740, "path key shares query positions and precedes anchors");
+    await position(page, 0, 820);
+    await navigate(page, 'path="/__scroll/b"');
+    await py(page, "path_link._rn_do_click(None)");
+    await check(page, 820, "cached link restores latest path position");
+    await navigate(page, 'path="/__scroll/by-path-preserve"');
+    await position(page, 0, 630);
+    await navigate(page, 'path="/__scroll/b"');
+    await position(page, 0, 310);
+    await navigate(page, 'path="/__scroll/by-path-preserve"');
+    await check(page, 310, "reset false suppresses custom-key restoration");
+    await navigate(page, 'path="/__scroll/by-path-disabled"');
+    await position(page, 0, 630);
+    await navigate(page, 'path="/__scroll/b"');
+    await navigate(page, 'path="/__scroll/by-path-disabled"');
+    await check(page, 0, "custom key still requires restoration opt-in");
+    await navigate(page, 'path="/__scroll/a"');
 
     await position(page, 0, 570);
     await py(

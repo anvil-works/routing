@@ -261,6 +261,27 @@ class SearchRoute(AppRoute):
 `scroll_restoration` defaults to `False`. Enable it to save document coordinates
 for each history entry in session storage. Back/Forward and initial loading
 restore those coordinates before considering anchors or the top of the page.
+New link visits get new history-entry keys, so they normally start at the top.
+
+Override `scroll_restoration_key(location)` to share a saved position between
+visits. For example, remember a position for each path:
+
+```python
+class AppRoute(router.Route):
+    scroll_restoration = True
+
+    def scroll_restoration_key(self, location):
+        return location.path
+```
+
+Clicking B then A now restores A's last saved position, as do Back/Forward and
+reload. Query strings and fragments share that path's position, and a saved
+position takes precedence over anchor scrolling. Return a string including
+`location.search` if query variants should have separate positions. The default
+method returns `location.key`. Overrides can live on a shared base route or an
+individual route; `scroll_restoration` must still be enabled and `reset_scroll`
+must remain `True` for saved positions to be restored.
+
 If storage is unavailable or a saved position is invalid, the router uses normal
 anchor/top behaviour. There is no in-memory fallback.
 

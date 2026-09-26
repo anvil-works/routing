@@ -74,7 +74,7 @@ def setup():
 
 
 class ScrollNavigation:
-    def __init__(self, context, *, restore):
+    def __init__(self, context):
         global _generation, _suspended
         _snapshot()
         _generation += 1
@@ -82,7 +82,7 @@ class ScrollNavigation:
         self.generation = _generation
         self.location = context.location
         self.route = context.route
-        self.restore = restore
+        self.key = self.route.scroll_restoration_key(self.location)
 
     def _current(self):
         return (
@@ -107,8 +107,8 @@ class ScrollNavigation:
 
             try:
                 position = None
-                if reset and self.restore and self.route.scroll_restoration:
-                    position = _read_position(self.location.key)
+                if reset and self.route.scroll_restoration:
+                    position = _read_position(self.key)
                 if position is not None:
                     window.scrollTo(
                         {"left": position[0], "top": position[1], "behavior": "instant"}
@@ -139,7 +139,7 @@ class ScrollNavigation:
                 elif reset:
                     window.scrollTo({"left": 0, "top": 0, "behavior": "instant"})
             finally:
-                _displayed = (self.location.key, form, self.route.scroll_restoration)
+                _displayed = (self.key, form, self.route.scroll_restoration)
                 _suspended = False
 
         window.requestAnimationFrame(apply)

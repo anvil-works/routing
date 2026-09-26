@@ -79,6 +79,23 @@ class Cached(AppRoute):
         return {}
 
 
+class PathRestoration(Cached):
+    path = "/__scroll/by-path"
+
+    def scroll_restoration_key(self, location):
+        return location.path
+
+
+class PathPreserve(PathRestoration):
+    path = "/__scroll/by-path-preserve"
+    reset_scroll = False
+
+
+class PathNoRestore(PathRestoration):
+    path = "/__scroll/by-path-disabled"
+    scroll_restoration = False
+
+
 class Standalone(Cached):
     path = "/__scroll/standalone"
 

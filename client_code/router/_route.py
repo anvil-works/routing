@@ -135,6 +135,10 @@ class Route:
 
         return type(name, (cls,), cls_dict)
 
+    def scroll_restoration_key(self, location):
+        """Return the string key used to save and restore document coordinates."""
+        return location.key
+
     def before_load(self, **loader_args):
         # Use nav_context from loader_args if present, else start with empty dict
         ctx = loader_args.pop("nav_context", {})

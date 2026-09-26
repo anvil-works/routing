@@ -233,7 +233,6 @@ def _do_navigate(context):
 
 def on_navigate():
     location = history.location
-    restore_scroll = not _navigate._take_new_navigation(location.key)
     logger.debug("navigating")
     nav_context = _navigate._current_nav_context
     form_properties = _navigate._current_form_properties
@@ -262,7 +261,7 @@ def on_navigate():
     if not found:
         context.set_data(None, NotFound(f"No match for '{location}'"))
 
-    scroll_navigation = _scroll.ScrollNavigation(context, restore=restore_scroll)
+    scroll_navigation = _scroll.ScrollNavigation(context)
     RoutingContext._current = context
 
     gc()

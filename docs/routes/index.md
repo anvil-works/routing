@@ -61,10 +61,13 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 : The minimum time to show the pending form when the data is loading.
 
 `scroll_restoration=False`
-: Save document coordinates by history entry in session storage and restore them on Back/Forward and initial loading. Opt in on a shared base route or individual routes.
+: Save document coordinates in session storage. By default, restore them on Back/Forward and initial loading. Opt in on a shared base route or individual routes.
+
+`scroll_restoration_key(location)`
+: Return the string key for saved document coordinates. Defaults to `location.key`, which identifies a history entry. Override to return `location.path` to also restore positions on new visits to the same path. Query variants then share a position.
 
 `reset_scroll=True`
-: Reset document scroll on navigation, including query-only changes, or restore saved coordinates on history traversal. Set to `False` to suppress both.
+: Reset document scroll on navigation, including query-only changes, or restore saved coordinates when the restoration key has a stored position. Set to `False` to suppress both.
 
 `hash_scroll_into_view=True`
 : Scroll to a fragment's matching HTML `id`. Independent of `reset_scroll`; set both to `False` to suppress all router scrolling. See [Document scrolling](../navigating/index.md#document-scrolling).
