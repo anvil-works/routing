@@ -106,3 +106,46 @@ def test_navigation_keeps_fixed_destination_cached(anchor, monkeypatch):
 
     assert link.href == "/articles"
     convert.assert_not_called()
+
+
+def test_cached_destination_gets_distinct_history_entries(anchor, monkeypatch):
+    from types import SimpleNamespace
+
+    navigation = sys.modules["_routing_link_tests._navigate"]
+    entries = []
+    intents = []
+
+    def push(location):
+        fake_history.location = location
+        entries.append(location)
+        intents.append(navigation._take_new_navigation(location.key))
+
+    fake_history = SimpleNamespace(
+        location=Location(path="/start"), push=push, replace=push
+    )
+    monkeypatch.setattr(navigation, "history", fake_history)
+    destination = Location(path="/articles", state={"user": "state"})
+    for _ in range(2):
+        navigation.navigate_with_location(destination)
+        navigation.navigate_with_location(Location(path="/other"))
+
+    assert entries[0].key != entries[2].key
+    assert entries[0].state == entries[2].state == {"user": "state"}
+    assert destination.key not in {entry.key for entry in entries}
+    assert intents == [True] * 4
+    assert navigation._take_new_navigation(entries[0].key) is False
+
+
+def test_failed_history_write_does_not_leak_navigation_intent(anchor, monkeypatch):
+    from types import SimpleNamespace
+
+    navigation = sys.modules["_routing_link_tests._navigate"]
+    fake_history = SimpleNamespace(
+        location=Location(path="/start"),
+        push=Mock(side_effect=RuntimeError("write failed")),
+    )
+    monkeypatch.setattr(navigation, "history", fake_history)
+    with pytest.raises(RuntimeError, match="write failed"):
+        navigation.navigate(path="/articles")
+    attempted_location = fake_history.push.call_args.args[0]
+    assert navigation._take_new_navigation(attempted_location.key) is False

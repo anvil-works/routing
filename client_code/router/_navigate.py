@@ -155,12 +155,20 @@ def get_nav_location(context_or_path_or_url, *, path, query, params, hash):
 
 _current_nav_context = {}
 _current_form_properties = {}
+_pending_navigation_key = None
+
+
+def _take_new_navigation(key):
+    global _pending_navigation_key
+    is_new = _pending_navigation_key == key
+    _pending_navigation_key = None
+    return is_new
 
 
 def navigate_with_location(
     location, replace=False, nav_context=None, form_properties=None
 ):
-    global _current_nav_context, _current_form_properties
+    global _current_nav_context, _current_form_properties, _pending_navigation_key
 
     nav_context = ensure_dict(nav_context, "nav_context")
     form_properties = ensure_dict(form_properties, "form_properties")
@@ -177,10 +185,22 @@ def navigate_with_location(
         logger.debug("unchanged navigation location - exiting")
         return
 
-    if replace:
-        history.replace(location)
-    else:
-        history.push(location)
+    # A cached link location is a destination, not a browser history entry.
+    location = Location(
+        path=location.path,
+        search=location.search,
+        hash=location.hash,
+        state=location.state,
+    )
+    _pending_navigation_key = location.key
+    try:
+        if replace:
+            history.replace(location)
+        else:
+            history.push(location)
+    finally:
+        if _pending_navigation_key == location.key:
+            _pending_navigation_key = None
 
 
 def navigate(

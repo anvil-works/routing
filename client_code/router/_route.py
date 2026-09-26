@@ -114,6 +114,9 @@ class Route:
     cache_data = NO_CACHE
     stale_time = 0
     cache_form = False
+    scroll_restoration = False
+    reset_scroll = True
+    hash_scroll_into_view = True
     server_fn = None
     server_silent = False
     gc_time = 30 * 60

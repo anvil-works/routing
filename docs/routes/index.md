@@ -60,6 +60,15 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 `pending_min=0.5`
 : The minimum time to show the pending form when the data is loading.
 
+`scroll_restoration=False`
+: Save document coordinates by history entry in session storage and restore them on Back/Forward and initial loading. Opt in on a shared base route or individual routes.
+
+`reset_scroll=True`
+: Reset document scroll on navigation, including query-only changes, or restore saved coordinates on history traversal. Set to `False` to suppress both.
+
+`hash_scroll_into_view=True`
+: Scroll to a fragment's matching HTML `id`. Independent of `reset_scroll`; set both to `False` to suppress all router scrolling. See [Document scrolling](../navigating/index.md#document-scrolling).
+
 `cache_form=False`
 : Whether to cache the route's form. By default this is `False`.
 
@@ -104,7 +113,7 @@ See the navigation documentation for practical usage examples.
 : Called when the route is matched. The return value will be available in the `data` property of the `RoutingContext` instance. By default this returns `None`.
 
 `load_form`
-: This method is called with two arguments. The first argument is a form name (e.g. `"Pages.Index"`) or, if you are using cached forms, the cached form instance. The second argument is the `RoutingContext` instance. By default this calls `anvil.open_form` on the form.
+: This method is called with two arguments. The first argument is a form name (e.g. `"Pages.Index"`) or, if you are using cached forms, the cached form instance. The second argument is the `RoutingContext` instance. By default this calls `anvil.open_form` on the form and returns the instance. Custom implementations must also return the attached destination form for scroll handling.
 
 `cache_deps`
 : Returns an object, by default the `query` dictionary (more information in the [query section](query.md) and the [RoutingContext section](../routing-context/index.md)). This method is part of the process of creating caching keys.

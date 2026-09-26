@@ -237,3 +237,48 @@ class FeatureRoute(AuthenticatedRoute):
 ```
 
 Hooks in different classes run in reverse MRO order. Within one class, the current implementation runs hooks in reverse definition order. Keep dependent steps in a single hook, as in `require_user` above. Overriding `before_load` bypasses decorated hooks unless the override calls `super().before_load(**loader_args)`.
+
+## Document scrolling
+
+New navigation resets the document to the top by default, including query-only
+changes and replacements. A nonempty fragment instead scrolls to the matching
+HTML `id`, respecting its `scroll-margin-top`. If that element is missing or
+anchor scrolling is disabled, the router does not scroll. Identical URLs remain
+a no-op.
+
+The destination route supplies inherited defaults:
+
+```python
+class AppRoute(router.Route):
+    scroll_restoration = True
+
+
+class SearchRoute(AppRoute):
+    path = "/search"
+    reset_scroll = False
+```
+
+`scroll_restoration` defaults to `False`. Enable it to save document coordinates
+for each history entry in session storage. Back/Forward and initial loading
+restore those coordinates before considering anchors or the top of the page.
+If storage is unavailable or a saved position is invalid, the router uses normal
+anchor/top behaviour. There is no in-memory fallback.
+
+`reset_scroll` defaults to `True`; `False` suppresses top reset and saved-position
+restoration. `hash_scroll_into_view` defaults to `True` and controls anchors
+independently. Set both properties to `False` on a route to suppress all automatic
+scrolling for that route. Calls to `navigate`, redirects and links all use the
+final destination route's properties; there are no per-navigation overrides.
+
+Scrolling happens once, after the final form attaches and a render frame is
+scheduled. Pending forms do not trigger scrolling; rendered error and not-found
+forms do. Blocked or failed navigation without a final form does not trigger
+scrolling. Content added independently after that frame is app-owned: there are
+no delayed-anchor retries.
+
+Only the document scrolls. Independent containers such as a persistent sidebar
+are left alone. The router uses instant scrolling and disables native automatic
+history restoration to avoid competing scroll operations. To handle all scroll
+behaviour yourself, set both `reset_scroll` and `hash_scroll_into_view` to `False`
+on your base route. A custom `load_form` must return its attached destination
+form, as the built-in implementations do.

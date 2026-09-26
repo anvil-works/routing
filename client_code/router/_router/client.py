@@ -8,7 +8,7 @@ from anvil.history import history
 from anvil.js import window
 from anvil.js.window import WeakMap, clearTimeout
 
-from .. import _navigate
+from .. import _navigate, _scroll
 from .._cached import CACHED_FORMS
 from .._context import RoutingContext
 from .._exceptions import NotFound, Redirect
@@ -143,7 +143,7 @@ def _do_navigate(context):
             raise error
 
         with ViewTransition():
-            route.load_form(form, context)
+            return route.load_form(form, context)
 
     try:
         nav_context = route.before_load(**context._loader_args)
@@ -179,10 +179,8 @@ def _do_navigate(context):
         RoutingContext._current = cached_context
         if anvil.get_open_form() is form:
             logger.debug(f"cached form is already open: {form}")
-            return
-        # TODO: update the context probably
-        match.route.load_form(form, cached_context)
-        return
+            return form
+        return match.route.load_form(form, cached_context)
 
     # TODO: how does cached forms work with cache modes for data?
     data_promise = load_data_promise(context)
@@ -227,6 +225,7 @@ def _do_navigate(context):
         form_to_context.set(rv, context)
         if route.cache_form:
             CACHED_FORMS[match.key] = rv
+        return rv
 
     except Exception as e:
         return handle_error("error_form", e)
@@ -234,6 +233,7 @@ def _do_navigate(context):
 
 def on_navigate():
     location = history.location
+    restore_scroll = not _navigate._take_new_navigation(location.key)
     logger.debug("navigating")
     nav_context = _navigate._current_nav_context
     form_properties = _navigate._current_form_properties
@@ -262,6 +262,7 @@ def on_navigate():
     if not found:
         context.set_data(None, NotFound(f"No match for '{location}'"))
 
+    scroll_navigation = _scroll.ScrollNavigation(context, restore=restore_scroll)
     RoutingContext._current = context
 
     gc()
@@ -270,7 +271,14 @@ def on_navigate():
     setTimeout(lambda: navigation_emitter.raise_event("navigate", **kws))
     pending = setTimeout(lambda: navigation_emitter.raise_event("pending", **kws))
     try:
-        _do_navigate(context)
+        form = _do_navigate(context)
+        if form is not None:
+            scroll_navigation.commit(form)
+        else:
+            scroll_navigation.cancel()
+    except Exception:
+        scroll_navigation.cancel()
+        raise
     finally:
         clearTimeout(pending)
         setTimeout(lambda: navigation_emitter.raise_event("idle", **kws))
@@ -311,5 +319,6 @@ def launch():
         CACHED_DATA.update(startup_cache)
         logger.debug(f"startup data: {startup_cache}")
 
+    _scroll.setup()
     history.listen(listener)
     on_navigate()
