@@ -240,66 +240,103 @@ Hooks in different classes run in reverse MRO order. Within one class, the curre
 
 ## Document scrolling
 
-New navigation resets the document to the top by default, including query-only
-changes and replacements. A nonempty fragment instead scrolls to the matching
-HTML `id`, respecting its `scroll-margin-top`. If that element is missing or
-anchor scrolling is disabled, the router does not scroll. Identical URLs remain
-a no-op.
-
-The destination route supplies inherited defaults:
+The destination route supplies inherited scroll settings:
 
 ```python
-class AppRoute(router.Route):
-    scroll_restoration = True
+class Route:
+    scroll_default = "auto"
+    scroll_document = "default"
+    scroll_manage_elements = False
 
-
-class SearchRoute(AppRoute):
-    path = "/search"
-    reset_scroll = False
+    def scroll_restoration_key(self, location):
+        return location.key
 ```
 
-`scroll_restoration` defaults to `False`. Enable it to save document coordinates
-for each history entry in session storage. Back/Forward and initial loading
-restore those coordinates before considering anchors or the top of the page.
-New link visits get new history-entry keys, so they normally start at the top.
+`scroll_default` accepts three policies:
 
-Override `scroll_restoration_key(location)` to share a saved position between
-visits. For example, remember a position for each path:
+| Policy | Behaviour |
+| --- | --- |
+| `"auto"` | Scroll to the URL fragment's target, or to the top when no fragment is present. A missing target causes no movement. No positions are saved. |
+| `"restore"` | Save both scroll axes and restore a saved position when available; otherwise use `"auto"`. Saved positions take precedence over anchors. |
+| `"none"` | No router saving or scrolling for this area. |
+
+`scroll_document` accepts those policies or `"default"`, which uses
+`scroll_default`. Python `None` is not a policy. New visits, query changes and
+replacements follow the same rules. Identical URLs remain a no-op.
+
+### Scrollable elements
+
+Enable `scroll_manage_elements` to discover elements with
+`data-routing-scroll-id` after the final form attaches. Each ID must be nonempty,
+stable across renders and unique on the page. Without an ID an element is
+unmanaged, even if it has a `data-routing-scroll` attribute.
 
 ```python
 class AppRoute(router.Route):
-    scroll_restoration = True
+    scroll_default = "restore"
+    scroll_document = "none"
+    scroll_manage_elements = True
+```
+
+```html
+<!-- Omitted policy and explicit "default" both use the route's scroll_default -->
+<main data-routing-scroll-id="content" data-routing-scroll="default">
+  ...
+</main>
+
+<!-- Explicit policies override the route default -->
+<aside data-routing-scroll-id="sidebar" data-routing-scroll="none">
+  ...
+</aside>
+```
+
+`data-routing-scroll` accepts `"default"`, `"auto"`, `"restore"`, or `"none"`.
+Invalid policies and empty or duplicate registered IDs are configuration errors.
+Setting `scroll_manage_elements=False` disables discovery, saving and scrolling
+for elements; document handling is independent. To disable all router scrolling,
+set `scroll_document="none"` and `scroll_manage_elements=False`.
+`scroll_default="none"` alone is not a global disable: explicit overrides still
+apply. To undo an inherited document override, set `scroll_document="default"`.
+
+### Restoration identity
+
+Positions use versioned, app-scoped session storage. The route's
+`scroll_restoration_key(location)` identifies the visit; the element ID identifies
+the area within that visit. The document has a separate internal identity.
+The default visit key is `location.key`, so Back/Forward and reload restore while
+new link visits start with no saved position.
+
+```python
+class SearchRoute(AppRoute):
+    path = "/search"
 
     def scroll_restoration_key(self, location):
         return location.path
 ```
 
-Clicking B then A now restores A's last saved position, as do Back/Forward and
-reload. Query strings and fragments share that path's position, and a saved
-position takes precedence over anchor scrolling. Return a string including
-`location.search` if query variants should have separate positions. The default
-method returns `location.key`. Overrides can live on a shared base route or an
-individual route; `scroll_restoration` must still be enabled and `reset_scroll`
-must remain `True` for saved positions to be restored.
+This shares positions across visits to the same path, including query and fragment
+variants. Later saves replace earlier coordinates for that path and area. Include
+`location.search` in the returned string if query variants need separate positions.
+If storage is unavailable or a record is invalid, `"restore"` uses `"auto"`;
+there is no in-memory fallback.
 
-If storage is unavailable or a saved position is invalid, the router uses normal
-anchor/top behaviour. There is no in-memory fallback.
+### Anchors and timing
 
-`reset_scroll` defaults to `True`; `False` suppresses top reset and saved-position
-restoration. `hash_scroll_into_view` defaults to `True` and controls anchors
-independently. Set both properties to `False` on a route to suppress all automatic
-scrolling for that route. Calls to `navigate`, redirects and links all use the
-final destination route's properties; there are no per-navigation overrides.
+An anchor belongs to its nearest ancestor with a scroll ID when element management
+is enabled, otherwise to the document. Only that owner performs anchor scrolling,
+respecting `scroll-margin-top` and changing only its own scroll offsets. An owner
+with policy `"none"` suppresses anchor scrolling, without falling back to an outer
+area. Other areas do not reset to the top while a fragment is present, but may
+restore their own saved positions. When element management is off, document
+scrolling cannot reveal a target hidden inside an independently scrolling panel.
 
-Scrolling happens once, after the final form attaches and a render frame is
-scheduled. Pending forms do not trigger scrolling; rendered error and not-found
-forms do. Blocked or failed navigation without a final form does not trigger
-scrolling. Content added independently after that frame is app-owned: there are
-no delayed-anchor retries.
-
-Only the document scrolls. Independent containers such as a persistent sidebar
-are left alone. The router uses instant scrolling and disables native automatic
-history restoration to avoid competing scroll operations. To handle all scroll
-behaviour yourself, set both `reset_scroll` and `hash_scroll_into_view` to `False`
-on your base route. A custom `load_form` must return its attached destination
+Scrolling is instant and occurs once after the final form attaches and a render
+frame is scheduled. Pending forms do not trigger scrolling; rendered error and
+not-found forms do. Blocked, stale or failed navigation without a final form does
+not scroll. Outgoing positions are captured before content changes and on pagehide.
+There are no delayed-content retries. A custom `load_form` must return its attached
 form, as the built-in implementations do.
+
+Links, redirects and `navigate` use the final destination route's settings; there
+are no per-navigation overrides. The router disables native automatic history
+restoration to avoid competing browser operations.

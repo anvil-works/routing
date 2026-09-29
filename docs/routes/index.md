@@ -60,17 +60,17 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 `pending_min=0.5`
 : The minimum time to show the pending form when the data is loading.
 
-`scroll_restoration=False`
-: Save document coordinates in session storage. By default, restore them on Back/Forward and initial loading. Opt in on a shared base route or individual routes.
+`scroll_default="auto"`
+: Shared policy for the document and registered elements: `"auto"` for anchor/top, `"restore"` for saved positions with anchor/top fallback, or `"none"` for no saving or scrolling.
+
+`scroll_document="default"`
+: Document policy override. `"default"` uses `scroll_default`; `"auto"`, `"restore"` and `"none"` override it.
+
+`scroll_manage_elements=False`
+: Enable discovery and handling of elements with `data-routing-scroll-id`. Their optional `data-routing-scroll` policy overrides `scroll_default`; an omitted policy or `"default"` uses it. When disabled, no element lookups or handling occur.
 
 `scroll_restoration_key(location)`
-: Return the string key for saved document coordinates. Defaults to `location.key`, which identifies a history entry. Override to return `location.path` to also restore positions on new visits to the same path. Query variants then share a position.
-
-`reset_scroll=True`
-: Reset document scroll on navigation, including query-only changes, or restore saved coordinates when the restoration key has a stored position. Set to `False` to suppress both.
-
-`hash_scroll_into_view=True`
-: Scroll to a fragment's matching HTML `id`. Independent of `reset_scroll`; set both to `False` to suppress all router scrolling. See [Document scrolling](../navigating/index.md#document-scrolling).
+: Return the string visit key for saved coordinates. Defaults to `location.key`, a history entry. Return `location.path` to share positions across visits and query variants. Each registered element has a separate identity within that visit. See [Document scrolling](../navigating/index.md#document-scrolling).
 
 `cache_form=False`
 : Whether to cache the route's form. By default this is `False`.

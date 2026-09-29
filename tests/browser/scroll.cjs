@@ -179,15 +179,15 @@ async function inject(page, reload = false) {
     await navigate(page, 'query={"page":2}');
     await check(page, 0, "query resets by default");
     await position(page, 0, 500);
-    await navigate(page, 'path="/__scroll/preserve-anchors"');
+    await navigate(page, 'path="/__scroll/auto"');
     await navigate(page, 'query={"page":3}');
-    await check(page, 500, "route policy preserves query changes");
+    await check(page, 0, "auto policy resets query changes");
     await navigate(page, 'hash="section%3Aa"');
     const anchorY = await page.evaluate(
       () => document.getElementById("section:a").getBoundingClientRect().top
     );
     assert.ok(Math.abs(anchorY - 40) < 2, `anchor margin: ${anchorY}`);
-    console.log("PASS anchor independent of reset, encoded ID, margin");
+    console.log("PASS auto anchor, encoded ID, margin");
     await position(page, 0, 550);
     await navigate(page, 'hash="missing"');
     await check(page, 550, "missing anchor leaves scroll alone");
@@ -268,7 +268,7 @@ path_link._rn_do_click(None)`);
     await navigate(page, 'path="/__scroll/b"');
     await position(page, 0, 310);
     await navigate(page, 'path="/__scroll/by-path-preserve"');
-    await check(page, 310, "reset false suppresses custom-key restoration");
+    await check(page, 310, "none suppresses custom-key restoration");
     await navigate(page, 'path="/__scroll/by-path-disabled"');
     await position(page, 0, 630);
     await navigate(page, 'path="/__scroll/b"');
@@ -352,14 +352,86 @@ _navigate.navigate(path="/__scroll/b")`
     await page.evaluate((key) => {
       const item = Object.keys(sessionStorage).find(
         (name) =>
-          name.startsWith("anvil-routing-scroll-v1:") &&
-          name.endsWith(":" + key)
+          name.startsWith("anvil-routing-scroll-v2:") &&
+          name.includes(key)
       );
       sessionStorage.setItem(item, "invalid-json");
     }, corruptKey);
     await page.goBack();
     await page.waitForURL("**/__scroll/a");
     await check(page, 0, "invalid saved position uses normal reset");
+
+    // Persistent registered elements, independent of the document policy.
+    const elementState = () => page.evaluate(() =>
+      ["restore", "auto", "none", "unregistered"].map(name => {
+        const el = document.getElementById("element-" + name);
+        return [el.scrollLeft, el.scrollTop];
+      })
+    );
+    await page.evaluate(() => {
+      ["restore", "auto", "none", "unregistered"].forEach(name => {
+        document.getElementById("element-" + name).scrollTop = 350;
+      });
+      window.elementLookups = 0;
+      window.savedQuerySelectorAll = document.querySelectorAll;
+      document.querySelectorAll = function(selector) {
+        if (selector === "[data-routing-scroll-id]") window.elementLookups++;
+        return window.savedQuerySelectorAll.call(this, selector);
+      };
+    });
+    await navigate(page, 'path="/__scroll/a"');
+    assert.equal(await page.evaluate(() => elementLookups), 0);
+    assert.deepEqual((await elementState()).map(p => p[1]), [350,350,350,350]);
+    await position(page, 0, 460);
+    await navigate(page, 'path="/__scroll/elements"');
+    await check(page, 460, "element handling independent of document none");
+    assert.deepEqual((await elementState()).map(p => p[1]), [0,0,350,350]);
+    await page.evaluate(() => {
+      document.getElementById("element-restore").scrollTo(70, 610);
+      document.getElementById("element-auto").scrollTop = 420;
+    });
+    await navigate(page, 'path="/__scroll/elements", query={"page":2}');
+    assert.deepEqual((await elementState()).map(p => p[1]), [0,0,350,350]);
+    await page.goBack();
+    await page.waitForURL("**/__scroll/elements");
+    await settled(page);
+    assert.deepEqual(await elementState(), [[70,610],[0,0],[0,350],[0,350]]);
+    console.log("PASS element restore both axes, auto does not restore, none and no-ID untouched");
+    await navigate(page, 'hash="element-anchor"');
+    const anchorOffset = await page.evaluate(() => {
+      const node = document.getElementById("element-restore");
+      return document.getElementById("element-anchor").getBoundingClientRect().top
+        - node.getBoundingClientRect().top - node.clientTop;
+    });
+    assert.ok(Math.abs(anchorOffset - 25) < 2, `element anchor offset ${anchorOffset}`);
+    await check(page, 460, "element anchor leaves document untouched");
+    const beforeNested = await elementState();
+    await navigate(page, 'hash="nested-anchor"');
+    assert.deepEqual(await elementState(), beforeNested);
+    assert.equal(await page.evaluate(() => document.getElementById("nested-none").scrollTop), 0);
+    await navigate(page, 'hash="missing"');
+    assert.deepEqual(await elementState(), beforeNested);
+    console.log("PASS none owner suppresses ancestor scrolling; missing anchors leave elements alone");
+    await navigate(page, 'path="/__scroll/elements-default"');
+    await check(page, 0, "document default removes inherited override");
+    await page.evaluate(() => {
+      document.getElementById("element-auto").setAttribute("data-routing-scroll", "restore");
+      document.getElementById("element-auto").scrollTo(45, 540);
+    });
+    // Resolve the new override, then snapshot on leaving this visit.
+    await navigate(page, 'path="/__scroll/elements-override"');
+    await page.evaluate(() => document.getElementById("element-auto").scrollTo(45,540));
+    await navigate(page, 'path="/__scroll/b"');
+    await page.evaluate(() => document.getElementById("element-auto").scrollTo(0,0));
+    await page.goBack();
+    await page.waitForURL("**/__scroll/elements-override");
+    await settled(page);
+    assert.deepEqual((await elementState())[1], [45,540]);
+    console.log("PASS explicit element restore overrides route none");
+    await page.evaluate(() => {
+      document.getElementById("element-auto").setAttribute("data-routing-scroll", "auto");
+      document.querySelectorAll = window.savedQuerySelectorAll;
+    });
 
     await py(page, "_view_transition.use_transitions(True)");
     await position(page, 0, 450);
@@ -368,12 +440,15 @@ _navigate.navigate(path="/__scroll/b")`
 
     await navigate(page, `path=${JSON.stringify(new URL(bootstrap).pathname)}`);
     await position(page, 0, 640);
+    await page.evaluate(() => document.getElementById("element-restore").scrollTo(80, 670));
     await page.reload();
     await page
       .getByRole("combobox", { name: "Your favorite tools", exact: true })
       .waitFor({ timeout: 60000 });
     await inject(page, true);
     await check(page, 640, "reload restores session position after final form");
+    assert.deepEqual((await elementState())[0], [80,670]);
+    console.log("PASS reload restores a recreated element by its stable ID");
     await navigate(page, 'path="/__scroll/standalone"');
     await py(page, "standalone_form = anvil.get_open_form()");
     await position(page, 0, 520);

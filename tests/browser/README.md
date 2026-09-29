@@ -15,7 +15,8 @@ page. The bootstrap depends on the docs combobox and Anvil's Skulpt runtime.
 
 Checks exercise real browser history, attachment, both scroll axes, session
 storage and reloads. They cover resets, anchors, route inheritance,
-cached forms, redirects, blockers, failures, pending forms and stale
+element registration and policies, nested anchor ownership, element reload
+restoration, cached forms, redirects, blockers, failures, pending forms and stale
 navigation. An intentionally unhandled fixture error is expected; other runtime
 errors fail the run. These checks complement the CPython link tests and do not
 run in the existing pytest CI job.

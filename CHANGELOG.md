@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add inherited route scroll properties, document reset and anchor scrolling, and opt-in session-backed history restoration. Query-only changes now reset scroll by default. Override `Route.scroll_restoration_key(location)` to share saved positions across visits, such as by path.
+- Add route scroll policies (`scroll_default`, `scroll_document`, `scroll_manage_elements`) for the document and explicitly registered elements. Support anchor/top scrolling, opt-in session restoration and custom `scroll_restoration_key(location)` visit identities.
 
 ## v0.6.2 (01/01/1970)
 ## What's Changed

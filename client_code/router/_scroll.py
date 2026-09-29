@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Anvil
 # SPDX-License-Identifier: MIT
 
-"""Document scrolling after a destination form has attached."""
+"""Scroll policies for the document and explicitly registered elements."""
 
 import json
 from math import isfinite
@@ -17,14 +17,15 @@ _generation = 0
 _started = False
 
 
-def _storage_key(key):
-    return f"anvil-routing-scroll-v1:{Location(path='/').get_url(True)}:{key}"
+def _storage_key(key, area_id=None):
+    identity = json.dumps([key, area_id])
+    return f"anvil-routing-scroll-v2:{Location(path='/').get_url(True)}:{identity}"
 
 
-def _read_position(key):
+def _read_position(key, area_id):
     try:
         position = json.loads(
-            window.sessionStorage.getItem(_storage_key(key)) or "null"
+            window.sessionStorage.getItem(_storage_key(key, area_id)) or "null"
         )
         if (
             isinstance(position, list)
@@ -41,15 +42,85 @@ def _read_position(key):
 def _snapshot(*args):
     if _displayed is None or _suspended:
         return
-    key, form, restore = _displayed
-    if not restore or not get_dom_node(form).isConnected:
+    key, form, areas = _displayed
+    if not get_dom_node(form).isConnected:
         return
-    try:
-        window.sessionStorage.setItem(
-            _storage_key(key), json.dumps([window.scrollX, window.scrollY])
+    for node, area_id, policy in areas:
+        if policy != "restore" or (node is not None and not node.isConnected):
+            continue
+        position = (
+            [window.scrollX, window.scrollY]
+            if node is None
+            else [node.scrollLeft, node.scrollTop]
         )
+        try:
+            window.sessionStorage.setItem(
+                _storage_key(key, area_id), json.dumps(position)
+            )
+        except Exception:
+            # Storage is optional; never retain a second position cache.
+            pass
+
+
+def _policy(value, default):
+    if value == "default":
+        value = default
+    if value not in ("auto", "restore", "none"):
+        raise ValueError(f"Invalid routing scroll policy: {value!r}")
+    return value
+
+
+def _areas(route):
+    default = _policy(route.scroll_default, None)
+    areas = [(None, None, _policy(route.scroll_document, default))]
+    if route.scroll_manage_elements:
+        ids = set()
+        for node in window.document.querySelectorAll("[data-routing-scroll-id]"):
+            area_id = node.getAttribute("data-routing-scroll-id")
+            if not area_id or area_id in ids:
+                raise ValueError(
+                    "data-routing-scroll-id must be nonempty and unique on the page"
+                )
+            ids.add(area_id)
+            value = node.getAttribute("data-routing-scroll")
+            policy = _policy("default" if value is None else value, default)
+            areas.append((node, area_id, policy))
+    return areas
+
+
+def _scroll_to(node, x, y):
+    target = window if node is None else node
+    target.scrollTo({"left": x, "top": y, "behavior": "instant"})
+
+
+def _anchor(location, manage_elements):
+    if not location.hash:
+        return None, None
+    fragment = location.hash.lstrip("#")
+    try:
+        fragment = window.decodeURIComponent(fragment)
     except Exception:
         pass
+    target = window.document.getElementById(fragment)
+    owner = None
+    if target is not None and manage_elements:
+        # A target scrolls within its ancestors, not within itself.
+        parent = target.parentElement
+        if parent is not None:
+            owner = parent.closest("[data-routing-scroll-id]")
+    return target, owner
+
+
+def _scroll_to_anchor(node, target):
+    margin = window.parseFloat(window.getComputedStyle(target).scrollMarginTop)
+    if not isfinite(margin):
+        margin = 0
+    top = target.getBoundingClientRect().top - margin
+    if node is None:
+        _scroll_to(None, window.scrollX, window.scrollY + top)
+    else:
+        top += node.scrollTop - node.getBoundingClientRect().top - node.clientTop
+        _scroll_to(node, node.scrollLeft, top)
 
 
 def setup():
@@ -102,44 +173,30 @@ class ScrollNavigation:
             global _displayed, _suspended
             if not self._current() or not get_dom_node(form).isConnected:
                 return
-            reset = self.route.reset_scroll
-            anchor = self.route.hash_scroll_into_view
-
+            # Invalid configuration must not leave outgoing state eligible for saving.
+            _displayed = None
             try:
-                position = None
-                if reset and self.route.scroll_restoration:
-                    position = _read_position(self.key)
-                if position is not None:
-                    window.scrollTo(
-                        {"left": position[0], "top": position[1], "behavior": "instant"}
+                areas = _areas(self.route)
+                target, owner = _anchor(
+                    self.location, self.route.scroll_manage_elements
+                )
+                for node, area_id, policy in areas:
+                    if policy == "none":
+                        continue
+                    position = (
+                        _read_position(self.key, area_id)
+                        if policy == "restore"
+                        else None
                     )
-                elif self.location.hash:
-                    if anchor:
-                        fragment = self.location.hash.lstrip("#")
-                        try:
-                            fragment = window.decodeURIComponent(fragment)
-                        except Exception:
-                            pass
-                        target = window.document.getElementById(fragment)
-                        if target is not None:
-                            margin = window.parseFloat(
-                                window.getComputedStyle(target).scrollMarginTop
-                            )
-                            if not isfinite(margin):
-                                margin = 0
-                            window.scrollTo(
-                                {
-                                    "left": window.scrollX,
-                                    "top": window.scrollY
-                                    + target.getBoundingClientRect().top
-                                    - margin,
-                                    "behavior": "instant",
-                                }
-                            )
-                elif reset:
-                    window.scrollTo({"left": 0, "top": 0, "behavior": "instant"})
+                    if position is not None:
+                        _scroll_to(node, position[0], position[1])
+                    elif self.location.hash:
+                        if target is not None and node == owner:
+                            _scroll_to_anchor(node, target)
+                    else:
+                        _scroll_to(node, 0, 0)
+                _displayed = (self.key, form, areas)
             finally:
-                _displayed = (self.key, form, self.route.scroll_restoration)
                 _suspended = False
 
         window.requestAnimationFrame(apply)

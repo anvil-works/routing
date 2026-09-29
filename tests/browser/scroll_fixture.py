@@ -28,6 +28,23 @@ layout = Layout(
     html="""
 <aside id="scroll-sidebar" style="position:fixed;height:180px;overflow:auto;width:150px">
 <div style="height:1500px">Sidebar</div></aside>
+<div id="element-restore" data-routing-scroll-id="main" data-routing-scroll="default"
+ style="position:fixed;left:700px;top:10px;height:180px;width:180px;overflow:auto;border:3px solid">
+ <div style="height:1600px;width:900px"><div style="height:900px"></div>
+ <h2 id="element-anchor" style="scroll-margin-top:25px">Element anchor</h2>
+ <div id="nested-none" data-routing-scroll-id="nested" data-routing-scroll="none"
+ style="height:100px;overflow:auto"><div style="height:900px">
+ <div style="height:500px"></div><h2 id="nested-anchor">Nested</h2></div></div>
+ </div></div>
+<div id="element-auto" data-routing-scroll-id="second" data-routing-scroll="auto"
+ style="position:fixed;left:900px;top:10px;height:180px;width:180px;overflow:auto">
+ <div style="height:1600px;width:900px">Auto</div></div>
+<div id="element-none" data-routing-scroll-id="none" data-routing-scroll="none"
+ style="position:fixed;left:1100px;top:10px;height:180px;width:180px;overflow:auto">
+ <div style="height:1600px">None</div></div>
+<div id="element-unregistered" data-routing-scroll="auto"
+ style="position:fixed;left:1300px;top:10px;height:180px;width:180px;overflow:auto">
+ <div style="height:1600px">No ID</div></div>
 <div anvil-slot="content" style="margin-left:180px"></div>
 """
 )
@@ -51,7 +68,7 @@ class Page(anvil.HtmlPanel):
 class AppRoute(TemplateWithContainerRoute):
     template = layout
     form = Page
-    scroll_restoration = True
+    scroll_default = "restore"
 
     def load_form(self, form, routing_context):
         if isinstance(form, type):
@@ -61,6 +78,7 @@ class AppRoute(TemplateWithContainerRoute):
 
 class Bootstrap(AppRoute):
     path = window.scrollTestBootstrapPath
+    scroll_manage_elements = True
 
 
 class PageA(AppRoute):
@@ -88,12 +106,12 @@ class PathRestoration(Cached):
 
 class PathPreserve(PathRestoration):
     path = "/__scroll/by-path-preserve"
-    reset_scroll = False
+    scroll_document = "none"
 
 
 class PathNoRestore(PathRestoration):
     path = "/__scroll/by-path-disabled"
-    scroll_restoration = False
+    scroll_default = "auto"
 
 
 class Standalone(Cached):
@@ -107,18 +125,33 @@ class Standalone(Cached):
 
 class NoRestore(AppRoute):
     path = "/__scroll/no-restore"
-    scroll_restoration = False
+    scroll_default = "auto"
 
 
 class Preserve(AppRoute):
     path = "/__scroll/preserve"
-    reset_scroll = False
-    hash_scroll_into_view = False
+    scroll_document = "none"
 
 
-class PreserveAnchors(AppRoute):
-    path = "/__scroll/preserve-anchors"
-    reset_scroll = False
+class Auto(AppRoute):
+    path = "/__scroll/auto"
+    scroll_default = "auto"
+
+
+class Elements(AppRoute):
+    path = "/__scroll/elements"
+    scroll_document = "none"
+    scroll_manage_elements = True
+
+
+class ElementsDefault(Elements):
+    path = "/__scroll/elements-default"
+    scroll_document = "default"
+
+
+class ElementsOverride(Elements):
+    path = "/__scroll/elements-override"
+    scroll_default = "none"
 
 
 class Redirected(Preserve):
