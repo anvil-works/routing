@@ -9,7 +9,7 @@ from math import isfinite
 from anvil.history import Location, history
 from anvil.js import get_dom_node, window
 
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 _displayed = None
 _suspended = False

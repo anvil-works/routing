@@ -15,7 +15,7 @@ from ._LinkCommon import (
 from ._router import navigation_emitter
 from ._utils import ensure_dict
 
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 BaseNavLink = setup_base_navlink()
 

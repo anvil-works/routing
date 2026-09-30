@@ -1,10 +1,24 @@
 # Changelog
 
-## Unreleased
+## v0.7.0 (01/01/1970)
+## What's Changed
+### 🚀 Features
 
-- Add route settings for document and panel scrolling, with fragment scrolling and opt-in position restoration. Routes can remember positions per history entry or share them across visits.
+- Feat: Add route scroll policies and element restoration [#107](https://github.com/anvil-works/routing/pull/107)
 
-## v0.6.2 (01/01/1970)
+### 📖 Documentation
+
+- Feat: Add route scroll policies and element restoration [#107](https://github.com/anvil-works/routing/pull/107)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/anvil-works/routing/compare/v0.6.2...v0.7.0
+
+---
+
+## v0.6.2 (08/09/2026)
 ## What's Changed
 ### 🐛 Bug Fixes
 

@@ -15,7 +15,7 @@ from ._router import navigation_emitter
 from ._segments import Segment
 from ._utils import ensure_dict
 
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 
 def _query_inclusively_equal(a, b):

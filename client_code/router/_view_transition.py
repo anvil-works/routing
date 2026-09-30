@@ -7,7 +7,7 @@ from ._logger import logger
 from ._non_blocking import Deferred
 from ._utils import await_promise, document, setTimeout
 
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 _transition = None
 _can_transition = hasattr(document, "startViewTransition")
