@@ -269,6 +269,24 @@ A saved position takes precedence over a fragment. Positions are stored in the
 browser's session storage. If saving is unavailable or a record is invalid,
 the router uses the usual fragment/top behavior.
 
+### Restore by path across new link clicks
+
+To remember the latest position for each path, including new link clicks,
+give your base route a path-based restoration key:
+
+```python
+class AppRoute(Route):
+    scroll_default = "restore"
+
+    def scroll_restoration_key(self, location):
+        return location.path
+```
+
+The default key, `location.key`, distinguishes browser history entries. Using
+`location.path` shares the latest position across visits to that path, including
+query and fragment changes. Return `location.path + location.search` to keep
+query variants separate.
+
 ### Choose a scroll policy
 
 `scroll_default` sets the policy for the document and any managed scrollable
@@ -324,25 +342,6 @@ recreated. New elements normally start at zero. Cached forms follow the same
 policies, and detaching their DOM can lose scroll state. Use `"restore"` and stable IDs to recover
 saved positions. A panel that stays mounted can retain its position without
 router intervention.
-
-### Remember a page across new link clicks
-
-If clicking a link should return to the page's last position, override
-`scroll_restoration_key`:
-
-```python
-class ArticlesRoute(AppRoute):
-    path = "/articles"
-    form = "Pages.Articles"
-
-    def scroll_restoration_key(self, location):
-        return location.path
-```
-
-The default key, `location.key`, distinguishes browser history entries. Using
-`location.path` shares the latest position across visits to that path, including
-query and fragment changes. Return `location.path + location.search` to keep
-query variants separate.
 
 ### Anchors and loading
 
