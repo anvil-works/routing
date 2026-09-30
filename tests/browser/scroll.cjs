@@ -163,6 +163,11 @@ async function inject(page, reload = false) {
     await page
       .getByRole("combobox", { name: "Your favorite tools", exact: true })
       .waitFor({ timeout: 60000 });
+    await page.evaluate(() => {
+      window.scrollTestErrors = [];
+      window.addEventListener("unhandledrejection", event =>
+        window.scrollTestErrors.push(event.reason.toString()));
+    });
     await inject(page);
     await check(page, 0, "initial render");
     await position(page, 90, 650);
@@ -188,6 +193,11 @@ async function inject(page, reload = false) {
     );
     assert.ok(Math.abs(anchorY - 40) < 2, `anchor margin: ${anchorY}`);
     console.log("PASS auto anchor, encoded ID, margin");
+    await navigate(page, 'hash="##section"');
+    assert.ok(Math.abs(await page.evaluate(
+      () => document.getElementById("#section").getBoundingClientRect().top
+    ) - 40) < 2);
+    console.log("PASS fragment IDs may begin with a hash");
     await position(page, 0, 550);
     await navigate(page, 'hash="missing"');
     await check(page, 550, "missing anchor leaves scroll alone");
@@ -287,9 +297,32 @@ _navigate.navigate(path="/__scroll/b")`
     await check(page, 570, "blocked navigation does not reset");
     await py(page, "RoutingContext._current.unregister_blocker(block)");
 
+    const outgoingKey = await page.evaluate(() => history.state.key);
+    const keyFailure = page.waitForEvent("pageerror");
+    await py(page, '_navigate.navigate(path="/__scroll/invalid-key")');
+    await keyFailure;
+    assert.match(
+      await page.evaluate(() => window.scrollTestErrors.pop()),
+      /fixture key failure/
+    );
+    assert.equal(browserErrors.length, 1);
+    browserErrors.length = 0;
+    await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+    const outgoingPosition = await page.evaluate(key => {
+      const storageKey = Object.keys(sessionStorage).find(name =>
+        name.startsWith("anvil-routing-scroll-v2:") && name.includes(key));
+      return JSON.parse(sessionStorage.getItem(storageKey));
+    }, outgoingKey);
+    assert.equal(outgoingPosition[1], 570);
+    console.log("PASS restoration-key failure does not suspend outgoing snapshots");
+
     const expectedFailure = page.waitForEvent("pageerror");
     await py(page, '_navigate.navigate(path="/__scroll/failed")');
     await expectedFailure;
+    assert.match(
+      await page.evaluate(() => window.scrollTestErrors.pop()),
+      /fixture failure/
+    );
     assert.equal(browserErrors.length, 1);
     browserErrors.length = 0;
     await frames(page);

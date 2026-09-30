@@ -96,7 +96,7 @@ def _scroll_to(node, x, y):
 def _anchor(location, manage_elements):
     if not location.hash:
         return None, None
-    fragment = location.hash.lstrip("#")
+    fragment = location.hash[1:] if location.hash.startswith("#") else location.hash
     try:
         fragment = window.decodeURIComponent(fragment)
     except Exception:
@@ -147,13 +147,13 @@ def setup():
 class ScrollNavigation:
     def __init__(self, context):
         global _generation, _suspended
+        self.location = context.location
+        self.route = context.route
+        self.key = self.route.scroll_restoration_key(self.location)
         _snapshot()
         _generation += 1
         _suspended = True
         self.generation = _generation
-        self.location = context.location
-        self.route = context.route
-        self.key = self.route.scroll_restoration_key(self.location)
 
     def _current(self):
         return (

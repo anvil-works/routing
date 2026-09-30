@@ -240,7 +240,15 @@ Hooks in different classes run in reverse MRO order. Within one class, the curre
 
 ## Document scrolling
 
-The destination route supplies inherited scroll settings:
+For ordinary history restoration, enable it on your app's base route:
+
+```python
+class AppRoute(router.Route):
+    scroll_default = "restore"
+```
+
+Add `scroll_manage_elements = True` when your layout also has registered scrollable
+panels. The destination route supplies these inherited settings:
 
 ```python
 class Route:
@@ -304,7 +312,16 @@ Positions use versioned, app-scoped session storage. The route's
 `scroll_restoration_key(location)` identifies the visit; the element ID identifies
 the area within that visit. The document has a separate internal identity.
 The default visit key is `location.key`, so Back/Forward and reload restore while
-new link visits start with no saved position.
+new link visits start with no saved position. In other words, `"restore"` remembers
+a visit by default, rather than every visit to a page.
+
+| Navigation | Default history-entry identity |
+| --- | --- |
+| Click a link to a page | A new entry has no saved position: anchor/top. |
+| Back/Forward | Revisit an entry and restore its saved position. |
+| Reload | Restore the current entry's saved position. |
+
+To remember a page across new link visits, override the identity with its path:
 
 ```python
 class SearchRoute(AppRoute):
@@ -319,6 +336,18 @@ variants. Later saves replace earlier coordinates for that path and area. Includ
 `location.search` in the returned string if query variants need separate positions.
 If storage is unavailable or a record is invalid, `"restore"` uses `"auto"`;
 there is no in-memory fallback.
+
+### Forms and DOM lifetime
+
+`"none"` means the router leaves an area's scroll position alone; it does not
+preserve a position across removal and recreation of that element. A new element
+normally starts at zero. `"restore"` can recover the previous position using its
+stable scroll ID when returning to a saved visit.
+
+Cached forms still receive the destination route's scroll policy. Form caching
+reuses the form instance, but detaching and reattaching its DOM can still lose
+browser scroll state. Use restoration when a position must survive navigation. A persistent element that stays mounted can retain its position
+without router intervention.
 
 ### Anchors and timing
 

@@ -60,6 +60,7 @@ class Page(anvil.HtmlPanel):
 <div style="height:3000px;width:1600px" id="scroll-page">
 <div style="height:1000px"></div>
 <h2 id="section:a" style="scroll-margin-top:40px">Section</h2>
+<h2 id="#section" style="scroll-margin-top:40px">Leading hash ID</h2>
 </div>""",
         )
         self.routing_context = routing_context
@@ -166,6 +167,13 @@ class RedirectToPreserve(AppRoute):
 
     def before_load(self, **loader_args):
         raise Redirect(path="/__scroll/preserve")
+
+
+class InvalidKey(AppRoute):
+    path = "/__scroll/invalid-key"
+
+    def scroll_restoration_key(self, location):
+        raise ValueError("fixture key failure")
 
 
 class Failed(AppRoute):
