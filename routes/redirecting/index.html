@@ -70,7 +70,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../params/">Params</a>
                   </li>
@@ -139,6 +139,7 @@
 <p>You can redirect to a different route by raising a <code>Redirect</code> exception in a route's <code>before_load</code> method.</p>
 <pre><code class="language-python">from routing.router import Route, Redirect
 
+
 class IndexRoute(Route):
     path = &quot;/&quot;
 
@@ -150,6 +151,7 @@ class IndexRoute(Route):
 <pre><code class="language-python">from routing.router import Route, Redirect
 import anvil.users
 
+
 class IndexRoute(Route):
     path = &quot;/&quot;
 
@@ -159,12 +161,14 @@ class IndexRoute(Route):
         else:
             raise Redirect(path=&quot;/login&quot;)
 
+
 class EnsureUserMixin:
     def before_load(self, **loader_args):
         if not anvil.users.get_user():
             # Note this will make a server call
             # so you may want to cache the call to anvil.users.get_user()
             raise Redirect(path=&quot;/login&quot;)
+
 
 class DashboardRoute(EnsureUserMixin, Route):
     path = &quot;/dashboard&quot;

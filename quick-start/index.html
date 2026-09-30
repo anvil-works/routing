@@ -88,7 +88,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
@@ -154,7 +154,7 @@
 <h2 id="from-a-clone">From a Clone<a class="headerlink" href="#from-a-clone" title="Permanent link">&para;</a></h2>
 <p>Clone the following Anvil app: <a href="https://anvil.works/build#clone:34ZTMM7IQRTCMIAD=PPWCEPHZKQ3VYBIEF6T7GWOY">https://anvil.works/build#clone:34ZTMM7IQRTCMIAD=PPWCEPHZKQ3VYBIEF6T7GWOY</a></p>
 <h2 id="from-a-new-app">From a New App<a class="headerlink" href="#from-a-new-app" title="Permanent link">&para;</a></h2>
-<p>Create a new app.</p>
+<p>Create a new app and <a href="../installation/">add the routing dependency</a>.</p>
 <h3 id="client-code-structure">Client Code Structure<a class="headerlink" href="#client-code-structure" title="Permanent link">&para;</a></h3>
 <p>The client code structure should look like this:</p>
 <pre><code>- Layouts (Package)
@@ -167,6 +167,7 @@
 - startup (Module)
 </code></pre>
 <h3 id="startup-module">Startup Module<a class="headerlink" href="#startup-module" title="Permanent link">&para;</a></h3>
+<p>Create <code>startup</code> as a client module and select it as your app's startup module in the Anvil editor.</p>
 <pre><code class="language-python"># startup.py
 from routing.router import launch
 
@@ -177,13 +178,16 @@ if __name__ == &quot;__main__&quot;:
 <pre><code class="language-python"># routes.py
 from routing.router import Route
 
+
 class IndexRoute(Route):
     path = &quot;/&quot;
     form = &quot;Pages.Index&quot;
 
+
 class AboutRoute(Route):
     path = &quot;/about&quot;
     form = &quot;Pages.About&quot;
+
 
 class ContactRoute(Route):
     path = &quot;/contact&quot;
@@ -202,7 +206,7 @@ class ContactRoute(Route):
 <p>You should now be able to navigate using the sidebar nav links.</p>
 <h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
 <p>If your routes aren't working, make sure your file structure is correct.</p>
-<p>The router <strong>automatically imports</strong> a module named <code>routes</code> by default — you do not need to manually import it. Just define your routes in a <code>routes</code> module and they will be discovered automatically.</p>
+<p>The router <strong>automatically imports</strong> a module named <code>routes</code> by default. You do not need to manually import it. Just define your routes in a <code>routes</code> module and they will be discovered automatically.</p>
 <p>If you have named the routes module something else, set the <code>routes_module</code> config option to the correct module name. See the <a href="../api-reference/#routes_module">API Reference</a> for more information.</p>
               
             </div>

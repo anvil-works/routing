@@ -94,7 +94,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="params/">Params</a>
                   </li>
@@ -162,13 +162,16 @@
 <pre><code class="language-python"># routes.py
 from routing.router import Route
 
+
 class IndexRoute(Route):
     path = &quot;/&quot;
     form = &quot;Pages.Index&quot;
 
+
 class AboutRoute(Route):
     path = &quot;/about&quot;
     form = &quot;Pages.About&quot;
+
 
 class ContactRoute(Route):
     path = &quot;/contact&quot;
@@ -198,10 +201,18 @@ ContactRoute = Route.create(path=&quot;/contact&quot;, form=&quot;Pages.Contact&
 <dd>The delay before showing the pending form when the data is loading.</dd>
 <dt><code>pending_min=0.5</code></dt>
 <dd>The minimum time to show the pending form when the data is loading.</dd>
+<dt><code>scroll_default="auto"</code></dt>
+<dd>Scroll policy for the document and managed panels: <code>"auto"</code> scrolls to the fragment or top, <code>"restore"</code> uses saved positions when available, and <code>"none"</code> leaves scrolling alone. See <a href="../navigating/#scrolling">Scrolling</a>.</dd>
+<dt><code>scroll_document="default"</code></dt>
+<dd>Override the document's policy with <code>"auto"</code>, <code>"restore"</code>, or <code>"none"</code>. <code>"default"</code> uses <code>scroll_default</code>.</dd>
+<dt><code>scroll_manage_elements=False</code></dt>
+<dd>Set to <code>True</code> to manage scrollable elements marked with <code>data-routing-scroll-id</code>. Their <code>data-routing-scroll</code> attribute can override the route policy. By default, the router leaves elements unmanaged.</dd>
 <dt><code>cache_form=False</code></dt>
 <dd>Whether to cache the route's form. By default this is <code>False</code>.</dd>
 <dt><code>cache_data=False</code></dt>
-<dd>Whether to cache data. By default this is <code>False</code>.</dd>
+<dd>Set to <code>True</code> to reuse cached data, or <code>False</code> to load without retaining it for later navigation. <code>CACHE_FIRST</code> and <code>NO_CACHE</code> are aliases for these values. See <a href="../caching/">Caching</a>.</dd>
+<dt><code>stale_time=0</code></dt>
+<dd>The time in seconds before data is considered stale for <code>STALE_WHILE_REVALIDATE</code>. This does not expire <code>CACHE_FIRST</code> data.</dd>
 <dt><code>gc_time=30*60</code></dt>
 <dd>The time in seconds that determines when data is released from the cache for garbage collection. By default this is 30 minutes. When data is released from the cache, any cached forms with the same <code>path</code> and <code>cache_deps</code> will also be released.</dd>
 <dt><code>server_fn (optional str)</code></dt>
@@ -209,12 +220,12 @@ ContactRoute = Route.create(path=&quot;/contact&quot;, form=&quot;Pages.Contact&
 <dt><code>server_silent=False</code></dt>
 <dd>If <code>True</code> then the server function will be called using <code>anvil.server.call_s</code>. By default this is <code>False</code>.</dd>
 <dt><code>sitemap=True</code></dt>
-<dd>Whether to include this route in the sitemap. By default this is <code>True</code>.</dd>
+<dd>Whether to include this static route in the sitemap. By default this is <code>True</code>. Routes with path parameters are omitted.</dd>
 </dl>
 <h2 id="route-methods">Route Methods<a class="headerlink" href="#route-methods" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>before_load</code></dt>
-<dd>Called before the route is matched. If it raises a <code>Redirect</code>, navigation is redirected. If it returns a dictionary, its contents are merged into the navigation context (<code>nav_context</code>).</dd>
+<dd>Called after the route is matched, before loading its data or form. If it raises a <code>Redirect</code>, navigation is redirected. If it returns a dictionary, its contents are merged into the navigation context (<code>nav_context</code>).</dd>
 </dl>
 <p>Note - you may prefer not to override this method, and instead use the <code>@hooks.before_load</code> decorator.</p>
 <p>See the navigation documentation for practical usage examples.</p>
@@ -224,66 +235,38 @@ ContactRoute = Route.create(path=&quot;/contact&quot;, form=&quot;Pages.Contact&
 <dt><code>parse_params</code></dt>
 <dd>Should return a dictionary of path parameters. By default this returns the original path parameters.</dd>
 <dt><code>meta</code></dt>
-<dd>Should return a dictionary with the <code>title</code> and <code>description</code> of the page. This will be used to update the meta tags and the title of the page. By default this returns the original title and description.</dd>
+<dd>Should return a dictionary with the <code>title</code> and <code>description</code> of the page. This will be used to update the meta tags and the title of the page. By default this returns an empty dictionary.</dd>
 <dt><code>load_data</code></dt>
 <dd>Called when the route is matched. The return value will be available in the <code>data</code> property of the <code>RoutingContext</code> instance. By default this returns <code>None</code>.</dd>
 <dt><code>load_form</code></dt>
-<dd>This method is called with two arguments. The first argument is a form name (e.g. <code>"Pages.Index"</code>) or, if you are using cached forms, the cached form instance. The second argument is the <code>RoutingContext</code> instance. By default this calls <code>anvil.open_form</code> on the form.</dd>
+<dd>This method is called with two arguments. The first argument is a form name (e.g. <code>"Pages.Index"</code>) or, if you are using cached forms, the cached form instance. The second argument is the <code>RoutingContext</code> instance. By default this calls <code>anvil.open_form</code> on the form and returns the instance. Custom implementations must also return the attached destination form for scroll handling.</dd>
+<dt><code>scroll_restoration_key(location)</code></dt>
+<dd>Return a string identifying the visit whose scroll positions should be saved. The default, <code>location.key</code>, keeps each browser history entry separate. Return <code>location.path</code> to remember the latest position across new link clicks. See <a href="../navigating/#scrolling">Scrolling</a>.</dd>
 <dt><code>cache_deps</code></dt>
-<dd>Returns an object, by default the <code>query</code> dictionary (more information in the <a href="/routes/query/">query section</a> and the <a href="/routing-context/">RoutingContext section</a>). This method is part of the process of creating caching keys.</dd>
-<dd>When a route needs to cache a form or data (more information in the <a href="/caching/">caching section</a>), it does so by storing it in a global dictionary under a caching key. This key is composed of the route's path and the return of its <code>cache_deps</code> method at the moment of caching.</dd>
-<dd>If, when accessing the same route, its <code>cache_deps</code> method returns something different than when caching first occured, the caching key points to a different place within the cache, usually empty. The router thus understands this as a new route and navigates to it again.</dd>
+<dd>Returns an object, by default the <code>query</code> dictionary (more information in the <a href="query/">query section</a> and the <a href="../routing-context/">RoutingContext section</a>). This method is part of the process of creating caching keys.</dd>
+<dd>When a route needs to cache a form or data (more information in the <a href="../caching/">caching section</a>), it does so by storing it in a global dictionary under a caching key. This key is composed of the route's path and the return of its <code>cache_deps</code> method at the moment of caching.</dd>
+<dd>If, when accessing the same route, its <code>cache_deps</code> method returns something different than when caching first occurred, the caching key points to a different place within the cache, usually empty. The router thus understands this as a new route and navigates to it again.</dd>
 </dl>
 <h2 id="excluding-routes-from-the-sitemap">Excluding Routes from the Sitemap<a class="headerlink" href="#excluding-routes-from-the-sitemap" title="Permanent link">&para;</a></h2>
-<p>By default, all routes are included in the sitemap. To exclude a route from the sitemap, set <code>sitemap = False</code> on your <code>Route</code> class:</p>
+<p>Static routes are included in the sitemap by default. Set <code>sitemap = False</code> to exclude a route:</p>
 <pre><code class="language-python">from routing.router import Route
+
 
 class PrivateRoute(Route):
     path = &quot;/admin&quot;
     form = &quot;Pages.Admin&quot;
-    sitemap = False  # This route will NOT appear in the sitemap
+    sitemap = False  # Exclude /admin from the sitemap
 </code></pre>
-<p>Only routes with <code>sitemap = True</code> (the default) will be included in the sitemap.</p>
+<p>The dependency's <code>sitemap</code> configuration must also be enabled to serve <code>/sitemap.txt</code>.</p>
+<p>Routes with path parameters, such as <code>/articles/:id</code>, are omitted because the router cannot enumerate their concrete URLs. The root URL is included only when a <code>/</code> route is defined with <code>sitemap = True</code>.</p>
 <h2 id="setting-meta-tags-per-route">Setting Meta Tags Per Route<a class="headerlink" href="#setting-meta-tags-per-route" title="Permanent link">&para;</a></h2>
-<p>To control meta tags for SEO and social sharing, override the <code>meta</code> method on your <code>Route</code> class. Return a dictionary of tags you want to set for that route. You can set any meta tag, including Open Graph and custom tags.</p>
-<p><strong>Example:</strong></p>
-<pre><code class="language-python">from routing.router import Route
-
-class ArticleRoute(Route):
-    path = &quot;/articles/:id&quot;
-    form = &quot;Pages.Article&quot;
-
-    def meta(self, **loader_args):
-        query = loader_args[&quot;query&quot;]  # Use query params for dynamic meta
-        title = f&quot;Article: {query.get('title', 'Untitled')}&quot;
-        return {
-            &quot;title&quot;: title,
-            &quot;description&quot;: f&quot;Viewing article: {title}&quot;,
-
-            &quot;og:image&quot;: &quot;asset:article_cover.png&quot;,  # use asset: prefix or a full URL
-            &quot;twitter:card&quot;: &quot;summary_large_image&quot;,  # arbitrary tags supported
-        }
-</code></pre>
-<p><strong>Fallbacks:</strong></p>
-<ul>
-<li><code>og:title</code> and <code>og:description</code> will automatically use <code>title</code> and <code>description</code> if not set.</li>
-<li>If a meta tag is not set for a route, it falls back to the value present at app load.</li>
-</ul>
-<p><strong>Server vs Client Meta Tags:</strong></p>
-<ul>
-<li><code>title</code>, <code>description</code>, <code>og:title</code> and <code>og:description</code> are set on the server.</li>
-<li>All other tags are set after page load on the client.</li>
-</ul>
-<p><strong>og:image and other assets:</strong></p>
-<ul>
-<li>Use a full URL (e.g., <code>"https://my-app.anvil.app/_/theme/image.png"</code>)</li>
-<li>Or use an asset from your app: <code>"asset:image.png"</code> and it will be resolved to the full URL</li>
-</ul>
+<p>Override <code>meta</code> to return the tags for a route. See <a href="meta/">Route meta</a> for examples, asset URLs and client/server behaviour.</p>
 <h2 id="not-found-form">Not Found Form<a class="headerlink" href="#not-found-form" title="Permanent link">&para;</a></h2>
 <p>There are two ways a route can be not found. The first is when the user navigates to a path that does not match any routes. The second is when a user raises a <code>NotFound</code> exception in a route's <code>before_load</code> or <code>load_data</code> method.</p>
 <h3 id="not-found-route">Not Found Route<a class="headerlink" href="#not-found-route" title="Permanent link">&para;</a></h3>
 <p>By definition, if there is no matching route, the router has no route to navigate to. If you want to handle this case, you can define a not found route.</p>
 <pre><code class="language-python">from routing.router import Route
+
 
 class NotFoundRoute(Route):
     form = &quot;Pages.NotFound&quot;
@@ -293,7 +276,9 @@ class NotFoundRoute(Route):
 <p>If no <code>default_not_found</code> attribute is set, then the router will raise a <code>NotFound</code> exception, which will be caught by Anvil's exception handler.</p>
 <h3 id="raising-a-notfound-exception">Raising a NotFound Exception<a class="headerlink" href="#raising-a-notfound-exception" title="Permanent link">&para;</a></h3>
 <p>If you raise a <code>NotFound</code> exception in a route's <code>before_load</code> or <code>load_data</code> method, the router will call the route's <code>load_form</code> method with the route's not found form.</p>
-<pre><code class="language-python">from routing.router import Route
+<pre><code class="language-python">import anvil.server
+from routing.router import Route, NotFound
+
 
 class ArticleRoute(Route):
     path = &quot;/articles/:id&quot;
@@ -302,7 +287,7 @@ class ArticleRoute(Route):
 
     def load_data(self, **loader_args):
         id = loader_args[&quot;params&quot;][&quot;id&quot;]
-        article = app_tables.articles.get(id=id)
+        article = anvil.server.call(&quot;get_article&quot;, id)
         if article is None:
             raise NotFound(f&quot;No article with id {id}&quot;)
         return article
@@ -316,6 +301,7 @@ class ArticleRoute(Route):
 # Either define the error form globally
 Route.error_form = &quot;Pages.Error&quot;
 
+
 # or define the error form per route
 class IndexRoute(Route):
     path = &quot;/&quot;
@@ -323,15 +309,16 @@ class IndexRoute(Route):
     error_form = &quot;Pages.Error&quot;
 </code></pre>
 <pre><code class="language-python"># Pages.Error
+from ._anvil_designer import ErrorTemplate
+from routing.router import RoutingContext
 import anvil
+
 
 class Error(ErrorTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
         self.routing_context = routing_context
-        self.label.text = (
-            f&quot;Error when navigating to {routing_context.path!r}, got {routing_context.error!r}&quot;
-        )
+        self.label.text = f&quot;Error when navigating to {routing_context.path!r}, got {routing_context.error!r}&quot;
 
     def form_show(self, **event_args):
         if anvil.app.environment.name.startswith(&quot;Debug&quot;):
@@ -341,13 +328,16 @@ class Error(ErrorTemplate):
 <p>The router will try to match routes in the order they are defined.</p>
 <pre><code class="language-python">from routing.router import Route
 
+
 class AuthorsRoute(Route):
     path = &quot;/authors&quot;
     form = &quot;Pages.Authors&quot;
 
+
 class NewAuthorRoute(Route):
     path = &quot;/authors/new&quot;
     form = &quot;Pages.NewAuthor&quot;
+
 
 class AuthorRoute(Route):
     path = &quot;/authors/:id&quot;

@@ -70,7 +70,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
@@ -155,6 +155,7 @@ By default, the routing library will <strong>NOT</strong> cache any forms or dat
 <h2 id="form-caching">Form Caching<a class="headerlink" href="#form-caching" title="Permanent link">&para;</a></h2>
 <p>To override the default behaviour, you can set the <code>Route.cache_form</code> attribute to <code>True</code>. This will cause the routing library to cache all forms.</p>
 <pre><code class="language-python">from routing.router import Route
+
 Route.cache_form = True
 </code></pre>
 <p>You can also set this attribute on specific routes.</p>
@@ -164,26 +165,29 @@ Route.cache_form = True
     cache_form = True
 </code></pre>
 <h2 id="data-caching">Data Caching<a class="headerlink" href="#data-caching" title="Permanent link">&para;</a></h2>
-<p>The routing library can cache data loaded by the <code>load_data</code> method. If you are not using the <code>load_data</code> method, you can skip this section. For more details, see the <a href="/data-loading">Data Loading</a> section.</p>
-<p>You can enable data caching by setting the <code>cache_data</code> attribute on the route to <code>True</code>.</p>
+<p>The routing library can cache data loaded by the <code>load_data</code> method. If you are not using the <code>load_data</code> method, you can skip this section. For more details, see the <a href="../data-loading/">Data Loading</a> section.</p>
+<p>Set <code>cache_data=True</code> to reuse loaded data until it is invalidated or garbage-collected. The default is <code>False</code>, which does not retain data for later navigation. Initial data sent by the server is still used once. The exported constants <code>CACHE_FIRST</code> and <code>NO_CACHE</code> are aliases for <code>True</code> and <code>False</code> respectively.</p>
+<p><code>gc_time</code> defaults to 30 minutes and controls when navigation can remove old cached data and any form with the same cache key. <code>stale_time</code> does not expire data cached with <code>cache_data=True</code>.</p>
 <div class="admonition caching forms with data loaders">
 <p class="admonition-title">Caching</p>
 <p>If you are using the <code>load_data</code> method and <code>cache_form</code> is set to <code>True</code>, then the <code>load_data</code> method will not be called if there is an existing cached form.</p>
 </div>
 <h2 id="caching-keys">Caching Keys<a class="headerlink" href="#caching-keys" title="Permanent link">&para;</a></h2>
-<p>The routing library will cache forms and data using a cache key. The key is a combination of the path and the dictionary returned by the <code>cache_deps</code> method. By default, the <code>cache_deps</code> method returns the <code>query</code> dictionary.</p>
+<p>The routing library will cache forms and data using a cache key. The key combines the concrete URL path, such as <code>/articles/123</code>, and the dictionary returned by <code>cache_deps</code>. By default, the <code>cache_deps</code> method returns the <code>query</code> dictionary.</p>
 <h2 id="clearing-cache">Clearing Cache<a class="headerlink" href="#clearing-cache" title="Permanent link">&para;</a></h2>
 <p>To clear all cached content, you can call the <code>clear_cache</code> function.</p>
 <pre><code class="language-python">from routing import router
+
 router.clear_cache()
 </code></pre>
 <h2 id="invalidating-cache">Invalidating Cache<a class="headerlink" href="#invalidating-cache" title="Permanent link">&para;</a></h2>
-<p>If you want to invalidate the cache for a specific path, you can call the <code>invalidate</code> function. Invalidating the cache will remove data and forms from the cache.</p>
+<p>If you want to invalidate the cache for a specific path, you can call the <code>invalidate</code> function. Invalidation removes matching cached forms. It also removes matching data, except for <code>STALE_WHILE_REVALIDATE</code> data, which is kept and marked stale for the next load. Invalidation alone does not navigate or refresh the displayed form. Use the current routing context's <code>refetch()</code> to reload its data immediately.</p>
 <pre><code class="language-python">from routing import router
+
 router.invalidate(path=&quot;/articles&quot;)
 </code></pre>
 <p>The call signature for <code>invalidate</code> is:</p>
-<pre><code class="language-python">invalidate(*, path=None, deps=None, exact=False)
+<pre><code class="language-text">invalidate(*, path=None, deps=None, exact=False)
 invalidate(path, **kws)
 invalidate(routing_context, **kws)
 </code></pre>
@@ -193,21 +197,24 @@ invalidate(routing_context, **kws)
 <dt><code>deps</code></dt>
 <dd>The dependencies to invalidate. These are the same dependencies that are returned by the <code>cache_deps</code> method.</dd>
 <dt><code>exact</code></dt>
-<dd>If <code>True</code>, then the path and deps must match exactly. If <code>False</code> (the default), then any path or deps that are a subset of the path and deps arguments will be invalidated.</dd>
+<dd>If <code>True</code>, then the path and deps must match exactly. If <code>False</code> (the default), the path matches itself and its descendants. Cached dependencies must contain all entries supplied in <code>deps</code>; omitted dependencies do not restrict the match.</dd>
 </dl>
 <h2 id="partial-invalidation">Partial Invalidation<a class="headerlink" href="#partial-invalidation" title="Permanent link">&para;</a></h2>
 <pre><code class="language-python">from routing.router import Route
+
 
 class ArticlesRoute(Route):
     path = &quot;/articles&quot;
     form = &quot;Pages.Articles&quot;
 
+
 class ArticleRoute(Route):
     path = &quot;/articles/:id&quot;
     form = &quot;Pages.Article&quot;
 </code></pre>
-<p>In the above example, if you call <code>invalidate("/articles", exact=True)</code>, then data and forms associated with the <code>ArticlesRoute</code> will be invalidated. If you call <code>invalidate("/articles", exact=False)</code>, then data and forms associated with the <code>ArticlesRoute</code> and all cached <code>ArticleRoute</code> instances will be invalidated, since the <code>ArticleRoute</code> path is a subset of the <code>ArticlesRoute</code> path.</p>
+<p>In the above example, if you call <code>invalidate("/articles", exact=True)</code>, then data and forms associated with the <code>ArticlesRoute</code> will be invalidated. If you call <code>invalidate("/articles", exact=False)</code>, then data and forms associated with the <code>ArticlesRoute</code> and all cached <code>ArticleRoute</code> instances will be invalidated, because concrete paths such as <code>/articles/123</code> are descendants of <code>/articles</code>.</p>
 <pre><code class="language-python">from routing.router import Route
+
 
 class ArticlesRoute(Route):
     path = &quot;/articles&quot;
@@ -219,15 +226,16 @@ class ArticlesRoute(Route):
     def parse_query(self, query):
         return {**query, &quot;page&quot;: int(query.get(&quot;page&quot;, 1))}
 </code></pre>
-<p>In the above example, the data is cached depending on the <code>page</code> query parameter. If you call <code>invalidate("/articles")</code>, then all data associated with all pages will be invalidated. A deps value of <code>{"page": 1}</code> is considered a subset of an empty deps argument. If you call <code>invalidate("/articles", exact=True)</code>, then no data will be invalidated, since there is no exact match. Calling <code>invalidate("/articles", deps={"page": 1})</code> will invalidate only the data for the first page.</p>
+<p>In the above example, the data is cached depending on the <code>page</code> query parameter. If you call <code>invalidate("/articles")</code>, then all data associated with all pages will be invalidated. Omitting <code>deps</code> imposes no dependency filter. If you call <code>invalidate("/articles", exact=True)</code>, then no data will be invalidated, since there is no exact match. Calling <code>invalidate("/articles", deps={"page": 1})</code> will invalidate only the data for the first page.</p>
 <h2 id="invalidating-contexts">Invalidating Contexts<a class="headerlink" href="#invalidating-contexts" title="Permanent link">&para;</a></h2>
 <p>A routing context also has an <code>invalidate</code> method for convenience.</p>
 <pre><code class="language-python">from routing import router
 
+
 class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def delete_button_click(self, **event_args):
         self.remove_from_parent()

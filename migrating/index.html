@@ -70,7 +70,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
@@ -153,7 +153,7 @@
               
                 <h1 id="migrating">Migrating<a class="headerlink" href="#migrating" title="Permanent link">&para;</a></h1>
 <h2 id="from-an-app-that-navigates-with-anvilopen_form">From an app that navigates with <code>anvil.open_form</code><a class="headerlink" href="#from-an-app-that-navigates-with-anvilopen_form" title="Permanent link">&para;</a></h2>
-<p>Define your routes. If you are not using <code>params</code> in any routes, you should be able to replace all calls to <code>anvil.open_form</code> with <code>router.open_form</code>. To begin with, make sure to set <code>cached_forms</code> to <code>False</code>. As you decide certain routes should have <code>params</code>, you will need to replace <code>router.open_form</code> with <code>router.navigate</code>. The keyword arguments to <code>open_form</code> will be a dictionary you pass to the <code>form_properties</code> argument of <code>navigate</code>.</p>
+<p>Define your routes. If you are not using <code>params</code> in any routes, you should be able to replace all calls to <code>anvil.open_form</code> with <code>router.open_form</code>. To begin with, make sure to set <code>cache_form</code> to <code>False</code>. As you decide certain routes should have <code>params</code>, you will need to replace <code>router.open_form</code> with <code>router.navigate</code>. The keyword arguments to <code>open_form</code> will be a dictionary you pass to the <code>form_properties</code> argument of <code>navigate</code>.</p>
 <p>A common pitfall will be that a Form could previously rely on the <code>item</code> property always being passed to the form. However, this will not be the case if a user navigates directly to the form. In this case, the <code>item</code> property will be <code>None</code>, and you will have to fetch the item based on the <code>routing_context</code>.</p>
 <h2 id="from-anvil_extrasrouting-hashrouting">From <code>anvil_extras.routing</code> (<code>HashRouting</code>)<a class="headerlink" href="#from-anvil_extrasrouting-hashrouting" title="Permanent link">&para;</a></h2>
 <p>Define your routes. Each route definition will be similar to the hash routing <code>@route</code> decorator.</p>
@@ -161,6 +161,7 @@
 <pre><code class="language-python">from routing.router import TemplateWithContainerRoute as BaseRoute
 
 BaseRoute.template = &quot;MainTemplate&quot;
+
 
 class IndexRoute(BaseRoute):
     path = &quot;/&quot;
@@ -177,31 +178,29 @@ class IndexRoute(BaseRoute):
 
 BaseRoute.template = &quot;MainTemplate&quot;
 
+
 class IndexRoute(BaseRoute):
     path = &quot;/&quot;
     form = &quot;Pages.Index&quot;
     template_container_properties = {&quot;full_width_row&quot;: True}
 </code></pre>
-<p>If you are using <code>full_width_row</code> on all routes then you can set the <code>full_width_row</code> attribute on the <code>Route</code> class.</p>
+<p>If you are using <code>full_width_row</code> on all routes then you can set <code>template_container_properties</code> on the shared base route.</p>
 <pre><code class="language-python">from routing.router import TemplateWithContainerRoute as BaseRoute
 
 BaseRoute.template = &quot;MainTemplate&quot;
 BaseRoute.template_container_properties = {&quot;full_width_row&quot;: True}
-
 </code></pre>
 <h3 id="navigation-links">Navigation Links<a class="headerlink" href="#navigation-links" title="Permanent link">&para;</a></h3>
 <p>Replace regular HTML links with <code>NavLink</code> components. Instead of using click handlers and manually managing navigation, configure the path directly on the component (either in code or in the designer):</p>
-<pre><code class="language-python">
-from ._anvil_designer import MainTemplate
+<pre><code class="language-python">from ._anvil_designer import MainTemplate
 from routing import router
 
 
 class Main(MainTemplate):
     def __init__(self, **properties):
-        self.nav_home.path = '/home'
-        self.nav_settings.path = '/settings'
-        self.init_components(**properties)
-
+        super().__init__(**properties)
+        self.nav_home.path = &quot;/home&quot;
+        self.nav_settings.path = &quot;/settings&quot;
 </code></pre>
 <p>NavLinks provide several advantages:
 - Automatic active state management
@@ -211,16 +210,15 @@ class Main(MainTemplate):
 - Improved accessibility</p>
 <h3 id="on_navigation-callback"><code>on_navigation</code> callback<a class="headerlink" href="#on_navigation-callback" title="Permanent link">&para;</a></h3>
 <p>In hash routing the <code>on_navigation</code> method is called on the Template form when the hash changes. This is often used to update the active nav link in the sidebar. If you are using <code>Link</code> components in your sidebar, we recommend replacing these with <code>NavLink</code> components (see previous section).</p>
-<p>If you want to keep your existing <code>on_navigation</code> method, you can achieve this through the <code>router</code>'s event system. The <code>router</code> will emit a <code>navigation</code> event when the url changes.</p>
-<pre><code class="language-python">
-from ._anvil_designer import MainTemplate
+<p>If you want to keep your existing <code>on_navigation</code> method, you can achieve this through the <code>router</code>'s event system. The <code>router</code> will emit a <code>navigate</code> event when the url changes.</p>
+<pre><code class="language-python">from ._anvil_designer import MainTemplate
 from routing import router
 
 
 class Main(MainTemplate):
     def __init__(self, **properties):
+        super().__init__(**properties)
         self.links = {&quot;/&quot;: self.home_nav, &quot;/about&quot;: self.about_nav}
-        self.init_components(**properties)
 
     def on_navigate(self, **event_args):
         context = router.get_routing_context()
@@ -242,17 +240,15 @@ class Main(MainTemplate):
 
     def form_hide(self, **event_args):
         router.remove_event_handler(&quot;navigate&quot;, self.on_navigate)
-
 </code></pre>
-<p>If you have multiple Templates, we recommend subscribing to the <code>navigation</code> event in the <code>form_show</code> method of your template form, and unsubscribing in the <code>form_hide</code> method. If you only have a single template, you can subscribe to the <code>navigation</code> event in the <code>__init__</code> method of your template form and there is no need to unsubscribe.</p>
+<p>If you have multiple Templates, we recommend subscribing to the <code>navigate</code> event in the <code>form_show</code> method of your template form, and unsubscribing in the <code>form_hide</code> method. If you only have a single template, you can subscribe to the <code>navigate</code> event in the <code>__init__</code> method of your template form and there is no need to unsubscribe.</p>
 <h3 id="using-multiple-templates-redirects-and-other-advanced-usage">Using multiple templates, redirects, and other advanced usage<a class="headerlink" href="#using-multiple-templates-redirects-and-other-advanced-usage" title="Permanent link">&para;</a></h3>
 <p>When migrating from anvil_extras, you might have different templates for different parts of your application. For example, you might have:
 - A main template with navigation for authenticated users
 - A minimal template for authentication pages
 - A specialized template for admin sections</p>
 <p>You can configure this by setting different templates for different routes. You can also configure redirects and caching settings within each route class. Below is an example with two templates - one for authentication and one for the main app.</p>
-<pre><code class="language-python">
-from routing.router import TemplateWithContainerRoute as BaseRoute
+<pre><code class="language-python">from routing.router import TemplateWithContainerRoute as BaseRoute
 from routing.router import Redirect
 from .Global import Global  # if you have a module for global (cached) variables
 
@@ -266,41 +262,40 @@ class EnsureUserMixin:
 
 
 class SigninRoute(BaseRoute):
-    template = 'Templates.Static'  # Template for auth screen
-    path = '/signin'
-    form = 'Pages.Signin'
+    template = &quot;Templates.Static&quot;  # Template for auth screen
+    path = &quot;/signin&quot;
+    form = &quot;Pages.Signin&quot;
     cache_form = True  # Cache settings for this route form.
 
 
 class SignupRoute(BaseRoute):
-    template = 'Templates.Static'  # Template for auth screen
-    path = '/signup'
-    form = 'Pages.Signup'
+    template = &quot;Templates.Static&quot;  # Template for auth screen
+    path = &quot;/signup&quot;
+    form = &quot;Pages.Signup&quot;
     cache_form = True
 
 
 class HomeRoute(EnsureUserMixin, BaseRoute):
     # This route and ones below inherits from two classes,
     # which propagates the redirect from EnsureUserMixin
-    template = 'Templates.Router' # Main template for app
-    path = '/app/home'
-    form = 'Pages.Home'
+    template = &quot;Templates.Router&quot;  # Main template for app
+    path = &quot;/app/home&quot;
+    form = &quot;Pages.Home&quot;
     cache_form = True
 
 
 class SettingsRoute(EnsureUserMixin, BaseRoute):
-    template = 'Templates.Router'
-    path = '/app/settings'
-    form = 'Pages.Settings'
+    template = &quot;Templates.Router&quot;
+    path = &quot;/app/settings&quot;
+    form = &quot;Pages.Settings&quot;
     cache_form = True
 
 
 class AdminRoute(EnsureUserMixin, BaseRoute):
-    template = 'Templates.Router'
-    path = '/app/admin'
-    form = 'Pages.Admin'
+    template = &quot;Templates.Router&quot;
+    path = &quot;/app/admin&quot;
+    form = &quot;Pages.Admin&quot;
     cache_form = True
-
 </code></pre>
 <p>Note that redirects are no longer defined in the startup form, but the routes module. In addition, caching is defined for each route, not as a parameter in the navigation function (anvil_extras <code>set_url_hash</code>). Any common attributes and methods can be set on base classes or mix-in classes.</p>
               

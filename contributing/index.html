@@ -70,7 +70,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
@@ -111,6 +111,8 @@
     <li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#setting-up-pre-commit">Setting up Pre-commit</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#contributing-to-documentation">Contributing to Documentation</a>
     </li>
@@ -163,7 +165,7 @@
 <p><code>git checkout -b fix/&lt;your-fix-name&gt;</code></p>
 <p>or for a new feature:</p>
 <p><code>git checkout -b feat/&lt;your-feature-name&gt;</code></p>
-<p>or for a docs changes:</p>
+<p>or for documentation changes:</p>
 <p><code>git checkout -b docs/&lt;your-docs-changes-name&gt;</code></p>
 </li>
 </ol>
@@ -183,6 +185,30 @@
 <p>To run the checks manually:</p>
 <pre><code class="language-bash">pre-commit run --all-files
 </code></pre>
+<h2 id="running-tests">Running tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
+<p>Use Python 3.12 and run these commands from the repository root:</p>
+<pre><code class="language-bash">python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r tests/requirements.txt
+python -m pytest -q
+</code></pre>
+<p>The <code>Tests</code> GitHub Actions workflow runs the same suite on pull requests and
+pushes to <code>master</code>. It can also be run manually.</p>
+<p>The suite currently protects two sets of regressions:</p>
+<ul>
+<li>Sitemap responses include enabled static routes and omit disabled or
+  parameterised routes.</li>
+<li>Changing link navigation properties updates both the href and click
+  destination. Missing parameters invalidate the link, and valid parameters
+  restore it. Navigation events preserve cached fixed destinations.</li>
+</ul>
+<p>These tests execute the production response and link logic with stand-ins for
+the Anvil runtime and UI provider. They do not exercise browser history, form
+rendering, or asynchronous loader behaviour in a running Anvil app. Changes to
+those behaviours need validation in an Anvil app.</p>
+<p>Add tests for concrete behaviour or regressions using the current API. The old
+matcher and loader experiments were removed because they used obsolete APIs
+and could not be collected by pytest.</p>
 <h2 id="contributing-to-documentation">Contributing to Documentation<a class="headerlink" href="#contributing-to-documentation" title="Permanent link">&para;</a></h2>
 <p>We use MkDocs for our documentation. To set up the documentation environment:</p>
 <ol>

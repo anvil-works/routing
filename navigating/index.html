@@ -85,6 +85,20 @@
     </li>
         </ul>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#scrolling">Scrolling</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#restore-positions-with-back-and-forward">Restore positions with Back and Forward</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#restore-by-path-across-new-link-clicks">Restore by path across new link clicks</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#choose-a-scroll-policy">Choose a scroll policy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#manage-scrollable-panels">Manage scrollable panels</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#anchors-and-loading">Anchors and loading</a>
+    </li>
+        </ul>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="navigation-components/">Navigation Components</a>
@@ -98,7 +112,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
@@ -162,11 +176,12 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h1>
-<p>There are two ways to navigate. The first is with the <code>navigate</code> function, and the second is with a <a href="/navigating/navigation-components">navigation component</a>.</p>
+<p>There are two ways to navigate. The first is with the <code>navigate</code> function, and the second is with a <a href="navigation-components/">navigation component</a>.</p>
 <h2 id="navigating-with-navigate">Navigating with <code>navigate</code><a class="headerlink" href="#navigating-with-navigate" title="Permanent link">&para;</a></h2>
 <p>The <code>navigate</code> function lets you navigate to a specific path through code. It is a function that you will likely call from a click handler.</p>
 <p>Do note that the <code>navigate</code> function can only be called from client code.</p>
 <pre><code class="language-python">from routing.router import navigate
+
 
 class Form(FormTemplate):
     def nav_button_click(self, **event_args):
@@ -192,12 +207,11 @@ class Form(FormTemplate):
 <dt><code>query</code></dt>
 <dd>The query parameters to navigate to. e.g. <code>{"tab": "income"}</code>. This can be a function that takes the current query parameters as an argument and returns the new query parameters. If you provide a query function, avoid modifying the query parameters directly, instead return a new dictionary.</dd>
 </dl>
-<pre><code class="language-python">
-def on_button_click(self, **event_args):
+<pre><code class="language-python">def on_button_click(self, **event_args):
     def query(prev):
         return {**prev, &quot;open&quot;: not prev.get(&quot;open&quot;, False)}
-    navigate(query=query)
 
+    navigate(query=query)
 </code></pre>
 <dl>
 <dt><code>hash</code></dt>
@@ -213,19 +227,21 @@ def on_button_click(self, **event_args):
 <p>The <code>form_properties</code> is a dictionary that is passed to the <code>open_form</code> function. A common use case is to pass the form's <code>item</code> property. Note that if you are relying on <code>form_properties</code>, you will always need to account for <code>form_properties</code> being an empty dictionary when the user navigates by changing the URL directly.</p>
 <pre><code class="language-python">from routing import router
 
+
 class RowTemplate(RowTemplateTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def button_click(self, **event_args):
         router.navigate(
             path=&quot;/articles/:id&quot;,
             params={&quot;id&quot;: self.item[&quot;id&quot;]},
-            form_properties={&quot;item&quot;: self.item}
+            form_properties={&quot;item&quot;: self.item},
         )
 </code></pre>
 <p>And then in the <code>/articles/:id</code> route:</p>
 <pre><code class="language-python">from routing import router
+
 
 class ArticleForm(ArticleFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
@@ -236,11 +252,12 @@ class ArticleForm(ArticleFormTemplate):
             article_id = routing_context.params[&quot;id&quot;]
             properties[&quot;item&quot;] = anvil.server.call(&quot;get_article&quot;, article_id)
 
-        self.init_components(**properties)
+        super().__init__(**properties)
 </code></pre>
 <h3 id="use-of-nav_context">Use of <code>nav_context</code><a class="headerlink" href="#use-of-nav_context" title="Permanent link">&para;</a></h3>
 <p>The <code>nav_context</code> is a dictionary that is passed to the <code>navigate</code> function. A use case for this is to pass the previous routing context to the next routing context. This is useful when you want to navigate to a new route but want to preserve the previous route's data, particularly if the previous route uses query parameters that determine the state of the form.</p>
 <pre><code class="language-python">from routing import router
+
 
 def on_button_click(self, **event_args):
     current_context = router.get_routing_context()
@@ -249,10 +266,11 @@ def on_button_click(self, **event_args):
 <p>And then in the <code>/foo</code> route:</p>
 <pre><code class="language-python">from routing import router
 
+
 class FooForm(FooFormTemplate):
     def __init__(self, routing_context: router.RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def cancel_button_click(self, **event_args):
         prev_context = self.routing_context.nav_context.get(&quot;prev_context&quot;)
@@ -267,6 +285,7 @@ class FooForm(FooFormTemplate):
 <pre><code class="language-python">class DashboardRoute(Route):
     path = &quot;/dashboard&quot;
     form = &quot;Pages.Dashboard&quot;
+
     def before_load(self, **loader_args):
         # Add a value to nav_context for this navigation
         return {&quot;show_sidebar&quot;: True}
@@ -279,6 +298,7 @@ class FooForm(FooFormTemplate):
 <p>Hooks are collected from all base classes and <strong>run in reverse MRO order</strong> (base classes first, derived classes last), allowing you to layer behaviors:</p>
 <pre><code class="language-python">from routing.router import Route, hooks, Redirect
 
+
 class AuthenticatedRoute(Route):
     @hooks.before_load
     def check_auth(self, **loader_args):
@@ -286,10 +306,12 @@ class AuthenticatedRoute(Route):
             raise Redirect(path=&quot;/login&quot;)
         return {&quot;user&quot;: get_current_user()}
 
+
 class FeatureFlagMixin:
     @hooks.before_load
     def add_feature_flag(self, **loader_args):
         return {&quot;feature_enabled&quot;: True}
+
 
 class DashboardRoute(FeatureFlagMixin, AuthenticatedRoute):
     path = &quot;/dashboard&quot;
@@ -305,11 +327,12 @@ class DashboardRoute(FeatureFlagMixin, AuthenticatedRoute):
 3. <code>DashboardRoute.dashboard_flag</code> (most derived)</p>
 <p>This order ensures base classes can set up context (like authentication) that derived classes depend on.</p>
 <h3 id="global-hooks">Global Hooks<a class="headerlink" href="#global-hooks" title="Permanent link">&para;</a></h3>
-<p>You can attach a hook to the <code>Route</code> base class to apply it to all routes:</p>
+<p>Attach a hook to the <code>Route</code> base class before defining route subclasses. Hooks are collected when each subclass is created:</p>
 <pre><code class="language-python">@hooks.before_load
 def global_hook(self, **loader_args):
     # e.g., add analytics or logging
     return {&quot;analytics_id&quot;: &quot;xyz&quot;}
+
 
 Route.global_hook = global_hook
 </code></pre>
@@ -326,25 +349,144 @@ Route.global_hook = global_hook
 <li>Global hooks are powerful for cross-cutting concerns, but use them judiciously to avoid surprises.</li>
 </ul>
 <p><strong>Example:</strong></p>
-<pre><code class="language-python">from routing.router import Route, hooks, Redirect, Redirect
+<pre><code class="language-python">from routing.router import Route, hooks, Redirect
+
 
 class AuthenticatedRoute(Route):
     @hooks.before_load
-    def set_user(self, nav_context, **loader_args):
-        nav_context[&quot;user&quot;] = get_current_user()
-
-    @hooks.before_load
-    def check_permissions(self, nav_context, **loader_args):
-        user = nav_context.get(&quot;user&quot;)
+    def require_user(self, nav_context, **loader_args):
+        user = get_current_user()  # Application-defined helper
         if not user or not user.has_permission():
             raise Redirect(path=&quot;/login&quot;)
+        return {&quot;user&quot;: user}
+
 
 class FeatureRoute(AuthenticatedRoute):
     @hooks.before_load
     def add_feature_flag(self, nav_context, **loader_args):
         nav_context[&quot;feature_enabled&quot;] = True
 </code></pre>
-<p>Hooks are called in order, and each can build on the output of previous hooks via <code>nav_context</code>.</p>
+<p>Hooks in different classes run in reverse MRO order. Within one class, the current implementation runs hooks in reverse definition order. Keep dependent steps in a single hook, as in <code>require_user</code> above. Overriding <code>before_load</code> bypasses decorated hooks unless the override calls <code>super().before_load(**loader_args)</code>.</p>
+<h2 id="scrolling">Scrolling<a class="headerlink" href="#scrolling" title="Permanent link">&para;</a></h2>
+<p>By default, navigation scrolls the document to the top. A URL fragment such as
+<code>#comments</code> scrolls to that element instead. If the element is missing, the router
+leaves the scroll position alone. Query changes and replacements follow the same
+rules; navigating to an identical URL does nothing.</p>
+<h3 id="restore-positions-with-back-and-forward">Restore positions with Back and Forward<a class="headerlink" href="#restore-positions-with-back-and-forward" title="Permanent link">&para;</a></h3>
+<p>Enable restoration on your app's base route:</p>
+<pre><code class="language-python">from routing.router import Route
+
+
+class AppRoute(Route):
+    scroll_default = &quot;restore&quot;
+</code></pre>
+<p>Routes inheriting from <code>AppRoute</code> remember each visit's scroll position:</p>
+<table>
+<thead>
+<tr>
+<th>Navigation</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Click a link</td>
+<td>Start a new visit: scroll to the fragment or top.</td>
+</tr>
+<tr>
+<td>Back or Forward</td>
+<td>Restore that visit's saved position.</td>
+</tr>
+<tr>
+<td>Reload</td>
+<td>Restore the current visit's saved position.</td>
+</tr>
+</tbody>
+</table>
+<p>A saved position takes precedence over a fragment. Positions are stored in the
+browser's session storage. If saving is unavailable or a record is invalid,
+the router uses the usual fragment/top behavior.</p>
+<h3 id="restore-by-path-across-new-link-clicks">Restore by path across new link clicks<a class="headerlink" href="#restore-by-path-across-new-link-clicks" title="Permanent link">&para;</a></h3>
+<p>To remember the latest position for each path, including new link clicks,
+give your base route a path-based restoration key:</p>
+<pre><code class="language-python">class AppRoute(Route):
+    scroll_default = &quot;restore&quot;
+
+    def scroll_restoration_key(self, location):
+        return location.path
+</code></pre>
+<p>The default key, <code>location.key</code>, distinguishes browser history entries. Using
+<code>location.path</code> shares the latest position across visits to that path, including
+query and fragment changes. Return <code>location.path + location.search</code> to keep
+query variants separate.</p>
+<h3 id="choose-a-scroll-policy">Choose a scroll policy<a class="headerlink" href="#choose-a-scroll-policy" title="Permanent link">&para;</a></h3>
+<p><code>scroll_default</code> sets the policy for the document and any managed scrollable
+panels:</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"auto"</code></td>
+<td>Scroll to the fragment, or top if there is no fragment. Save no positions. This is the default.</td>
+</tr>
+<tr>
+<td><code>"restore"</code></td>
+<td>Restore a saved position when available; otherwise use <code>"auto"</code>. Save both horizontal and vertical positions.</td>
+</tr>
+<tr>
+<td><code>"none"</code></td>
+<td>Leave the scroll position alone. Save no positions.</td>
+</tr>
+</tbody>
+</table>
+<p>To give the document a different policy, set <code>scroll_document</code> on a route:</p>
+<pre><code class="language-python">class SearchRoute(AppRoute):
+    path = &quot;/search&quot;
+    form = &quot;Pages.Search&quot;
+    scroll_document = &quot;none&quot;
+</code></pre>
+<p>Its default value, <code>"default"</code>, uses <code>scroll_default</code>. Set it back to <code>"default"</code>
+to remove an inherited override. These settings apply to the final destination
+of links, redirects and <code>navigate</code>; there are no per-navigation scroll options.</p>
+<h3 id="manage-scrollable-panels">Manage scrollable panels<a class="headerlink" href="#manage-scrollable-panels" title="Permanent link">&para;</a></h3>
+<p>Panel scrolling is opt-in. Enable it on a base route and give each scrollable
+element a nonempty ID that is stable across renders and unique on the page:</p>
+<pre><code class="language-python">class PanelRoute(AppRoute):
+    scroll_manage_elements = True
+</code></pre>
+<pre><code class="language-html">&lt;main data-routing-scroll-id=&quot;results&quot;&gt;...&lt;/main&gt;
+&lt;aside data-routing-scroll-id=&quot;sidebar&quot; data-routing-scroll=&quot;auto&quot;&gt;...&lt;/aside&gt;
+</code></pre>
+<p>Here, <code>results</code> inherits <code>scroll_default="restore"</code> from <code>AppRoute</code>, while
+<code>sidebar</code> uses <code>"auto"</code> instead of restoring saved positions. <code>data-routing-scroll</code>
+accepts <code>"auto"</code>, <code>"restore"</code>,
+<code>"none"</code>, or <code>"default"</code>. Omitting it is the same as <code>"default"</code>.</p>
+<p>Elements without <code>data-routing-scroll-id</code> are unmanaged. With
+<code>scroll_manage_elements=False</code>, the default, the router does not look for or
+manage panels. Document scrolling is independent: set <code>scroll_document="none"</code>
+and <code>scroll_manage_elements=False</code> to turn off all router scrolling. Explicit
+panel policies still apply when <code>scroll_default="none"</code>.</p>
+<p><code>"none"</code> does not preserve a panel's position when its DOM is removed and
+recreated. New elements normally start at zero. Cached forms follow the same
+policies, and detaching their DOM can lose scroll state. Use <code>"restore"</code> and stable IDs to recover
+saved positions. A panel that stays mounted can retain its position without
+router intervention.</p>
+<h3 id="anchors-and-loading">Anchors and loading<a class="headerlink" href="#anchors-and-loading" title="Permanent link">&para;</a></h3>
+<p>For a fragment inside a managed panel, the router scrolls its nearest managed
+ancestor. Otherwise it scrolls the document. It respects <code>scroll-margin-top</code> and
+moves only that area's scroll offsets. A panel with <code>"none"</code> prevents anchor
+scrolling inside it. Other areas can restore saved positions but do not scroll
+to the top while a fragment is present. Document scrolling alone cannot reveal
+a target hidden inside an independently scrolling panel.</p>
+<p>Scrolling is instant and happens once after the destination form is attached.
+Pending forms do not trigger it; error and not-found forms do. Canceled or failed
+navigation that does not display a destination does not scroll. Targets added
+later are not retried.</p>
               
             </div>
           </div><footer>

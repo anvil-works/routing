@@ -70,7 +70,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../routes/params/">Params</a>
                   </li>
@@ -147,10 +147,11 @@ It provides information about the current route and the current navigation conte
 <pre><code class="language-python">from ._anvil_designer import IndexTemplate
 from routing.router import RoutingContext
 
-class IndexTemplate(IndexTemplate):
+
+class Index(IndexTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
-        self.init_components(**properties)
+        super().__init__(**properties)
 </code></pre>
 <div class="admonition autocompletion">
 <p class="admonition-title">Autocompletion</p>
@@ -176,6 +177,8 @@ class IndexTemplate(IndexTemplate):
 <dd>The error that occurred when loading the form or loading the data. This is particularly useful when displaying error messages in your error form.</dd>
 <dt><code>data</code></dt>
 <dd>The data for the current route. This is the value returned from the <code>load_data</code> method.</dd>
+<dt><code>revalidating</code></dt>
+<dd><code>True</code> when routing is currently refreshing cached data in the background.</dd>
 </dl>
 <!-- `match`
 
@@ -193,9 +196,9 @@ class IndexTemplate(IndexTemplate):
 <p>The <code>RoutingContext</code> instance will emit events when the route changes.</p>
 <dl>
 <dt><code>data_loading</code></dt>
-<dd>Emitted when the data is loading.</dd>
+<dd>Emitted when the data is loading. This also fires from <code>raise_init_events()</code> if the current context already has cached data and is revalidating it in the background.</dd>
 <dt><code>data_loaded</code></dt>
-<dd>Emitted when the data has been loaded, or when the data has an error. To determine if the data is loaded successfully, check the <code>error</code> property is <code>None</code>.</dd>
+<dd>Emitted when data loads successfully. <code>raise_init_events()</code> also emits this event with the current data and error, so check <code>routing_context.error</code> when handling initial state.</dd>
 <dt><code>data_error</code></dt>
 <dd>Emitted when the data has an error.</dd>
 <dt><code>query_changed</code></dt>
@@ -206,11 +209,11 @@ class IndexTemplate(IndexTemplate):
 <h2 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h2>
 <dl>
 <dt><code>invalidate(exact=False)</code></dt>
-<dd>Invalidates any cached data or forms for this routing context. If <code>exact</code> is <code>True</code>, then the path and deps must match exactly. By default this is <code>False</code>. If <code>False</code> then any path or deps that are a subset of path and deps arguments will be invalidated.</dd>
-<dt><code>refetch()</code></dt>
-<dd>Invalidates the data for this routing context (with exact=True) and then loads the data again.</dd>
+<dd>Invalidates any cached data or forms for this routing context. If <code>exact</code> is <code>True</code>, then the path and deps must match exactly. By default this is <code>False</code>. If <code>False</code>, matching paths and their descendants are invalidated when their dependencies contain all the entries in this context's <code>deps</code>.</dd>
+<dt><code>refetch(*, silent=None)</code></dt>
+<dd>Invalidates cached forms and data for this routing context with <code>exact=True</code>. If this is the current routing context, starts a new data load and returns its asynchronous result. Otherwise, returns without loading data. The <code>silent</code> value is passed through to <code>load_data(...)</code> as a loader argument. For <code>server_fn</code> routes, <code>silent=True</code> uses <code>anvil.server.call_s(...)</code>, <code>silent=False</code> uses <code>anvil.server.call(...)</code>, and <code>silent=None</code> uses the route default. Custom <code>load_data(...)</code> implementations can inspect <code>silent</code> and choose how to handle loading indicators or silent/background fetches.</dd>
 <dt><code>raise_init_events()</code></dt>
-<dd>Raises the <code>data_loaded</code>, <code>data_loading</code>, <code>data_error</code>, <code>query_changed</code> and <code>hash_changed</code> events.
+<dd>Raises <code>data_loaded</code>, <code>query_changed</code> and <code>hash_changed</code> for the current state. Also raises <code>data_error</code> if an error exists and <code>data_loading</code> if data is revalidating.
 This method is useful during instantiation of the form. First set up your event handlers, then call <code>raise_init_events()</code>.</dd>
 </dl>
               

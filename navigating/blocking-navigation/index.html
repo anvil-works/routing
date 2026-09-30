@@ -74,7 +74,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../routes/params/">Params</a>
                   </li>
@@ -139,16 +139,19 @@
               
                 <h1 id="blocking-navigation">Blocking Navigation<a class="headerlink" href="#blocking-navigation" title="Permanent link">&para;</a></h1>
 <p>You may want to prevent the user from navigating away from a page, for example, if they are editing a form.</p>
-<pre><code class="language-python">from routing.router import RoutingContext, navigate
+<pre><code class="language-python">from routing.router import RoutingContext, navigate, confirm
+
 
 class EditForm(EditFormTemplate):
     def __init__(self, routing_context: RoutingContext, **properties):
         self.routing_context = routing_context
         self.routing_context.register_blocker(self.prevent_navigation)
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def prevent_navigation(self, **event_args):
-        c = confirm(&quot;Are you sure you want to leave this page? Your changes will be lost.&quot;)
+        c = confirm(
+            &quot;Are you sure you want to leave this page? Your changes will be lost.&quot;
+        )
         return not c
 
     def save_button_click(self, **event_args):
@@ -160,11 +163,12 @@ class EditForm(EditFormTemplate):
 <p>When you register a blocker, if a user navigates to another website, the browser dialogue asking if they want to leave the current page will be shown.</p>
 </div>
 <p>Alternatively, you can use the <code>NavigationBlocker</code> context manager.</p>
-<pre><code class="language-python">from routing.router import NavigationBlocker
+<pre><code class="language-python">from routing.router import NavigationBlocker, alert
+
 
 class Form(FormTemplate):
     def __init__(self, **properties):
-        self.init_components(**properties)
+        super().__init__(**properties)
 
     def run_important_alert(self, **event_args):
         with NavigationBlocker(warn_before_unload=True):
@@ -173,7 +177,7 @@ class Form(FormTemplate):
 <p>The above navigation blocker will prevent the user from navigating away from the page while the alert is open.
 <code>warn_before_unload</code> will show the browser dialogue asking if the user wants to leave the page if they navigate to a new website. By default, this is <code>False</code>.</p>
 <h2 id="alerts">Alerts<a class="headerlink" href="#alerts" title="Permanent link">&para;</a></h2>
-<p>The <code>alert</code> and <code>confirm</code> functions are provided by the routing library. These functions behave similarly to Anvil's default <code>alert</code> and <code>confirm</code> functions, but they will block navigation when <code>dismissible</code> is <code>True</code>, or close the alert when the user navigates to a new page.</p>
+<p>The <code>alert</code> and <code>confirm</code> functions are provided by the routing library. These functions behave similarly to Anvil's default <code>alert</code> and <code>confirm</code> functions, but they block navigation when <code>dismissible=False</code> and close when navigation occurs if <code>dismissible=True</code>. The default is <code>True</code> for <code>alert</code> and <code>False</code> for <code>confirm</code>.</p>
 <p>You can override the default <code>alert</code> and <code>confirm</code> functions by setting the <code>anvil.alert</code> and <code>anvil.confirm</code> attributes in your startup module.</p>
 <pre><code class="language-python"># startup.py
 import anvil

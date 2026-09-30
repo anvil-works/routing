@@ -5,14 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Route Meta Method - Routing Docs</title>
+    <title>Route meta - Routing Docs</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Route Meta Method";
+        var mkdocs_page_name = "Route meta";
         var mkdocs_page_input_path = "routes/meta.md";
         var mkdocs_page_url = null;
       </script>
@@ -70,21 +70,13 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Route Meta Method</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Route meta</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#defining-meta-tags">Defining Meta Tags</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#basic-example">Basic Example</a>
+    <li class="toctree-l2"><a class="reference internal" href="#asset-urls">Asset URLs</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#using-get_app_origin-for-absolute-urls">Using get_app_origin() for Absolute URLs</a>
+    <li class="toctree-l2"><a class="reference internal" href="#client-and-server-behaviour">Client and server behaviour</a>
     </li>
-        </ul>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#example-adding-twitter-card-tags">Example: Adding Twitter Card Tags</a>
-    </li>
-        </ul>
+    <li class="toctree-l2"><a class="reference internal" href="#defaults">Defaults</a>
     </li>
     </ul>
                   </li>
@@ -140,7 +132,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Routes</li>
-      <li class="breadcrumb-item active">Route Meta Method</li>
+      <li class="breadcrumb-item active">Route meta</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -149,71 +141,52 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="route-meta-method">Route Meta Method<a class="headerlink" href="#route-meta-method" title="Permanent link">&para;</a></h1>
-<p>The <code>meta</code> method on a <code>Route</code> class allows you to dynamically set the meta tags for each page, such as the title, description, Open Graph tags, and images. This is useful for SEO, social sharing, and customizing how your app appears in search engines and link previews.</p>
-<h2 id="defining-meta-tags">Defining Meta Tags<a class="headerlink" href="#defining-meta-tags" title="Permanent link">&para;</a></h2>
-<p>Override the <code>meta</code> method in your route class to return a dictionary of meta tags. Standard tags (like <code>title</code> or <code>description</code>) will be rendered as <code>&lt;meta name="..."&gt;</code> tags, while Open Graph tags (such as <code>og:title</code> or <code>og:image</code>) will be rendered as <code>&lt;meta property="..."&gt;</code> tags in the HTML.</p>
-<h3 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">&para;</a></h3>
-<pre><code class="language-python">from routing import Route
+                <h1 id="route-meta">Route meta<a class="headerlink" href="#route-meta" title="Permanent link">&para;</a></h1>
+<p>Override a route's <code>meta</code> method to return a dictionary of page metadata. The router calls it before loading data, so use its loader arguments rather than relying on <code>routing_context.data</code>.</p>
+<pre><code class="language-python">from routing.router import Route
+
 
 class ProductRoute(Route):
     path = &quot;/product&quot;
     form = &quot;Pages.Product&quot;
 
-    def meta(self, **kwargs):
-        meta_data = {}
-        meta_data['title'] = &quot;Product Page&quot;
-        meta_data['description'] = &quot;Details and specifications for our featured product.&quot;
-        meta_data['og:title'] = &quot;Featured Product&quot;
-        meta_data['og:description'] = &quot;Learn more about our latest product release.&quot;
-        meta_data[&quot;og:image&quot;] = &quot;asset:product.jpeg&quot;  # Use a theme asset
-        return meta_data
+    def meta(self, **loader_args):
+        return {
+            &quot;title&quot;: &quot;Product page&quot;,
+            &quot;description&quot;: &quot;Details and specifications for our product.&quot;,
+            &quot;og:image&quot;: &quot;asset:product.jpeg&quot;,
+            &quot;twitter:card&quot;: &quot;summary_large_image&quot;,
+        }
 </code></pre>
-<h3 id="using-get_app_origin-for-absolute-urls">Using <code>get_app_origin()</code> for Absolute URLs<a class="headerlink" href="#using-get_app_origin-for-absolute-urls" title="Permanent link">&para;</a></h3>
-<p>If you want to provide an absolute URL for Open Graph images (recommended for social sharing), you can use the <code>get_app_origin()</code> utility:</p>
-<pre><code class="language-python">from routing import Route, get_app_origin
+<h2 id="asset-urls">Asset URLs<a class="headerlink" href="#asset-urls" title="Permanent link">&para;</a></h2>
+<p>Use <code>asset:product.jpeg</code> to refer to an app theme asset. To construct an absolute URL yourself, use <code>anvil.server.get_app_origin()</code>:</p>
+<pre><code class="language-python">import anvil.server
+from routing.router import Route
+
 
 class AboutRoute(Route):
     path = &quot;/about&quot;
     form = &quot;Pages.About&quot;
 
-    def meta(self, **kwargs):
-        origin = get_app_origin()
-        meta_data = {
-            'title': &quot;About Us&quot;,
-            'description': &quot;Information about our company and team.&quot;,
-            'og:title': &quot;About Our Company&quot;,
-            'og:description': &quot;Discover our mission, values, and team members.&quot;,
-            'og:image': f&quot;{origin}/_/theme/about.jpeg&quot;  # Absolute URL
+    def meta(self, **loader_args):
+        origin = anvil.server.get_app_origin()
+        return {
+            &quot;title&quot;: &quot;About us&quot;,
+            &quot;description&quot;: &quot;Information about our company and team.&quot;,
+            &quot;og:image&quot;: f&quot;{origin}/_/theme/about.jpeg&quot;,
         }
-        return meta_data
 </code></pre>
-<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<h2 id="client-and-server-behaviour">Client and server behaviour<a class="headerlink" href="#client-and-server-behaviour" title="Permanent link">&para;</a></h2>
+<p>On a direct URL request, the router passes the metadata to Anvil's <code>AppResponder</code>, which controls the initial response's metadata. On client navigation, the router updates the document's <code>&lt;title&gt;</code> and writes metadata as <code>&lt;meta name="..." content="..."&gt;</code> elements, including Open Graph names such as <code>og:image</code>.</p>
+<p>The client supports arbitrary names, including Twitter card tags. A tag appearing after client navigation does not establish that it is present in the initial HTML read by a social preview crawler. Check the initial response when validating previews.</p>
+<h2 id="defaults">Defaults<a class="headerlink" href="#defaults" title="Permanent link">&para;</a></h2>
+<p>The base <code>Route.meta</code> method returns <code>{}</code>. On the client:</p>
 <ul>
-<li>All meta tags will be injected into the page as <code>&lt;meta ...&gt;</code> tags, except for <code>title</code>, which will be used for both the <code>&lt;title&gt;</code> tag and a <code>&lt;meta name="title"&gt;</code> tag.</li>
-<li>You can set any meta tag supported by your app or required by social platforms. Arbitrary meta tags are supported (e.g., Twitter cards <code>twitter:card</code>, <code>twitter:image</code>).</li>
-<li>If a meta value starts with <code>asset:</code>, such as <code>asset:foo.jpeg</code>, it will use the corresponding URL for an asset in your app’s Assets or theme assets folder.</li>
-<li>For absolute URLs, use <code>get_app_origin()</code> to construct the full URL.</li>
-<li>If a route does not define a particular meta tag, the value from a default or previously set meta tag may be used. For consistency and to avoid unexpected results, it’s recommended to explicitly define all relevant meta tags for each route.</li>
+<li><code>title</code> updates both <code>&lt;title&gt;</code> and <code>&lt;meta name="title"&gt;</code>.</li>
+<li><code>og:title</code> and <code>og:description</code> use <code>title</code> and <code>description</code> when those values are supplied without their Open Graph equivalents.</li>
+<li>When a tag is omitted, the current implementation restores the value captured before its most recent explicit update. This can restore metadata from an earlier route, so explicitly supply values that must be consistent across navigation. A newly created tag starts with an empty value.</li>
 </ul>
-<h3 id="example-adding-twitter-card-tags">Example: Adding Twitter Card Tags<a class="headerlink" href="#example-adding-twitter-card-tags" title="Permanent link">&para;</a></h3>
-<pre><code class="language-python">class BlogPostRoute(Route):
-    path = &quot;/blog/post&quot;
-    form = &quot;Pages.BlogPost&quot;
-
-    def meta(self, **kwargs):
-        meta_data = {
-            'title': &quot;Blog Post Title&quot;,
-            'description': &quot;A summary of the blog post.&quot;,
-            'twitter:card': &quot;summary_large_image&quot;,
-            'twitter:title': &quot;Blog Post Title&quot;,
-            'twitter:description': &quot;A summary of the blog post.&quot;,
-            'twitter:image': &quot;asset:blogpost.jpeg&quot;,  # Uses an app asset
-        }
-        return meta_data
-</code></pre>
-<hr />
-<p>For more details on available meta tags and advanced usage, see the <a href="../seo.md">SEO &amp; Meta Tags guide</a> or the <a href="../">Route class documentation</a>.</p>
+<p>See the <a href="../">Route class</a> for the rest of the route lifecycle.</p>
               
             </div>
           </div><footer>

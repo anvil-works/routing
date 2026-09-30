@@ -78,7 +78,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="routes/forms/">Forms</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="routes/meta/">Route Meta Method</a>
+                  <li class="toctree-l1"><a class="reference internal" href="routes/meta/">Route meta</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="routes/params/">Params</a>
                   </li>
@@ -149,17 +149,20 @@
 When the URL changes, the router will look for a matching route.
 The ultimate goal is to open the form associated with the given URL.</p>
 <p>The router will attempt to match routes in the order they are defined.</p>
-<p>When a route is found, the router will call the route's <code>before_load</code> method.
-- If the <code>before_load</code> method raises a <code>Redirect</code>, the router will navigate to the redirected URL.
-- If the <code>before_load</code> method returns a dictionary, its contents will be merged into the navigation context (<code>nav_context</code>) for the route.</p>
+<p>When a route is found, the router will call the route's <code>before_load</code> method.</p>
+<ul>
+<li>If the <code>before_load</code> method raises a <code>Redirect</code>, the router will navigate to the redirected URL.</li>
+<li>If the <code>before_load</code> method returns a dictionary, its contents will be merged into the navigation context (<code>nav_context</code>) for the route.</li>
+</ul>
 <p>If the route has a <code>load_data</code> method, it will be called, and the return value will be available as the <code>data</code> property on the <code>RoutingContext</code>.</p>
 <p>Once the <code>load_data</code> method has been called, the router will call the route's <code>load_form</code> method. A <code>routing_context</code> will be passed to this method. By default, the <code>load_form</code> method will call <code>anvil.open_form</code> on the matching route's form, with <code>routing_context</code> passed as a keyword argument.</p>
 <h2 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h2>
 <p>There are two types of caching: form caching and data caching.</p>
 <p>If a form is cached, instead of creating a new instance, the router will call the route's <code>load_form</code> method with the cached form instance.</p>
-<p>If data is cached, the router will only call the <code>load_data</code> method if the data is stale. See the <a href="/caching">Caching</a> section for more details.</p>
+<p>If data is cached, the route's <code>cache_data</code> policy determines whether to reuse it or call <code>load_data</code> again. See the <a href="caching/">Caching</a> section for more details.</p>
 <h2 id="server-vs-client-routing">Server vs Client Routing<a class="headerlink" href="#server-vs-client-routing" title="Permanent link">&para;</a></h2>
-<p>Should the user open the app directly through a URL as their initial page request, the routing process will occur entirely on the server. Otherwise, if the user is navigating from within the app, the process occurs on the client.</p>
+<p>On a direct URL request, the server matches the route and runs <code>before_load</code>, <code>meta</code> and <code>load_data</code>. It sends the initial data with the app. The client then launches the router, runs <code>before_load</code> and <code>meta</code> again, and opens the form using that data. Subsequent navigation runs on the client.</p>
+<p>Keep route definitions and loaders safe to run on both the server and client. Create and manipulate forms only on the client.</p>
               
             </div>
           </div><footer>
@@ -208,5 +211,5 @@ The ultimate goal is to open the form associated with the given URL.</p>
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-01-14 23:51:18.788742+00:00
+Build Date UTC : 2026-09-30 02:04:51.749412+00:00
 -->
