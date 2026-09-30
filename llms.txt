@@ -110,58 +110,42 @@ Other client helpers:
 - `router.reload()` invalidates the current path's cache and reloads on the client. `router.reload(hard=True)` reloads from the server.
 - `router.open_form("Pages.About", **properties)` navigates to a registered form by name. It requires a string form name and a route without path parameters.
 
-## Control document and element scrolling
+## Scrolling
 
-Scroll settings are inherited route properties. The defaults are `scroll_default="auto"`, `scroll_document="default"` and `scroll_manage_elements=False`. To enable document restoration throughout the app, define a shared base route:
+Use inherited route settings, not navigation options:
+
+| Setting | Default | Values |
+| --- | --- | --- |
+| `scroll_default` | `"auto"` | `"auto"`, `"restore"`, `"none"` |
+| `scroll_document` | `"default"` | Same policies; `"default"` inherits `scroll_default` |
+| `scroll_manage_elements` | `False` | `True` enables managed-element discovery and scrolling |
+
+- `auto`: existing fragment target, otherwise top when no fragment; missing target means no movement. Save nothing.
+- `restore`: save both axes; saved position wins, otherwise `auto`. Uses app-scoped session storage; unavailable/corrupt storage falls back to `auto`, with no memory cache.
+- `none`: no router saving or scrolling. Does not preserve offsets across DOM removal/recreation, including detached cached forms.
+
+For restoration in the document and scrollable panels:
 
 ```python
 from routing.router import Route
 
 class AppRoute(Route):
     scroll_default = "restore"
-
-class ArticlesRoute(AppRoute):
-    path = "/articles"
-    form = "Pages.Articles"
+    scroll_manage_elements = True
 ```
-
-`scroll_default` accepts these policies:
-
-- `"auto"`: scroll to the URL fragment's target, or to the top when there is no fragment. A missing target causes no movement. No positions are saved.
-- `"restore"`: save both scroll axes and restore a saved position when available; otherwise use `"auto"`. A saved position takes precedence over an anchor.
-- `"none"`: no router saving or scrolling for the area.
-
-`scroll_document` accepts those policies or `"default"`, which inherits `scroll_default`. Python `None` is invalid. New clicks, query changes and replacements follow the destination policy; identical URLs remain a no-op. Links, redirects and `navigate` use the final destination route's settings, with no per-navigation scroll options.
-
-Restoration identifies each browser history entry separately by default. New clicks have no saved position and use anchor/top behavior; Back/Forward and reload restore the entry's saved coordinates. To remember a page across new clicks, override the key:
-
-```python
-class ArticlesRoute(AppRoute):
-    path = "/articles"
-    form = "Pages.Articles"
-
-    def scroll_restoration_key(self, location):
-        return location.path
-```
-
-The default hook returns `location.key`. A path key shares positions across query and fragment variants; later saves replace earlier positions for that path. Return `location.path + location.search` when query variants need separate positions. Positions use versioned, app-scoped session storage. Unavailable storage or invalid records use anchor/top behavior, with no in-memory fallback.
-
-For scrollable panels, set `scroll_manage_elements=True` and mark their DOM elements with stable, nonempty, page-unique IDs:
 
 ```html
 <main data-routing-scroll-id="results">...</main>
 <aside data-routing-scroll-id="sidebar" data-routing-scroll="none">...</aside>
 ```
 
-An omitted `data-routing-scroll` or explicit `"default"` uses `scroll_default`; `"auto"`, `"restore"` and `"none"` override it. An element without `data-routing-scroll-id` is unmanaged even if it has a policy attribute. Invalid policies and empty or duplicate IDs raise configuration errors. The IDs identify saved areas within the route's restoration key; the document has its own internal identity.
+`data-routing-scroll-id` registers an area and identifies its saved position. IDs must be nonempty, page-unique and stable across renders. `data-routing-scroll` accepts `default|auto|restore|none`; omitted or `default` inherits `scroll_default`. Elements without an ID are unmanaged. Invalid policies, empty/duplicate IDs and Python `None` policies are errors. With element management off, no element lookups, saving or scrolling occur. Document handling remains independent. Full disable: `scroll_document="none"` and `scroll_manage_elements=False`; explicit policies can override `scroll_default="none"`.
 
-`scroll_manage_elements=False` disables element discovery, saving and scrolling, independently of document handling. To disable all router scrolling, set `scroll_document="none"` and `scroll_manage_elements=False`. Setting only `scroll_default="none"` still permits explicit document or element overrides.
+`scroll_restoration_key(self, location)` returns a string, defaulting to `location.key`. Each history entry has separate positions: new clicks use anchor/top, Back/Forward and reload restore saved positions. To share the latest positions across new clicks, return `location.path`; this also shares query/fragment variants. Return `location.path + location.search` to separate queries. Each element ID and the document have separate positions within that key. Form caching does not change restoration identity; cached forms receive the destination policy.
 
-With element management enabled, the fragment target's nearest registered ancestor owns anchor scrolling; otherwise the document owns it. Only that area moves, respecting `scroll-margin-top`. An owner with `"none"` suppresses anchor scrolling without an outer fallback. Other areas can restore saved positions but do not reset while a fragment is present. Document scrolling alone cannot reveal a target hidden inside an independently scrolling panel.
+Fragment scrolling moves only the target's nearest registered ancestor when element management is enabled, otherwise the document, respecting `scroll-margin-top`. A `none` owner prevents outer fallback. Other areas may restore but do not reset with a fragment. An unmanaged panel's hidden target cannot be revealed by document scrolling alone.
 
-Cached forms still receive the destination policy. `"none"` does not preserve positions across DOM removal and recreation: new elements normally start at zero, and detaching cached DOM can also lose browser scroll state. Use stable IDs and `"restore"` to recover saved element positions. Elements that stay mounted can retain offsets without router intervention.
-
-Scrolling is instant and runs once after final-form attachment and a render frame. Pending forms do not scroll; rendered error and not-found forms do. Blocked, stale or failed navigation without a final form does not scroll. There are no delayed-content retries. Custom `load_form` implementations must return the attached form. Scroll handling runs only on the client, and the router uses native manual history restoration internally.
+Client-only scrolling runs once after final attachment and a render frame; no delayed-target retries. Pending, blocked, stale or failed navigation without a destination does not scroll; displayed error/not-found forms do. Custom `load_form` must return its attached form. Links, redirects, query changes and replacements follow the final route's settings; identical URLs remain a no-op. Native history restoration is set to manual internally.
 
 ## Route links in HTML markup
 

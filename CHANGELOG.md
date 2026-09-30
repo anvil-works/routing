@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add route scroll policies (`scroll_default`, `scroll_document`, `scroll_manage_elements`) for the document and explicitly registered elements. Support anchor/top scrolling, opt-in session restoration and custom `scroll_restoration_key(location)` visit identities.
+- Add route settings for document and panel scrolling, with fragment scrolling and opt-in position restoration. Routes can remember positions per history entry or share them across visits.
 
 ## v0.6.2 (01/01/1970)
 ## What's Changed
