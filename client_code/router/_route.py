@@ -114,6 +114,9 @@ class Route:
     cache_data = NO_CACHE
     stale_time = 0
     cache_form = False
+    scroll_default = "auto"
+    scroll_document = "default"
+    scroll_manage_elements = False
     server_fn = None
     server_silent = False
     gc_time = 30 * 60
@@ -131,6 +134,10 @@ class Route:
                 cls_dict[key] = value
 
         return type(name, (cls,), cls_dict)
+
+    def scroll_restoration_key(self, location):
+        """Return the string visit key used to save and restore scroll positions."""
+        return location.key
 
     def before_load(self, **loader_args):
         # Use nav_context from loader_args if present, else start with empty dict

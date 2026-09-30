@@ -106,3 +106,27 @@ def test_navigation_keeps_fixed_destination_cached(anchor, monkeypatch):
 
     assert link.href == "/articles"
     convert.assert_not_called()
+
+
+def test_cached_destination_gets_distinct_history_entries(anchor, monkeypatch):
+    from types import SimpleNamespace
+
+    navigation = sys.modules["_routing_link_tests._navigate"]
+    entries = []
+
+    def push(location):
+        fake_history.location = location
+        entries.append(location)
+
+    fake_history = SimpleNamespace(
+        location=Location(path="/start"), push=push, replace=push
+    )
+    monkeypatch.setattr(navigation, "history", fake_history)
+    destination = Location(path="/articles", state={"user": "state"})
+    for _ in range(2):
+        navigation.navigate_with_location(destination)
+        navigation.navigate_with_location(Location(path="/other"))
+
+    assert entries[0].key != entries[2].key
+    assert entries[0].state == entries[2].state == {"user": "state"}
+    assert destination.key not in {entry.key for entry in entries}

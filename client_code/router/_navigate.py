@@ -177,6 +177,13 @@ def navigate_with_location(
         logger.debug("unchanged navigation location - exiting")
         return
 
+    # A cached link location is a destination, not a browser history entry.
+    location = Location(
+        path=location.path,
+        search=location.search,
+        hash=location.hash,
+        state=location.state,
+    )
     if replace:
         history.replace(location)
     else:

@@ -42,7 +42,7 @@ Setting `routes_module` is the simplest way to support discovery on both the cli
 `navigate(path, **kws)`
 `navigate(url, **kws)`
 `navigate(routing_context, **kws)`
-: Navigates to a new page.
+: Navigates to a new page using the destination route's [scroll settings](navigating/index.md#scrolling).
 
 `launch()`
 : Launches the routing library and navigates to the route matching the current URL. Call this in your startup module.

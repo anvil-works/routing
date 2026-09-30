@@ -60,6 +60,15 @@ ContactRoute = Route.create(path="/contact", form="Pages.Contact")
 `pending_min=0.5`
 : The minimum time to show the pending form when the data is loading.
 
+`scroll_default="auto"`
+: Scroll policy for the document and managed panels: `"auto"` scrolls to the fragment or top, `"restore"` uses saved positions when available, and `"none"` leaves scrolling alone. See [Scrolling](../navigating/index.md#scrolling).
+
+`scroll_document="default"`
+: Override the document's policy with `"auto"`, `"restore"`, or `"none"`. `"default"` uses `scroll_default`.
+
+`scroll_manage_elements=False`
+: Set to `True` to manage scrollable elements marked with `data-routing-scroll-id`. Their `data-routing-scroll` attribute can override the route policy. By default, the router leaves elements unmanaged.
+
 `cache_form=False`
 : Whether to cache the route's form. By default this is `False`.
 
@@ -104,7 +113,10 @@ See the navigation documentation for practical usage examples.
 : Called when the route is matched. The return value will be available in the `data` property of the `RoutingContext` instance. By default this returns `None`.
 
 `load_form`
-: This method is called with two arguments. The first argument is a form name (e.g. `"Pages.Index"`) or, if you are using cached forms, the cached form instance. The second argument is the `RoutingContext` instance. By default this calls `anvil.open_form` on the form.
+: This method is called with two arguments. The first argument is a form name (e.g. `"Pages.Index"`) or, if you are using cached forms, the cached form instance. The second argument is the `RoutingContext` instance. By default this calls `anvil.open_form` on the form and returns the instance. Custom implementations must also return the attached destination form for scroll handling.
+
+`scroll_restoration_key(location)`
+: Return a string identifying the visit whose scroll positions should be saved. The default, `location.key`, keeps each browser history entry separate. Return `location.path` to remember the latest position across new link clicks. See [Scrolling](../navigating/index.md#scrolling).
 
 `cache_deps`
 : Returns an object, by default the `query` dictionary (more information in the [query section](query.md) and the [RoutingContext section](../routing-context/index.md)). This method is part of the process of creating caching keys.
