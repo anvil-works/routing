@@ -136,7 +136,7 @@ class AppRoute(Route):
 
 ```html
 <main data-routing-scroll-id="results">...</main>
-<aside data-routing-scroll-id="sidebar" data-routing-scroll="none">...</aside>
+<aside data-routing-scroll-id="sidebar" data-routing-scroll="auto">...</aside>
 ```
 
 `data-routing-scroll-id` registers an area and identifies its saved position. IDs must be nonempty, page-unique and stable across renders. `data-routing-scroll` accepts `default|auto|restore|none`; omitted or `default` inherits `scroll_default`. Elements without an ID are unmanaged. Invalid policies, empty/duplicate IDs and Python `None` policies are errors. With element management off, no element lookups, saving or scrolling occur. Document handling remains independent. Full disable: `scroll_document="none"` and `scroll_manage_elements=False`; explicit policies can override `scroll_default="none"`.

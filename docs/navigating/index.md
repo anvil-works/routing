@@ -305,11 +305,12 @@ class PanelRoute(AppRoute):
 
 ```html
 <main data-routing-scroll-id="results">...</main>
-<aside data-routing-scroll-id="sidebar" data-routing-scroll="none">...</aside>
+<aside data-routing-scroll-id="sidebar" data-routing-scroll="auto">...</aside>
 ```
 
-Here, `results` inherits `scroll_default="restore"` from `AppRoute`; the router
-leaves `sidebar` alone. `data-routing-scroll` accepts `"auto"`, `"restore"`,
+Here, `results` inherits `scroll_default="restore"` from `AppRoute`, while
+`sidebar` uses `"auto"` instead of restoring saved positions. `data-routing-scroll`
+accepts `"auto"`, `"restore"`,
 `"none"`, or `"default"`. Omitting it is the same as `"default"`.
 
 Elements without `data-routing-scroll-id` are unmanaged. With
