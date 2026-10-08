@@ -64,16 +64,17 @@ def _register_form_reloader(form, context):
 
         location_key = history.location.key
 
-        def is_current():
+        def is_current(expected_context):
             return (
                 history.location.key == location_key
                 and anvil.get_open_form() is old_form
-                and RoutingContext._current is context
+                and RoutingContext._current is expected_context
                 and not waiting
+                and not expected_context.revalidating
             )
 
         def reload_form():
-            if not is_current() or context.revalidating:
+            if not is_current(context):
                 raise RuntimeError("Navigation changed while preparing Form reload")
 
             # Constructors register context listeners and blockers. A new context
@@ -88,12 +89,15 @@ def _register_form_reloader(form, context):
             replacement_context._error = context.error
             from .._import_utils import import_form
 
+            # Match normal navigation: constructors and helpers that ask the
+            # router for its current context must see the replacement context.
+            RoutingContext._current = replacement_context
             replacement = import_form(
                 context.route.form,
                 routing_context=replacement_context,
                 **replacement_context.form_properties,
             )
-            if not is_current():
+            if not is_current(replacement_context):
                 raise RuntimeError("Navigation changed during Form reload")
 
             for key, cached_form in list(CACHED_FORMS.items()):
@@ -101,7 +105,6 @@ def _register_form_reloader(form, context):
                     CACHED_FORMS[key] = replacement
             form_to_context.set(replacement, replacement_context)
             form_to_context.delete(old_form)
-            RoutingContext._current = replacement_context
             _register_form_reloader(replacement, replacement_context)
             return replacement
 
