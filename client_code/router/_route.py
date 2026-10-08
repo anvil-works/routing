@@ -153,7 +153,7 @@ class Route:
     def cache_deps(self, **loader_args):
         return loader_args["query"]
 
-    def load_data(self, **loader_args):
+    def load_data(self, **loader_args) -> object:
         return None
 
     def meta(self, **loader_args):
