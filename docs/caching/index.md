@@ -140,3 +140,5 @@ class ArticleForm(ArticleFormTemplate):
         self.remove_from_parent()
         self.routing_context.invalidate(exact=True)
 ```
+
+The live-reload registration names only Routing’s form cache and form/context WeakMap. An unrelated application global or cache retaining the old Form still requires an app reload.

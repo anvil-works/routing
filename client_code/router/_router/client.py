@@ -110,7 +110,8 @@ def _register_form_reloader(form, context):
 
         return reload_form
 
-    register(form, prepare_reload)
+    # This adapter repairs these caches, not arbitrary app globals retaining form.
+    register(form, prepare_reload, [CACHED_FORMS, form_to_context])
 
 
 class _NavigationEmitter(EventEmitter):
