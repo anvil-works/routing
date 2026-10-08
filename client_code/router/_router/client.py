@@ -48,6 +48,68 @@ def get_context(form) -> RoutingContext:
     return rv
 
 
+def _register_form_reloader(form, context):
+    register = getattr(anvil, "_register_live_form_reloader", None)
+    if register is None:
+        return
+
+    def prepare_reload(old_form):
+        if (
+            old_form is not anvil.get_open_form()
+            or context is not RoutingContext._current
+            or context.revalidating
+            or waiting
+        ):
+            return None
+
+        location_key = history.location.key
+
+        def is_current():
+            return (
+                history.location.key == location_key
+                and anvil.get_open_form() is old_form
+                and RoutingContext._current is context
+                and not waiting
+            )
+
+        def reload_form():
+            if not is_current() or context.revalidating:
+                raise RuntimeError("Navigation changed while preparing Form reload")
+
+            # Constructors register context listeners and blockers. A new context
+            # gives the replacement its own registrations instead of retaining
+            # callbacks into the outgoing Form.
+            replacement_context = RoutingContext(
+                match=context.match,
+                data=context.data,
+                nav_context=context.nav_context,
+                form_properties=context.form_properties,
+            )
+            replacement_context._error = context.error
+            from .._import_utils import import_form
+
+            replacement = import_form(
+                context.route.form,
+                routing_context=replacement_context,
+                **replacement_context.form_properties,
+            )
+            if not is_current():
+                raise RuntimeError("Navigation changed during Form reload")
+
+            for key, cached_form in list(CACHED_FORMS.items()):
+                if cached_form is old_form:
+                    CACHED_FORMS[key] = replacement
+            form_to_context.set(replacement, replacement_context)
+            form_to_context.delete(old_form)
+            RoutingContext._current = replacement_context
+            _register_form_reloader(replacement, replacement_context)
+            return replacement
+
+        return reload_form
+
+    register(form, prepare_reload)
+
+
 class _NavigationEmitter(EventEmitter):
     _events = ["navigate", "pending", "idle"]
 
@@ -225,6 +287,12 @@ def _do_navigate(context):
         form_to_context.set(rv, context)
         if route.cache_form:
             CACHED_FORMS[match.key] = rv
+        # A custom load_form can own a nested page or a different reconstruction
+        # boundary; only the ordinary top-level route delegates reload here.
+        from .._route import Route
+
+        if type(route).load_form is Route.load_form:
+            _register_form_reloader(rv, context)
         return rv
 
     except Exception as e:

@@ -22,6 +22,19 @@ class IndexRoute(Route):
     cache_form = True
 ```
 
+### IDE live updates
+
+On Anvil versions with IDE live updates, **Reload form** reconstructs an ordinary
+route's current page and replaces its cached instance. Navigating away and back
+then returns the replacement. The new page receives a fresh routing context with
+the same route and loaded data; its constructor registers fresh event handlers
+and navigation blockers. Python instance state resets.
+
+Reload is unavailable while data is revalidating or a `NavigationBlocker` is
+active. Cached nested pages and custom `load_form()` implementations, including
+`TemplateWithContainerRoute`, require **Refresh app** when reconstruction is
+needed. Older Anvil versions continue to use normal routing behaviour.
+
 ## Data Caching
 
 The routing library can cache data loaded by the `load_data` method. If you are not using the `load_data` method, you can skip this section. For more details, see the [Data Loading](../data-loading/index.md) section.
